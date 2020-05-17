@@ -140,7 +140,8 @@
 <li>1个NULL结束符</li>
 </ul>
 <p>16 + 3 + 44 + 1=64，正好符合一些内存分配器(例如jemalloc)一次性能分配的最大连续内存大小，因而在设计上符合</p>
-<p><img src="https://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/robj_embstr.png?x-oss-process=style/zsfimage" alt=""></p>
+<img src="https://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/robj_embstr.png" style="zoom:50%;" />
+
 <h4 id="设计上的缺点"><a href="#设计上的缺点" class="headerlink" title="设计上的缺点"></a>设计上的缺点</h4><p>SDS虽然支持原生C字符串并且支持动态扩容，但仍有以下两个主要缺点</p>
 <ol>
 <li>很多操作(向字符串追加)需要创建新的SDS对象，这会导致更大的内存分配</li>
@@ -154,18 +155,14 @@
 <li><p>zlentry中encoding字段的存储设计，从大的方面说，encoding字段代表两种编码类型(int和string)，从小的方面看，在两大类型基础上，又将string分为(1,2,5bytes)三种小类型，int分为(1,2,3,4,8bytes)五种小类型</p>
 </li>
 </ol>
-<blockquote>
 <p><zlbytes> <zltail> <zllen> <entry> <entry> … <entry> <zlend></p>
-</blockquote>
 <p>zlbytes：占用4个字节，用于标识ziplist占用的总内存大小</p>
 <p>zltail：占用4个字节标识最后一个entry的内存偏移量，方便进行类似pop之类需要在尾部执行的操作</p>
 <p>zllen：占用2个字节，标识ziplist拥有entry个数</p>
 <p>zlend：占用1个字节，ziplist的结束标识，使用固定值255</p>
 <p>因此一个空的压缩列表由总字节长度(4字节)，尾节点偏移量(4字节)，节点数量(2字节)，以及值为255的特殊结束符(1字节)组成。</p>
 <p>重点是要谈一谈entry的设计：</p>
-<blockquote>
 <p><prevlen> <encoding> <entry-data></p>
-</blockquote>
 <p>prevlen：用来存储前一个entry的长度，这样可以通过减去这个值快速从后向前进行遍历</p>
 <p>encoding：当前entry的编码方式，包含字符串(3种)和数字类型(5种)</p>
 <p>entry-data：保存entry的内容，在encoding为数字型时存在一种情况会被省略</p>
