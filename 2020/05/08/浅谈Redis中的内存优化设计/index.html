@@ -140,7 +140,7 @@
 <li>1个NULL结束符</li>
 </ul>
 <p>16 + 3 + 44 + 1=64，正好符合一些内存分配器(例如jemalloc)一次性能分配的最大连续内存大小，因而在设计上符合</p>
-<img src="https://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/robj_embstr.png" style="zoom:50%;" />
+<img src="https://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/robj_embstr_sds.png" width="314" height="300" />
 
 <h4 id="设计上的缺点"><a href="#设计上的缺点" class="headerlink" title="设计上的缺点"></a>设计上的缺点</h4><p>SDS虽然支持原生C字符串并且支持动态扩容，但仍有以下两个主要缺点</p>
 <ol>
@@ -155,7 +155,7 @@
 <li><p>zlentry中encoding字段的存储设计，从大的方面说，encoding字段代表两种编码类型(int和string)，从小的方面看，在两大类型基础上，又将string分为(1,2,5bytes)三种小类型，int分为(1,2,3,4,8bytes)五种小类型</p>
 </li>
 </ol>
-<p><zlbytes> <zltail> <zllen> <entry> <entry> … <entry> <zlend></p>
+<p><zlbytes> <zltail> <zllen> <entry> <entry> <entry> <zlend></p>
 <p>zlbytes：占用4个字节，用于标识ziplist占用的总内存大小</p>
 <p>zltail：占用4个字节标识最后一个entry的内存偏移量，方便进行类似pop之类需要在尾部执行的操作</p>
 <p>zllen：占用2个字节，标识ziplist拥有entry个数</p>
