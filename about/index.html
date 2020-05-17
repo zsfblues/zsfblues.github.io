@@ -1,22 +1,125 @@
-extends includes/layout.pug
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><meta name="author" content="zsfblues"><meta name="renderer" content="webkit"><meta name="copyright" content="zsfblues"><meta name="keywords" content="zsfblues' blog"><meta name="description" content="IT,互联网"><meta name="Cache-Control" content="no-cache"><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><title>zsfblues' blog</title><link rel="stylesheet" href="/css/style.css?v=2018.7.9"><link rel="stylesheet" href="/css/animation.css?v=2018.7.9"><link rel="icon" href="/img/assets/me.ico"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css?version=1.5.6"><!-- scripts--><script>(function( w ){
+  "use strict";
+  // rel=preload support test
+  if( !w.loadCSS ){
+    w.loadCSS = function(){};
+  }
+  // define on the loadCSS obj
+  var rp = loadCSS.relpreload = {};
+  // rel=preload feature support test
+  // runs once and returns a function for compat purposes
+  rp.support = (function(){
+    var ret;
+    try {
+      ret = w.document.createElement( "link" ).relList.supports( "preload" );
+    } catch (e) {
+      ret = false;
+    }
+    return function(){
+      return ret;
+    };
+  })();
 
-block content
-  if page.type === 'tags'
-    .tag-cloud
-      .tag-cloud__title Tag
-        |  - 
-        span.tag-cloud__amount= site.tags.length
-      .tag-cloud-tags!= tagcloud({min_font: 14, max_font: 30, amount: 200, color: true, start_color: '#A4D8FA', end_color: '#2ac3ff'})
-  else if page.type === 'categories'
-    #post-content
-      .category
-        .category__title Category
-          |  - 
-          span.category__amount= site.categories.length
-        div!= list_categories()
-  else
-    article#page
-      h1= page.title
-      .article-container!= page.content
-  include includes/partial/page-nav.pug
+  // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+  // then change that media back to its intended value on load
+  rp.bindMediaToggle = function( link ){
+    // remember existing media attr for ultimate state, or default to 'all'
+    var finalMedia = link.media || "all";
 
+    function enableStylesheet(){
+      link.media = finalMedia;
+    }
+
+    // bind load handlers to enable media
+    if( link.addEventListener ){
+      link.addEventListener( "load", enableStylesheet );
+    } else if( link.attachEvent ){
+      link.attachEvent( "onload", enableStylesheet );
+    }
+
+    // Set rel and non-applicable media type to start an async request
+    // note: timeout allows this to happen async to let rendering continue in IE
+    setTimeout(function(){
+      link.rel = "stylesheet";
+      link.media = "only x";
+    });
+    // also enable media after 3 seconds,
+    // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+    setTimeout( enableStylesheet, 3000 );
+  };
+
+  // loop through link elements in DOM
+  rp.poly = function(){
+    // double check this to prevent external calls from running
+    if( rp.support() ){
+      return;
+    }
+    var links = w.document.getElementsByTagName( "link" );
+    for( var i = 0; i < links.length; i++ ){
+      var link = links[ i ];
+      // qualify links to those with rel=preload and as=style attrs
+      if( link.rel === "preload" && link.getAttribute( "as" ) === "style" && !link.getAttribute( "data-loadcss" ) ){
+        // prevent rerunning on link
+        link.setAttribute( "data-loadcss", true );
+        // bind listeners to toggle media back
+        rp.bindMediaToggle( link );
+      }
+    }
+  };
+
+  // if unsupported, run the polyfill
+  if( !rp.support() ){
+    // run once at least
+    rp.poly();
+
+    // rerun poly on an interval until onload
+    var run = w.setInterval( rp.poly, 500 );
+    if( w.addEventListener ){
+      w.addEventListener( "load", function(){
+        rp.poly();
+        w.clearInterval( run );
+      } );
+    } else if( w.attachEvent ){
+      w.attachEvent( "onload", function(){
+        rp.poly();
+        w.clearInterval( run );
+      } );
+    }
+  }
+
+
+  // commonjs
+  if( typeof exports !== "undefined" ){
+    exports.loadCSS = loadCSS;
+  }
+  else {
+    w.loadCSS = loadCSS;
+  }
+}( typeof global !== "undefined" ? global : this ) );</script><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js" defer></script><script src="/js/main.js?v=2018.7.9" defer></script><!-- fancybox--><link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" defer></script><!-- busuanzi--><meta name="generator" content="Hexo 4.2.0"></head><body><section class="profile-close" id="cxo-profile"><div class="profile-avatar"><i class="fa fa-caret-left"></i><img src="/img/assets/me.jpg"></div><!--.profile-saying
+  i.fa.fa-comment
+  .saying--><div class="cxo-profile-inner"><div class="profile-name">zsfblues</div><div class="profile-signature">zsfblues' blog</div><div class="read-progress"></div></div></section><header id="cxo-intro" style="height: 70vh;background-image: url(/img/intro/index-bg.png);"><nav id="cxo-intro-nav"><section><div class="intro-nav-title"><a href="/">zsfblues' blog</a></div><div class="intro-nav-label-box"><a href="/">Home</a><a href="/about">About</a><a href="/archives">Archives</a><a href="/tags">Tags</a></div><i class="fa fa-bars intro-nav-menu"><div class="intro-nav-drop"><a href="/">Home</a><a href="/about">About</a><a href="/archives">Archives</a><a href="/tags">Tags</a></div></i><div class="clear"></div></section></nav><h1>zsfblues' blog</h1><h5>魔鬼隐藏在细节中</h5><div class="intro-social"><a class="fa fa-envelope" href="mailto://zhoushengfan1994@163.com" title="email"></a><a class="fa fa-github" href="//github.com/zsfblues" target="_blank" title="github"></a><a class="fa fa-lightbulb-o" href="https://www.zhihu.com/people/zsfblues/" target="_blank" title="lightbulb-o"></a></div></header><article class="cxo-up" id="cxo-content-outer"><section id="cxo-content-inner"><article id="page"><h1></h1><div class="article-container"><h3 id="Chasing-Kites-追风筝"><a href="#Chasing-Kites-追风筝" class="headerlink" title="Chasing Kites(追风筝)"></a>Chasing Kites(追风筝)</h3><blockquote>
+<p>It’s a thin thin line and I walk both sides of it<br>这是一条细细的线 而我走在线的两端</p>
+<p>See the other side, appear so tempting, worth dying for it<br>看到另一头的景色多么诱人 令人渴望</p>
+<p>And your dreams, waking out of one<br>从梦中醒来</p>
+<p>Absorbing your every thought<br>思绪全然被吸收</p>
+<p>Worth risking it all for working its wonders and now for you<br>所有为探索梦想而冒的险 都值得尝试</p>
+<p>Under the ocean, outcast with nowhere to go (nowhere to go, nowhere to go)<br>在大洋的另一头 流浪者无家可归</p>
+<p>A brighter forecast where new winds will blow (we let it go, we let it go)<br>明媚的未来告诉我 新风将至</p>
+<p>A storm is drawing near, come meet me when it’s cleared<br>暴雨将至 终会平静下来 带来清新空气</p>
+<p>Waste my youth chasing kites, I know it’ll blow out of my hand<br>耗费青春来追赶风筝 虽知道其最终仍会飘远</p>
+<p>Put your heads in the sand, there is nothing there to seek<br>埋头于沙中 却一无所获</p>
+<p>No discovery of mine will be safe in these seas<br>汹涌的洋面足以吞没我的新大陆</p>
+<p>You feel a bitter taste on your tongue<br>你能感受到舌尖上的苦涩</p>
+<p>Swallow your every wrong<br>吞下一切过错</p>
+<p>Let yourselves be in your arms<br>深呼吸 让胸脯被罪恶感充斥</p>
+<p>In it are worries now for you<br>我会为你结束一切苦难</p>
+<p>Under the ocean, outcast with nowhere to go (nowhere to go, nowhere to go)<br>在大洋的另一头 流浪者无家可归</p>
+<p>A brighter forecast where new winds will blow (we let it go, we let it go)<br>明媚的未来告诉我 新风将至</p>
+<p>A storm is drawing near, come meet me when it’s cleared<br>正在逼近的暴风雨 到最后会平静下来 使空气清新</p>
+<p>Waste my youth chasing kites, I know it’ll blow out of my hand<br>耗费青春 追赶风筝 我晓得 风筝还是会飘去</p>
+<p>Overlooking our past, letting it go<br>鸟瞰往事 随风而逝</p>
+<p>A brighter forecast, new winds will blow<br>未来光明 新风将至</p>
+<p>A storm is drawing near, come meet me when it’s cleared<br>正逼近的风雨 消散殆尽后依旧是一片清净</p>
+<p>Waste my youth chasing kites, I know we’ll blow<br>趁着年轻去追风筝吧 虽知道其最终仍会飘远</p>
+</blockquote>
+</div></article><nav class="cxo-page-nav"></nav></section></article><footer id="cxo-footer-outer"><div id="cxo-footer-inner"><p class="footer-container"><span>Site by </span><a href="http://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span> | theme </span><a href="https://github.com/Longlongyu/hexo-theme-Cxo" target="_blank" rel="noopener"><span>Cxo</span></a></p></div></footer><!-- catelog--><!-- top--><i class="fa fa-arrow-up close" id="go-up" aria-hidden="true"></i></body></html>

@@ -1,23 +1,151 @@
-extends includes/layout.pug
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><meta name="author" content="zsfblues"><meta name="renderer" content="webkit"><meta name="copyright" content="zsfblues"><meta name="keywords" content="zsfblues' blog"><meta name="description" content="IT,互联网"><meta name="Cache-Control" content="no-cache"><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><title>基础同步框架 - AbstractQueuedSynchronizer · zsfblues' blog</title><link rel="stylesheet" href="/css/style.css?v=2018.7.9"><link rel="stylesheet" href="/css/animation.css?v=2018.7.9"><link rel="icon" href="/img/assets/me.ico"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css?version=1.5.6"><!-- scripts--><script>(function( w ){
+  "use strict";
+  // rel=preload support test
+  if( !w.loadCSS ){
+    w.loadCSS = function(){};
+  }
+  // define on the loadCSS obj
+  var rp = loadCSS.relpreload = {};
+  // rel=preload feature support test
+  // runs once and returns a function for compat purposes
+  rp.support = (function(){
+    var ret;
+    try {
+      ret = w.document.createElement( "link" ).relList.supports( "preload" );
+    } catch (e) {
+      ret = false;
+    }
+    return function(){
+      return ret;
+    };
+  })();
 
-block content
-  article#post.article-entry
-    != page.content
-  // lincense
-  if(theme.copyright.enable === true && page.copyright !== false)
-    .license-wrapper
-      p 
-        span Author:  
-        a(href=config.url)= config.author
-      p 
-        span Link:  
-        a(href=page.permalink)= page.permalink
-      p 
-        span Copyright:  
-        span!= theme.copyright.license
-  include includes/partial/post-nav.pug
-  #comment
-    include includes/comment/livere.pug
-    include includes/comment/disqus.pug
-    include includes/comment/changyan.pug
-    include includes/comment/gitment.pug
+  // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+  // then change that media back to its intended value on load
+  rp.bindMediaToggle = function( link ){
+    // remember existing media attr for ultimate state, or default to 'all'
+    var finalMedia = link.media || "all";
+
+    function enableStylesheet(){
+      link.media = finalMedia;
+    }
+
+    // bind load handlers to enable media
+    if( link.addEventListener ){
+      link.addEventListener( "load", enableStylesheet );
+    } else if( link.attachEvent ){
+      link.attachEvent( "onload", enableStylesheet );
+    }
+
+    // Set rel and non-applicable media type to start an async request
+    // note: timeout allows this to happen async to let rendering continue in IE
+    setTimeout(function(){
+      link.rel = "stylesheet";
+      link.media = "only x";
+    });
+    // also enable media after 3 seconds,
+    // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+    setTimeout( enableStylesheet, 3000 );
+  };
+
+  // loop through link elements in DOM
+  rp.poly = function(){
+    // double check this to prevent external calls from running
+    if( rp.support() ){
+      return;
+    }
+    var links = w.document.getElementsByTagName( "link" );
+    for( var i = 0; i < links.length; i++ ){
+      var link = links[ i ];
+      // qualify links to those with rel=preload and as=style attrs
+      if( link.rel === "preload" && link.getAttribute( "as" ) === "style" && !link.getAttribute( "data-loadcss" ) ){
+        // prevent rerunning on link
+        link.setAttribute( "data-loadcss", true );
+        // bind listeners to toggle media back
+        rp.bindMediaToggle( link );
+      }
+    }
+  };
+
+  // if unsupported, run the polyfill
+  if( !rp.support() ){
+    // run once at least
+    rp.poly();
+
+    // rerun poly on an interval until onload
+    var run = w.setInterval( rp.poly, 500 );
+    if( w.addEventListener ){
+      w.addEventListener( "load", function(){
+        rp.poly();
+        w.clearInterval( run );
+      } );
+    } else if( w.attachEvent ){
+      w.attachEvent( "onload", function(){
+        rp.poly();
+        w.clearInterval( run );
+      } );
+    }
+  }
+
+
+  // commonjs
+  if( typeof exports !== "undefined" ){
+    exports.loadCSS = loadCSS;
+  }
+  else {
+    w.loadCSS = loadCSS;
+  }
+}( typeof global !== "undefined" ? global : this ) );</script><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js" defer></script><script src="/js/main.js?v=2018.7.9" defer></script><!-- fancybox--><link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" defer></script><!-- busuanzi--><meta name="generator" content="Hexo 4.2.0"></head><body><section class="profile-close" id="cxo-profile"><div class="profile-avatar"><i class="fa fa-caret-left"></i><img src="/img/assets/me.jpg"></div><!--.profile-saying
+  i.fa.fa-comment
+  .saying--><div class="cxo-profile-inner"><div class="profile-name">zsfblues</div><div class="profile-signature">zsfblues' blog</div><div class="read-progress"></div></div></section><header id="cxo-intro" style="height: 70vh;background-image: url(/img/intro/index-bg.png);"><nav id="cxo-intro-nav"><section><div class="intro-nav-title"><a href="/">zsfblues' blog</a></div><div class="intro-nav-label-box"><a href="/">Home</a><a href="/about">About</a><a href="/archives">Archives</a><a href="/tags">Tags</a></div><i class="fa fa-bars intro-nav-menu"><div class="intro-nav-drop"><a href="/">Home</a><a href="/about">About</a><a href="/archives">Archives</a><a href="/tags">Tags</a></div></i><div class="clear"></div></section></nav><h1 class="post-title">基础同步框架 - AbstractQueuedSynchronizer</h1><div class="post-intros"><div class="post-intro-meta"><span class="post-intro-time"><i class="post-intro-calendar fa fa-calendar"></i><span>2018/01/21</span></span><span class="post-intro-tags"><a class="intro-tag fa fa-tag" href="javascript:void(0)" date-tags="并发框架"> 并发框架</a><a class="intro-tag fa fa-tag" href="javascript:void(0)" date-tags="队列"> 队列</a></span></div></div></header><article class="cxo-up" id="cxo-content-outer"><section id="cxo-content-inner"><article class="article-entry" id="post"><p>​    AbstractQueuedSynchronizer作为JUC包下面基础同步框架，为很多并发集合的提供许多基础的同步方法，它大体上分为两种同步模式：独占模式(ReentrantLock)以及共享模式(CountDownLatch)，但AbstractQueuedSynchronizer本身并不提供两种模式的具体实现，它的很多方法都交由子类在不同场景下进行按需实现，它最重大的作用实在内部构建一种CLH队列，由内部类 Node作为基础元素，它将入队的线程及其所处的模式关联起来。CLH 中的每个结点都必须由其前驱结点来唤醒。</p>
+<hr>
+<p>​    在AQS内部，通过将线程抽象为一个个Node对象存储在CLH队列之中，通过一个int型对象来标识线程的的状态：</p>
+<blockquote>
+<ol>
+<li>CANCELLED(1) : 表示当前线程已经取消等待(超出等待时间或者由于被中断)，此时线程节点会从队列中移除</li>
+<li>SIGNAL(-1)：表示当前线程是阻塞状态(如果此时是head节点将被唤醒)，在此之前必须释放后继节点</li>
+<li>CONDITION(-2)：放入等待队列中的线程</li>
+<li>PROPAGATE(-3)：在共享模式下，表示当前线程传递当前状态给后续所有等待获取共享资源而进入等待的线程</li>
+</ol>
+</blockquote>
+<h3 id="独占模式-以ReentrantLock为例"><a href="#独占模式-以ReentrantLock为例" class="headerlink" title="独占模式(以ReentrantLock为例)"></a>独占模式(以ReentrantLock为例)</h3><blockquote>
+<p>在ReentrantLock内部主要是实现了非公平锁以及公平锁策略，而独占模式是应用在这两种锁之下的。</p>
+</blockquote>
+<p>以ReentrantLock的 lock 方法作为入口:</p>
+<p>任何尝试获得锁的线程都会先自检锁的持有状态，这个地方利用模板方法模式在tryAcquire中进行，这将由AQS子类来实现，不过都是需要设置exclusiveOwnerThread变量为当前线程引用，在ReentrantLock中为了实现可重入的特性，将AQS中的state定义为持有锁的次数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">acquire</span><span class="params">(<span class="keyword">int</span> arg)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!tryAcquire(arg) &amp;&amp;</span><br><span class="line">      acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) <span class="comment">// 尝试获取锁但失败，则线程被包装成一个Node结点入队</span></span><br><span class="line">    selfInterrupt();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">addWaiter</span><span class="params">(Node mode)</span> </span>&#123;</span><br><span class="line">    Node node = <span class="keyword">new</span> Node(Thread.currentThread(), mode);</span><br><span class="line">    <span class="comment">// 此处为了尽快将结点入队，会首先尝试将当前置为tail，如果未成功的话再执行 enq 方法</span></span><br><span class="line">    Node pred = tail;</span><br><span class="line">    <span class="keyword">if</span> (pred != <span class="keyword">null</span>) &#123;</span><br><span class="line">      node.prev = pred;</span><br><span class="line">      <span class="keyword">if</span> (compareAndSetTail(pred, node)) &#123;</span><br><span class="line">        pred.next = node;</span><br><span class="line">        <span class="keyword">return</span> node;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    enq(node);</span><br><span class="line">    <span class="keyword">return</span> node;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">enq</span><span class="params">(<span class="keyword">final</span> Node node)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 采用自旋的方式入队，此处注意到通过[new Node()]先设置一个逻辑结点来保证队列中至少有一个结点，用来表明此刻已有线程获得锁(不然也到不了这一步)，即head表示占有锁的线程</span></span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">      Node t = tail;</span><br><span class="line">      <span class="keyword">if</span> (t == <span class="keyword">null</span>) &#123; <span class="comment">// Must initialize</span></span><br><span class="line">        <span class="keyword">if</span> (compareAndSetHead(<span class="keyword">new</span> Node()))</span><br><span class="line">          tail = head;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        node.prev = t;</span><br><span class="line">        <span class="keyword">if</span> (compareAndSetTail(t, node)) &#123;</span><br><span class="line">          t.next = node;</span><br><span class="line">          <span class="keyword">return</span> t;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在非公平锁的acquire方法中，作者尝试以一种独占且忽略中断的方式来获取锁(<a href="http://www.infoq.com/cn/articles/java-interrupt-mechanism" target="_blank" rel="noopener"><strong>什么是Java线程的中断机制，见详细分析Java中断机制</strong></a>，而acquireQueued方法中会保证忽视中断(系统中其它线程可能会对词现场发出中断指令，为了线程能按照正常流程获取锁需要忽略)，在acquireQueued内部通过tryAcquire反复尝试获取锁直到成功，线程也可能由于获取锁失败而反复的被阻塞和唤醒。</p>
+<p>入队的一般步骤：</p>
+<ol>
+<li>先尝试以尾插法的模式将Node入队，但当有其他节点进行插入的时候就会导致compareAndSetHead失败</li>
+<li>compareAndSetHead失败则在enq方法中进行自旋方式进行尾插入队直至成功</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">acquireQueued</span><span class="params">(<span class="keyword">final</span> Node node, <span class="keyword">int</span> arg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> failed = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">boolean</span> interrupted = <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="keyword">final</span> Node p = node.predecessor();</span><br><span class="line">        <span class="keyword">if</span> (p == head &amp;&amp; tryAcquire(arg)) &#123;</span><br><span class="line">          setHead(node);</span><br><span class="line">          p.next = <span class="keyword">null</span>; <span class="comment">// help GC</span></span><br><span class="line">          failed = <span class="keyword">false</span>;</span><br><span class="line">          <span class="keyword">return</span> interrupted;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/** </span></span><br><span class="line"><span class="comment">        * 执行下面流程当且仅当 p != head 或者 p == head但是tryAcquire失败了，那么</span></span><br><span class="line"><span class="comment">        * 在shouldParkAfterFailedAcquire会去检查前继的waitStaus是否为SIGNAL，</span></span><br><span class="line"><span class="comment">        * 因为CLH的特性要求结点必须由其前继唤醒，因而为了保证结点在</span></span><br><span class="line"><span class="comment">        * 阻塞后还能继续被唤醒反复竞争锁，需要检测并最终将前继结点waitStaus置为SIGNAL</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">        <span class="keyword">if</span> (shouldParkAfterFailedAcquire(p, node) &amp;&amp;</span><br><span class="line">            parkAndCheckInterrupt())</span><br><span class="line">          <span class="comment">// 一个线程解除阻塞状态只有两种可能：前继unpark或线程被中断</span></span><br><span class="line">          <span class="comment">// 线程被中断之后会继续走到if处去判断，也就是会忽视中断，但需要保留中断状态并返回到上级调用者</span></span><br><span class="line">          interrupted = <span class="keyword">true</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (failed)</span><br><span class="line">        cancelAcquire(node);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出线程获取锁是一个自旋的过程，当且仅当当前节点的前驱节点是头结点并且成功获得同步状态时才能跳出循环，之前则会陷入阻塞直至前驱节点唤醒</p>
+<h3 id="共享模式-以CountDownLatch为例"><a href="#共享模式-以CountDownLatch为例" class="headerlink" title="共享模式(以CountDownLatch为例)"></a>共享模式(以CountDownLatch为例)</h3><blockquote>
+<p>CountDownLatch作为一个多用途<strong>(versatile)</strong>基础同步工具，内部通过一个计数器<strong>(不可重用)</strong>来维护一组线程的同步状态。在计数器归零之前，调用 await 方法将会使得多个线程阻塞。一般而言，其主要作用：</p>
+<ol>
+<li>通过latch一个或多个线程等待其它线程操作完成后才进行接下来的操作(线程中断除外)</li>
+<li>将任务进行拆分并分发到不同的线程中完成(考虑用线程池管理)</li>
+</ol>
+</blockquote>
+<p>分析AQS的共享模式，发现第一步同样市尝试获取锁，如果没有成功的话就入队:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doAcquireSharedInterruptibly</span><span class="params">(<span class="keyword">int</span> arg)</span></span></span><br><span class="line"><span class="function">       <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">  		<span class="comment">// 这个Node.SHARED仔细看与独占模式最大的不同是全局共享对象，当一个闭锁对象调用await方法时</span></span><br><span class="line">  		<span class="comment">// 当前调用线程将与这个全局唯一的Node对象关联起来(独占模式没有关联具体Node，一个线程就是一个Node)并一起入队</span></span><br><span class="line">  		<span class="comment">// 这样设计的目的就是需要所有在队列中并处于共享模式的结点都能尽快在第一时间内被唤醒</span></span><br><span class="line">       <span class="keyword">final</span> Node node = addWaiter(Node.SHARED);</span><br><span class="line">       <span class="keyword">boolean</span> failed = <span class="keyword">true</span>;</span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">           <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">               <span class="keyword">final</span> Node p = node.predecessor();</span><br><span class="line">               <span class="keyword">if</span> (p == head) &#123;</span><br><span class="line">                 	<span class="comment">// 获取锁的过程在CountDownLatch中就是检查计数器(state变量)是否归零</span></span><br><span class="line">                 	<span class="comment">// 这个state变量在不同的并发集合下有不同的含义，比如ReentrantLock中，表示加锁的次数</span></span><br><span class="line">                   <span class="keyword">int</span> r = tryAcquireShared(arg);</span><br><span class="line">                 	<span class="comment">// 头结点获取锁成功，需要唤醒后继结点</span></span><br><span class="line">                   <span class="keyword">if</span> (r &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">                       setHeadAndPropagate(node, r);</span><br><span class="line">                       p.next = <span class="keyword">null</span>; <span class="comment">// help GC</span></span><br><span class="line">                       failed = <span class="keyword">false</span>;</span><br><span class="line">                       <span class="keyword">return</span>;</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;</span><br><span class="line">               <span class="keyword">if</span> (shouldParkAfterFailedAcquire(p, node) &amp;&amp;</span><br><span class="line">                   parkAndCheckInterrupt())</span><br><span class="line">                   <span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">           &#125;</span><br><span class="line">       &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">           <span class="keyword">if</span> (failed)</span><br><span class="line">               cancelAcquire(node);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code>仔细分析一下可以发现，CountDownLatch的共享模式是通过 getState() 方法实现的，而这个方法的调用往往实在不同的线程中执行，每个线程都会检测state变量是否归零，state在某种意义上承担了共享锁的职责。</code></pre><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">setHeadAndPropagate</span><span class="params">(Node node, <span class="keyword">int</span> propagate)</span> </span>&#123;</span><br><span class="line">        Node h = head; <span class="comment">// Record old head for check below</span></span><br><span class="line">        setHead(node);</span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * 在唤醒后继结点的过程中，需要满足以下状况：</span></span><br><span class="line"><span class="comment">         *  1. 前一个结点获取许可成功</span></span><br><span class="line"><span class="comment">         *  2. 之前的操作将此结点的waitStatus设为PROPAGATE，SIGNAL</span></span><br><span class="line"><span class="comment">         *  3. 其它某些未知因素导致的结点为 null</span></span><br><span class="line"><span class="comment">         *  当然，最主要的还是要保证该结点一定始终处于共享状态</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">if</span> (propagate &gt; <span class="number">0</span> || h == <span class="keyword">null</span> || h.waitStatus &lt; <span class="number">0</span> ||</span><br><span class="line">            (h = head) == <span class="keyword">null</span> || h.waitStatus &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            Node s = node.next;</span><br><span class="line">            <span class="keyword">if</span> (s == <span class="keyword">null</span> || s.isShared())</span><br><span class="line">              	<span class="comment">// 不管是共享还是独占只有结点状态为SIGNAL才尝试唤醒后继结点</span></span><br><span class="line">              	<span class="comment">// 释放过程需要检查是否有其他线程也在尝试唤醒(通过头结点的变化)</span></span><br><span class="line">              	<span class="comment">// 长循环的目的主要用于可以释放新加入的结点</span></span><br><span class="line">                doReleaseShared();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doReleaseShared</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        Node h = head;</span><br><span class="line">        <span class="keyword">if</span> (h != <span class="keyword">null</span> &amp;&amp; h != tail) &#123;</span><br><span class="line">          <span class="keyword">int</span> ws = h.waitStatus;</span><br><span class="line">          <span class="comment">// 检查为SIGNAL表明自身被唤醒同时需要唤醒后继结点并重置其状态(避免重复唤醒)</span></span><br><span class="line">          <span class="keyword">if</span> (ws == Node.SIGNAL) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!compareAndSetWaitStatus(h, Node.SIGNAL, <span class="number">0</span>))</span><br><span class="line">              <span class="keyword">continue</span>;            </span><br><span class="line">            unparkSuccessor(h);</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="comment">// 在多线程环境下呼应上一个if条件，在前继结点状态重置成功后要将需要唤醒的状态传给下一结点</span></span><br><span class="line">          <span class="keyword">else</span> <span class="keyword">if</span> (ws == <span class="number">0</span> &amp;&amp;</span><br><span class="line">                   !compareAndSetWaitStatus(h, <span class="number">0</span>, Node.PROPAGATE))</span><br><span class="line">            <span class="keyword">continue</span>;                </span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (h == head)                   <span class="comment">// loop if head changed</span></span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>AQS 实际上并不关心当前是什么锁(那是其子类需要关心的)，对于AQS来说它只是实现了一系列的用于判断“资源”是否可以访问的API，并且封装了在“访问资源”受限时将请求访问的线程的加入队列、挂起、唤醒等操作。ReentrantLock实现的独占锁主要通过 state 是否为0或者当前线程是否已经持有锁(实现可重入的特性)，再将不合条件的线程挂起，入队；而CountDownLatch则只考虑state是否为0(计数器归零)</p>
+</article><!-- lincense--><div class="license-wrapper"><p> <span>Author:  </span><a href="http://zsfblues.github.io">zsfblues</a></p><p> <span>Link:  </span><a href="http://zsfblues.github.io/2018/01/21/%E5%9F%BA%E7%A1%80%E5%90%8C%E6%AD%A5%E6%A1%86%E6%9E%B6-AbstractQueuedSynchronizer/">http://zsfblues.github.io/2018/01/21/%E5%9F%BA%E7%A1%80%E5%90%8C%E6%AD%A5%E6%A1%86%E6%9E%B6-AbstractQueuedSynchronizer/</a></p><p> <span>Copyright:  </span><span>All articles in this blog are licensed under <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/3.0" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.</span></p></div><div class="post-paginator"><a class="prevSlogan" href="/2018/02/04/Spring-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E5%B0%8F%E7%BB%93/" title="Spring 异常处理机制小结"><span>< PreviousPost</span><br><span class="prevTitle">Spring 异常处理机制小结</span></a><a class="nextSlogan" href="/2016/09/03/%E6%9C%89%E5%BA%8F%E7%9A%84HashMap-LinkedHashMap/" title="有序的HashMap-LinkedHashMap"><span>NextPost ></span><br><span class="nextTitle">有序的HashMap-LinkedHashMap</span></a><div class="clear"></div></div><div id="comment"><div id="container"></div><link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css"><script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script><script>var gitment = new Gitment({
+  id: '基础同步框架 - AbstractQueuedSynchronizer',
+  owner: '9928627',
+  repo: 'zsfblues.github.io',
+  oauth: {
+    client_id: '27ef90191eda06aadd5b',
+    client_secret: 'f2ed675c18da0938f480e4eef3cf44d480f6d801',
+  },
+})
+gitment.render('container')</script></div></section></article><footer id="cxo-footer-outer"><div id="cxo-footer-inner"><p class="footer-container"><span>Site by </span><a href="http://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span> | theme </span><a href="https://github.com/Longlongyu/hexo-theme-Cxo" target="_blank" rel="noopener"><span>Cxo</span></a></p></div></footer><!-- catelog--><div class="toc-wrapper" style="top: 70vh;"><div class="toc-catalog"><i class="fa fa-list"> </i><span>CATALOG</span></div><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#独占模式-以ReentrantLock为例"><span class="toc-number">1.</span> <span class="toc-text">独占模式(以ReentrantLock为例)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#共享模式-以CountDownLatch为例"><span class="toc-number">2.</span> <span class="toc-text">共享模式(以CountDownLatch为例)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#总结"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li></ol></div><!-- top--><i class="fa fa-arrow-up close" id="go-up" aria-hidden="true"></i></body></html>

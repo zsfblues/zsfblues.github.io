@@ -1,23 +1,135 @@
-extends includes/layout.pug
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><meta name="author" content="zsfblues"><meta name="renderer" content="webkit"><meta name="copyright" content="zsfblues"><meta name="keywords" content="zsfblues' blog"><meta name="description" content="IT,互联网"><meta name="Cache-Control" content="no-cache"><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><title>有序的HashMap-LinkedHashMap · zsfblues' blog</title><link rel="stylesheet" href="/css/style.css?v=2018.7.9"><link rel="stylesheet" href="/css/animation.css?v=2018.7.9"><link rel="icon" href="/img/assets/me.ico"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css?version=1.5.6"><!-- scripts--><script>(function( w ){
+  "use strict";
+  // rel=preload support test
+  if( !w.loadCSS ){
+    w.loadCSS = function(){};
+  }
+  // define on the loadCSS obj
+  var rp = loadCSS.relpreload = {};
+  // rel=preload feature support test
+  // runs once and returns a function for compat purposes
+  rp.support = (function(){
+    var ret;
+    try {
+      ret = w.document.createElement( "link" ).relList.supports( "preload" );
+    } catch (e) {
+      ret = false;
+    }
+    return function(){
+      return ret;
+    };
+  })();
 
-block content
-  article#post.article-entry
-    != page.content
-  // lincense
-  if(theme.copyright.enable === true && page.copyright !== false)
-    .license-wrapper
-      p 
-        span Author:  
-        a(href=config.url)= config.author
-      p 
-        span Link:  
-        a(href=page.permalink)= page.permalink
-      p 
-        span Copyright:  
-        span!= theme.copyright.license
-  include includes/partial/post-nav.pug
-  #comment
-    include includes/comment/livere.pug
-    include includes/comment/disqus.pug
-    include includes/comment/changyan.pug
-    include includes/comment/gitment.pug
+  // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+  // then change that media back to its intended value on load
+  rp.bindMediaToggle = function( link ){
+    // remember existing media attr for ultimate state, or default to 'all'
+    var finalMedia = link.media || "all";
+
+    function enableStylesheet(){
+      link.media = finalMedia;
+    }
+
+    // bind load handlers to enable media
+    if( link.addEventListener ){
+      link.addEventListener( "load", enableStylesheet );
+    } else if( link.attachEvent ){
+      link.attachEvent( "onload", enableStylesheet );
+    }
+
+    // Set rel and non-applicable media type to start an async request
+    // note: timeout allows this to happen async to let rendering continue in IE
+    setTimeout(function(){
+      link.rel = "stylesheet";
+      link.media = "only x";
+    });
+    // also enable media after 3 seconds,
+    // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+    setTimeout( enableStylesheet, 3000 );
+  };
+
+  // loop through link elements in DOM
+  rp.poly = function(){
+    // double check this to prevent external calls from running
+    if( rp.support() ){
+      return;
+    }
+    var links = w.document.getElementsByTagName( "link" );
+    for( var i = 0; i < links.length; i++ ){
+      var link = links[ i ];
+      // qualify links to those with rel=preload and as=style attrs
+      if( link.rel === "preload" && link.getAttribute( "as" ) === "style" && !link.getAttribute( "data-loadcss" ) ){
+        // prevent rerunning on link
+        link.setAttribute( "data-loadcss", true );
+        // bind listeners to toggle media back
+        rp.bindMediaToggle( link );
+      }
+    }
+  };
+
+  // if unsupported, run the polyfill
+  if( !rp.support() ){
+    // run once at least
+    rp.poly();
+
+    // rerun poly on an interval until onload
+    var run = w.setInterval( rp.poly, 500 );
+    if( w.addEventListener ){
+      w.addEventListener( "load", function(){
+        rp.poly();
+        w.clearInterval( run );
+      } );
+    } else if( w.attachEvent ){
+      w.attachEvent( "onload", function(){
+        rp.poly();
+        w.clearInterval( run );
+      } );
+    }
+  }
+
+
+  // commonjs
+  if( typeof exports !== "undefined" ){
+    exports.loadCSS = loadCSS;
+  }
+  else {
+    w.loadCSS = loadCSS;
+  }
+}( typeof global !== "undefined" ? global : this ) );</script><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js" defer></script><script src="/js/main.js?v=2018.7.9" defer></script><!-- fancybox--><link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" defer></script><!-- busuanzi--><meta name="generator" content="Hexo 4.2.0"></head><body><section class="profile-close" id="cxo-profile"><div class="profile-avatar"><i class="fa fa-caret-left"></i><img src="/img/assets/me.jpg"></div><!--.profile-saying
+  i.fa.fa-comment
+  .saying--><div class="cxo-profile-inner"><div class="profile-name">zsfblues</div><div class="profile-signature">zsfblues' blog</div><div class="read-progress"></div></div></section><header id="cxo-intro" style="height: 70vh;background-image: url(/img/intro/index-bg.png);"><nav id="cxo-intro-nav"><section><div class="intro-nav-title"><a href="/">zsfblues' blog</a></div><div class="intro-nav-label-box"><a href="/">Home</a><a href="/about">About</a><a href="/archives">Archives</a><a href="/tags">Tags</a></div><i class="fa fa-bars intro-nav-menu"><div class="intro-nav-drop"><a href="/">Home</a><a href="/about">About</a><a href="/archives">Archives</a><a href="/tags">Tags</a></div></i><div class="clear"></div></section></nav><h1 class="post-title">有序的HashMap-LinkedHashMap</h1><div class="post-intros"><div class="post-intro-meta"><span class="post-intro-time"><i class="post-intro-calendar fa fa-calendar"></i><span>2016/09/03</span></span><span class="post-intro-tags"><a class="intro-tag fa fa-tag" href="javascript:void(0)" date-tags="集合框架"> 集合框架</a></span></div></div></header><article class="cxo-up" id="cxo-content-outer"><section id="cxo-content-inner"><article class="article-entry" id="post"><p>​    LinkedHashMap作为一个可以按插入顺序遍历的Map集合，在许多功能上和HashMap是重叠，这也难怪，谁叫LinkedHashMap是HashMap的子类。不仅如此，LinkedHashMap还可以根据近期访问某个键值对的顺序（从近期访问最少到近期访问最多的顺序）来遍历元素，这可让需要利用LRU方法进行缓存结果的用户提供一个新的解决方案。</p>
+<hr>
+<p>LinkedHashMap中有一个核心元素：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Entry</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt; <span class="keyword">extends</span> <span class="title">HashMap</span>.<span class="title">Node</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt; </span>&#123;</span><br><span class="line">      Entry&lt;K,V&gt; before, after;</span><br><span class="line">      Entry(<span class="keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; next) &#123;</span><br><span class="line">          <span class="keyword">super</span>(hash, key, value, next);</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code>熟悉LinkedList的人都看出来这是一个用于构造双向链表的结点元素，其中before，after结点分别代表当前entry的前后结点，它是和其父类Node关联起来，一个Entry对应一个Node 先看看下面的程序：</code></pre><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">      LinkedHashMap&lt;String, Integer&gt; map = <span class="keyword">new</span> LinkedHashMap&lt;&gt;();</span><br><span class="line">      map.put(<span class="string">"2"</span>, <span class="number">1</span>);</span><br><span class="line">      map.put(<span class="string">"1"</span>, <span class="number">2</span>);</span><br><span class="line">      map.put(<span class="string">"0"</span>, <span class="number">3</span>);</span><br><span class="line">      map.put(<span class="string">"2"</span>, <span class="number">12</span>);</span><br><span class="line">      map.put(<span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">      Set&lt;Map.Entry&lt;String, Integer&gt;&gt; keys = map.entrySet();</span><br><span class="line">      <span class="keyword">for</span> (Map.Entry entry : keys)</span><br><span class="line">          System.out.println(<span class="string">"key: "</span> + entry.getKey() + <span class="string">" value: "</span> + entry.getValue());</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来的是结果：</p>
+<blockquote>
+<p>key: 2 value: 12<br>key: 1 value: 2<br>key: 0 value: 3<br>key: null value: null</p>
+</blockquote>
+<p>拜托，这样的程序还需要演示一遍-_-#<br>断点跟踪一下，发现put方法在LinkedHashMap中是没有重写，而是直接用了HashMap的put方法((+﹏+)~狂晕,那还怎么保证有序的插入，毕竟大家都知道HashMap中的元素是按hash值以及是否冲突来确定位置的)…too young too navie, Api的编写者还会玩套路，跟进putVal方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> V <span class="title">putVal</span><span class="params">(<span class="keyword">int</span> hash, K key, V value, <span class="keyword">boolean</span> onlyIfAbsent,</span></span></span><br><span class="line"><span class="function"><span class="params">                <span class="keyword">boolean</span> evict)</span> </span>&#123;</span><br><span class="line">     Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; p; <span class="keyword">int</span> n, i;</span><br><span class="line">     <span class="keyword">if</span> ((tab = table) == <span class="keyword">null</span> || (n = tab.length) == <span class="number">0</span>)</span><br><span class="line">         n = (tab = resize()).length;</span><br><span class="line">     <span class="keyword">if</span> ((p = tab[i = (n - <span class="number">1</span>) &amp; hash]) == <span class="keyword">null</span>)</span><br><span class="line">         tab[i] = newNode(hash, key, value, <span class="keyword">null</span>);</span><br><span class="line">     <span class="keyword">else</span> &#123;</span><br><span class="line">         Node&lt;K,V&gt; e; K k;</span><br><span class="line">         <span class="keyword">if</span> (p.hash == hash &amp;&amp;</span><br><span class="line">             ((k = p.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k))))</span><br><span class="line">             e = p;</span><br><span class="line">         <span class="keyword">else</span> <span class="keyword">if</span> (p <span class="keyword">instanceof</span> TreeNode)</span><br><span class="line">             e = ((TreeNode&lt;K,V&gt;)p).putTreeVal(<span class="keyword">this</span>, tab, hash, key, value);</span><br><span class="line">         <span class="keyword">else</span> &#123;</span><br><span class="line">             <span class="keyword">for</span> (<span class="keyword">int</span> binCount = <span class="number">0</span>; ; ++binCount) &#123;</span><br><span class="line">                 <span class="keyword">if</span> ((e = p.next) == <span class="keyword">null</span>) &#123;</span><br><span class="line">                     p.next = newNode(hash, key, value, <span class="keyword">null</span>);</span><br><span class="line">                     <span class="keyword">if</span> (binCount &gt;= TREEIFY_THRESHOLD - <span class="number">1</span>) <span class="comment">// -1 for 1st</span></span><br><span class="line">                         treeifyBin(tab, hash);</span><br><span class="line">                     <span class="keyword">break</span>;</span><br><span class="line">                 &#125;</span><br><span class="line">                 <span class="keyword">if</span> (e.hash == hash &amp;&amp;</span><br><span class="line">                     ((k = e.key) == key || (key != <span class="keyword">null</span> &amp;&amp; key.equals(k))))</span><br><span class="line">                     <span class="keyword">break</span>;</span><br><span class="line">                 p = e;</span><br><span class="line">             &#125;</span><br><span class="line">         &#125;</span><br><span class="line">         <span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123; <span class="comment">// existing mapping for key</span></span><br><span class="line">             V oldValue = e.value;</span><br><span class="line">             <span class="keyword">if</span> (!onlyIfAbsent || oldValue == <span class="keyword">null</span>)</span><br><span class="line">                 e.value = value;</span><br><span class="line">             afterNodeAccess(e);</span><br><span class="line">             <span class="keyword">return</span> oldValue;</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     ++modCount;</span><br><span class="line">     <span class="keyword">if</span> (++size &gt; threshold)</span><br><span class="line">         resize();</span><br><span class="line">     afterNodeInsertion(evict);</span><br><span class="line">     <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>先瞄准这一行：tab[i] = newNode(hash, key, value, null);在LinkedHashMap内部重写newNode方法，而且在LinkedHashMap中并没有调用它，看来是准备在这里用啊！</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Node&lt;K,V&gt; <span class="title">newNode</span><span class="params">(<span class="keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; e)</span> </span>&#123;</span><br><span class="line">       LinkedHashMap.Entry&lt;K,V&gt; p =</span><br><span class="line">           <span class="keyword">new</span> LinkedHashMap.Entry&lt;K,V&gt;(hash, key, value, e);</span><br><span class="line">       linkNodeLast(p);</span><br><span class="line">       <span class="keyword">return</span> p;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">     <span class="comment">// link at the end of list</span></span><br><span class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">linkNodeLast</span><span class="params">(LinkedHashMap.Entry&lt;K,V&gt; p)</span> </span>&#123;</span><br><span class="line">       LinkedHashMap.Entry&lt;K,V&gt; last = tail;</span><br><span class="line">       tail = p;</span><br><span class="line">       <span class="keyword">if</span> (last == <span class="keyword">null</span>)</span><br><span class="line">           head = p;</span><br><span class="line">       <span class="keyword">else</span> &#123;</span><br><span class="line">           p.before = last;</span><br><span class="line">           last.after = p;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code>很熟悉的代码，在一个双向链表中插入一个结点，用于保证LinkedHashMap有序访问元素，就不用多加说明了。 然后再看到后面的 afterNodeAccess(e)和afterNodeInsertion(evict)，随便跟一个进去： </code></pre><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Callbacks to allow LinkedHashMap post-actions</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">afterNodeAccess</span><span class="params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">afterNodeInsertion</span><span class="params">(<span class="keyword">boolean</span> evict)</span> </span>&#123; &#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">afterNodeRemoval</span><span class="params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code>最后来了这么一手，这三个方法在HashMap中时没什么意义的，它主要由其子类LinkedHashMap来添加访问结点后的一些动作，接着进入LinkedHashMap中：</code></pre><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">afterNodeAccess</span><span class="params">(Node&lt;K,V&gt; e)</span> </span>&#123; <span class="comment">// move node to last</span></span><br><span class="line">       LinkedHashMap.Entry&lt;K,V&gt; last;</span><br><span class="line">       <span class="keyword">if</span> (accessOrder &amp;&amp; (last = tail) != e) &#123;</span><br><span class="line">           <span class="comment">//将结点e的前后元素暂存，同时将p指向e</span></span><br><span class="line">           LinkedHashMap.Entry&lt;K,V&gt; p =</span><br><span class="line">               (LinkedHashMap.Entry&lt;K,V&gt;)e, b = p.before, a = p.after;</span><br><span class="line">           p.after = <span class="keyword">null</span>;</span><br><span class="line">           <span class="comment">//e无前置元素</span></span><br><span class="line">           <span class="keyword">if</span> (b == <span class="keyword">null</span>)</span><br><span class="line">               head = a;</span><br><span class="line">           <span class="keyword">else</span></span><br><span class="line">               b.after = a;</span><br><span class="line">           <span class="comment">//e无后置元素</span></span><br><span class="line">           <span class="keyword">if</span> (a != <span class="keyword">null</span>)</span><br><span class="line">               a.before = b;</span><br><span class="line">           <span class="keyword">else</span></span><br><span class="line">               last = b;</span><br><span class="line">           <span class="comment">//链表无元素</span></span><br><span class="line">           <span class="keyword">if</span> (last == <span class="keyword">null</span>)</span><br><span class="line">               head = p;</span><br><span class="line">           <span class="keyword">else</span> &#123;</span><br><span class="line">               p.before = last;</span><br><span class="line">               last.after = p;</span><br><span class="line">           &#125;</span><br><span class="line">           tail = p;</span><br><span class="line">           ++modCount;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>重点先关一下这个accessOrder变量，之前曾经提到过LinkedHashMap可以根据近期对某一个元素的访问顺序来进行排序，类似于LRU算法，而这个结点e可以认为是在插入结点时某个待比较的元素，它可以是链表中任意一个元素(包括新插入的元素)，每次插入元素，e就相当于被访问一次(当然，通过get方法获取元素也相当于访问一次)，在LinkedHashMap中就要移动到最后一个位置，在拿之前的程序，用另一个构造函数实例化LinkedHashMap对象，结果如下：</p>
+<blockquote>
+<p>key: 1 value: 2<br>key: 0 value: 3<br>key: 2 value: 12</p>
+</blockquote>
+<p>可以看到，最后访问了一次key为”2”的元素导致其向后移动，可见谁最后访问，谁在链表中的位置就越靠后</p>
+</article><!-- lincense--><div class="license-wrapper"><p> <span>Author:  </span><a href="http://zsfblues.github.io">zsfblues</a></p><p> <span>Link:  </span><a href="http://zsfblues.github.io/2016/09/03/%E6%9C%89%E5%BA%8F%E7%9A%84HashMap-LinkedHashMap/">http://zsfblues.github.io/2016/09/03/%E6%9C%89%E5%BA%8F%E7%9A%84HashMap-LinkedHashMap/</a></p><p> <span>Copyright:  </span><span>All articles in this blog are licensed under <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/3.0" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.</span></p></div><div class="post-paginator"><a class="prevSlogan" href="/2018/01/21/%E5%9F%BA%E7%A1%80%E5%90%8C%E6%AD%A5%E6%A1%86%E6%9E%B6-AbstractQueuedSynchronizer/" title="基础同步框架 - AbstractQueuedSynchronizer"><span>< PreviousPost</span><br><span class="prevTitle">基础同步框架 - AbstractQueuedSynchronizer</span></a><a class="nextSlogan" href="/2016/07/20/ThreadPoolExecutor%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/" title="ThreadPoolExecutor的原理和设计思想"><span>NextPost ></span><br><span class="nextTitle">ThreadPoolExecutor的原理和设计思想</span></a><div class="clear"></div></div><div id="comment"><div id="container"></div><link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css"><script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script><script>var gitment = new Gitment({
+  id: '有序的HashMap-LinkedHashMap',
+  owner: '9928627',
+  repo: 'zsfblues.github.io',
+  oauth: {
+    client_id: '27ef90191eda06aadd5b',
+    client_secret: 'f2ed675c18da0938f480e4eef3cf44d480f6d801',
+  },
+})
+gitment.render('container')</script></div></section></article><footer id="cxo-footer-outer"><div id="cxo-footer-inner"><p class="footer-container"><span>Site by </span><a href="http://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span> | theme </span><a href="https://github.com/Longlongyu/hexo-theme-Cxo" target="_blank" rel="noopener"><span>Cxo</span></a></p></div></footer><!-- catelog--><div class="toc-wrapper" style="top: 70vh;"><div class="toc-catalog"><i class="fa fa-list"> </i><span>CATALOG</span></div></div><!-- top--><i class="fa fa-arrow-up close" id="go-up" aria-hidden="true"></i></body></html>
