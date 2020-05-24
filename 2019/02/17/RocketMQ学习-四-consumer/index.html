@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/me.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IT,互联网">
+  <meta name="author" content="zsfblues">
+  <meta name="keywords" content="">
+  <title>RocketMQ学习-四-consumer - zsfblues&#39; blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark.min.css" />
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>zsfblues</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="iconfont icon-home-fill"></i>
+              首页</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">
+              <i class="iconfont icon-archive-fill"></i>
+              归档</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">
+              <i class="iconfont icon-category-fill"></i>
+              分类</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">
+              <i class="iconfont icon-tags-fill"></i>
+              标签</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">
+              <i class="iconfont icon-user-fill"></i>
+              关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/index-bg.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <div class="mt-3 post-meta">
+                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+                  <time datetime="2019-02-17 20:39">
+                    2019年2月17日 晚上
+                  </time>
+                </div>
+              
+
+              <div class="mt-1">
+                
+                  
+                  <span class="post-meta mr-2">
+                    <i class="iconfont icon-chart"></i>
+                    4.1k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta mr-2">
+                      <i class="iconfont icon-clock-fill"></i>
+                    
+                    
+                    57
+                     分钟
+                  </span>
+                
+
+                
+              </div>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <article class="markdown-body">
+              <hr>
+<p>​    作为消息中间件的重要组成部分，消费者的作用的主要在于下游接收producer产生的消息数据，以便在业务系统中处理相应的逻辑。</p>
+<p>它的整个消费流程借用某位大牛的图片：</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g0goksd761j31ly0wedwi.jpg" srcset="/img/loading.gif" alt="consumer消费流程图"></p>
+<p>​    消息的消费模型一般说来有两种：推模型(Push)和拉模型(Pull)，不过这两种常规的模型都有着一些问题，push模型一般由消息的推送者在发出新消息后主动对下游的消费者进行推送，如果推送的速率过快导致消费方消费不过来(比如下游有一些IO操作，或者请求三方服务的操作相对耗时)就会导致消费方负载过高，这时候推送方又不能及时了解下游消费方的状态(实现这点往往又会增加推送方的复杂度)，有可能会导致下游宕机。而传统的pull模型如果希望有较好的实时性的话，就需要不断轮询推送方以便获取最新的消息，这样又会导致推送方负载过高。在这两种传统模型都存在明显缺点情况下，RocketMQ(以下简称rmq)在实现消息消费时采用是一种<strong>长轮询</strong>，来平衡 Pull/Push 模型各自的缺点，基本方式是：消费方如果尝试拉取失败，并不会立即返回响应结果(但也会设置超时等待时间)，而是把请求挂在那里 wait(也可以理解为保存在服务方那边)，如果有新的消息到来，把请求拉起，返回最新消息。</p>
+<hr>
+<h3 id="一-消费者启动"><a href="#一-消费者启动" class="headerlink" title="一. 消费者启动"></a>一. 消费者启动</h3><p>​    rmq消费也实现了push和pull模型，不过push也是实现了长轮询的一种pull，因为push对业务方实现较为简单，也是大部分情况下首选的消费模型，所以这里以push模型来讲，可以以官方demo来切入。</p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Consumer</span> </span>&#123;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException, MQClientException </span>&#123;
+
+        DefaultMQPushConsumer consumer = <span class="hljs-keyword">new</span> DefaultMQPushConsumer(<span class="hljs-string">"test-consumer-group"</span>);
+        consumer.setNamesrvAddr(<span class="hljs-string">"127.0.0.1:9876;"</span>);
+    
+        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
+
+        consumer.subscribe(<span class="hljs-string">"TopicTest"</span>, <span class="hljs-string">"*"</span>);
+
+        consumer.registerMessageListener(<span class="hljs-keyword">new</span> MessageListenerConcurrently() &#123;
+
+            <span class="hljs-meta">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> ConsumeConcurrentlyStatus <span class="hljs-title">consumeMessage</span><span class="hljs-params">(List&lt;MessageExt&gt; msgs,</span></span>
+<span class="hljs-function"><span class="hljs-params">                ConsumeConcurrentlyContext context)</span> </span>&#123;
+                System.out.printf(<span class="hljs-string">"%s Receive New Messages: %s %n"</span>, Thread.currentThread().getName(), msgs);
+                <span class="hljs-keyword">return</span> ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+            &#125;
+        &#125;);
+
+        consumer.start();
+
+        System.out.printf(<span class="hljs-string">"Consumer Started.%n"</span>);
+    &#125;
+&#125;</code></pre>
+
+<p>​    可以看见消费方实例化一个消费者实例，确定好需要订阅的topic和tag，并指定好namesrv地址。messageListener则是一个监听回调类，用于收到消息后处理相应的业务逻辑。最为关键的步骤在于start方法。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> MQClientException </span>&#123;
+        <span class="hljs-keyword">switch</span> (<span class="hljs-keyword">this</span>.serviceState) &#123;
+            <span class="hljs-keyword">case</span> CREATE_JUST:
+                log.info(<span class="hljs-string">"the consumer [&#123;&#125;] start beginning. messageModel=&#123;&#125;, isUnitMode=&#123;&#125;"</span>, <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup(),
+                    <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getMessageModel(), <span class="hljs-keyword">this</span>.defaultMQPushConsumer.isUnitMode());
+                <span class="hljs-keyword">this</span>.serviceState = ServiceState.START_FAILED;
+
+                <span class="hljs-keyword">this</span>.checkConfig();
+
+                <span class="hljs-keyword">this</span>.copySubscription();
+
+                <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.defaultMQPushConsumer.getMessageModel() == MessageModel.CLUSTERING) &#123;
+                    <span class="hljs-keyword">this</span>.defaultMQPushConsumer.changeInstanceNameToPID();
+                &#125;
+
+                <span class="hljs-comment">// 这里是和消费方绑定的一个客户端实例，后续通过它来启动多个后台任务，也可作为producer的客户端实例对象</span>
+                <span class="hljs-keyword">this</span>.mQClientFactory = MQClientManager.getInstance().getAndCreateMQClientInstance(<span class="hljs-keyword">this</span>.defaultMQPushConsumer, <span class="hljs-keyword">this</span>.rpcHook);
+
+                <span class="hljs-keyword">this</span>.rebalanceImpl.setConsumerGroup(<span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup());
+                <span class="hljs-keyword">this</span>.rebalanceImpl.setMessageModel(<span class="hljs-keyword">this</span>.defaultMQPushConsumer.getMessageModel());
+                <span class="hljs-keyword">this</span>.rebalanceImpl.setAllocateMessageQueueStrategy(<span class="hljs-keyword">this</span>.defaultMQPushConsumer.getAllocateMessageQueueStrategy());
+                <span class="hljs-keyword">this</span>.rebalanceImpl.setmQClientFactory(<span class="hljs-keyword">this</span>.mQClientFactory);
+
+                <span class="hljs-keyword">this</span>.pullAPIWrapper = <span class="hljs-keyword">new</span> PullAPIWrapper(
+                    mQClientFactory,
+                    <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup(), isUnitMode());
+                <span class="hljs-keyword">this</span>.pullAPIWrapper.registerFilterMessageHook(filterMessageHookList);
+
+                <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.defaultMQPushConsumer.getOffsetStore() != <span class="hljs-keyword">null</span>) &#123;
+                    <span class="hljs-keyword">this</span>.offsetStore = <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getOffsetStore();
+                &#125; <span class="hljs-keyword">else</span> &#123;
+                    <span class="hljs-keyword">switch</span> (<span class="hljs-keyword">this</span>.defaultMQPushConsumer.getMessageModel()) &#123;
+                        <span class="hljs-keyword">case</span> BROADCASTING:
+                            <span class="hljs-keyword">this</span>.offsetStore = <span class="hljs-keyword">new</span> LocalFileOffsetStore(<span class="hljs-keyword">this</span>.mQClientFactory, <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup());
+                            <span class="hljs-keyword">break</span>;
+                        <span class="hljs-keyword">case</span> CLUSTERING:
+                            <span class="hljs-keyword">this</span>.offsetStore = <span class="hljs-keyword">new</span> RemoteBrokerOffsetStore(<span class="hljs-keyword">this</span>.mQClientFactory, <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup());
+                            <span class="hljs-keyword">break</span>;
+                        <span class="hljs-keyword">default</span>:
+                            <span class="hljs-keyword">break</span>;
+                    &#125;
+                    <span class="hljs-keyword">this</span>.defaultMQPushConsumer.setOffsetStore(<span class="hljs-keyword">this</span>.offsetStore);
+                &#125;
+                <span class="hljs-keyword">this</span>.offsetStore.load();
+
+                <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.getMessageListenerInner() <span class="hljs-keyword">instanceof</span> MessageListenerOrderly) &#123;
+                    <span class="hljs-keyword">this</span>.consumeOrderly = <span class="hljs-keyword">true</span>;
+                    <span class="hljs-keyword">this</span>.consumeMessageService =
+                        <span class="hljs-keyword">new</span> ConsumeMessageOrderlyService(<span class="hljs-keyword">this</span>, (MessageListenerOrderly) <span class="hljs-keyword">this</span>.getMessageListenerInner());
+                &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.getMessageListenerInner() <span class="hljs-keyword">instanceof</span> MessageListenerConcurrently) &#123;
+                    <span class="hljs-keyword">this</span>.consumeOrderly = <span class="hljs-keyword">false</span>;
+                    <span class="hljs-keyword">this</span>.consumeMessageService =
+                        <span class="hljs-keyword">new</span> ConsumeMessageConcurrentlyService(<span class="hljs-keyword">this</span>, (MessageListenerConcurrently) <span class="hljs-keyword">this</span>.getMessageListenerInner());
+                &#125;
+
+                <span class="hljs-comment">// 清除过期消息</span>
+                <span class="hljs-keyword">this</span>.consumeMessageService.start();
+
+                <span class="hljs-keyword">boolean</span> registerOK = mQClientFactory.registerConsumer(<span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup(), <span class="hljs-keyword">this</span>);
+                <span class="hljs-keyword">if</span> (!registerOK) &#123;
+                    <span class="hljs-keyword">this</span>.serviceState = ServiceState.CREATE_JUST;
+                    <span class="hljs-keyword">this</span>.consumeMessageService.shutdown();
+                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The consumer group["</span> + <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup()
+                        + <span class="hljs-string">"] has been created before, specify another name please."</span> + FAQUrl.suggestTodo(FAQUrl.GROUP_NAME_DUPLICATE_URL),
+                        <span class="hljs-keyword">null</span>);
+                &#125;
+				<span class="hljs-comment">// 重点关注方法</span>
+                mQClientFactory.start();
+                log.info(<span class="hljs-string">"the consumer [&#123;&#125;] start OK."</span>, <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup());
+                <span class="hljs-keyword">this</span>.serviceState = ServiceState.RUNNING;
+                <span class="hljs-keyword">break</span>;
+            <span class="hljs-keyword">case</span> RUNNING:
+            <span class="hljs-keyword">case</span> START_FAILED:
+            <span class="hljs-keyword">case</span> SHUTDOWN_ALREADY:
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The PushConsumer service state not OK, maybe started once, "</span>
+                    + <span class="hljs-keyword">this</span>.serviceState
+                    + FAQUrl.suggestTodo(FAQUrl.CLIENT_SERVICE_NOT_OK),
+                    <span class="hljs-keyword">null</span>);
+            <span class="hljs-keyword">default</span>:
+                <span class="hljs-keyword">break</span>;
+        &#125;
+
+        <span class="hljs-keyword">this</span>.updateTopicSubscribeInfoWhenSubscriptionChanged();
+        <span class="hljs-keyword">this</span>.mQClientFactory.checkClientInBroker();
+        <span class="hljs-keyword">this</span>.mQClientFactory.sendHeartbeatToAllBrokerWithLock();
+        <span class="hljs-keyword">this</span>.mQClientFactory.rebalanceImmediately();
+    &#125;
+
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> MQClientException </span>&#123;
+
+        <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;
+            <span class="hljs-keyword">switch</span> (<span class="hljs-keyword">this</span>.serviceState) &#123;
+                <span class="hljs-keyword">case</span> CREATE_JUST:
+                    <span class="hljs-keyword">this</span>.serviceState = ServiceState.START_FAILED;
+               
+                    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == <span class="hljs-keyword">this</span>.clientConfig.getNamesrvAddr()) &#123;
+                        <span class="hljs-keyword">this</span>.mQClientAPIImpl.fetchNameServerAddr();
+                    &#125;
+                    
+                    <span class="hljs-keyword">this</span>.mQClientAPIImpl.start();
+                    <span class="hljs-comment">// 包含定时获取namesrv地址，更新topic路由信息，去除下线的broker信息，保存消费状态等定时任务</span>
+                    <span class="hljs-keyword">this</span>.startScheduledTask();
+                    <span class="hljs-comment">// 拉取消息任务</span>
+                    <span class="hljs-keyword">this</span>.pullMessageService.start();
+                    <span class="hljs-comment">// 消费方的负载均衡，主要给消费者分配topic队列信息</span>
+                    <span class="hljs-keyword">this</span>.rebalanceService.start();
+                    <span class="hljs-comment">// 这是面向producer端的</span>
+                    <span class="hljs-keyword">this</span>.defaultMQProducer.getDefaultMQProducerImpl().start(<span class="hljs-keyword">false</span>);
+                    log.info(<span class="hljs-string">"the client factory [&#123;&#125;] start OK"</span>, <span class="hljs-keyword">this</span>.clientId);
+                    <span class="hljs-keyword">this</span>.serviceState = ServiceState.RUNNING;
+                    <span class="hljs-keyword">break</span>;
+                <span class="hljs-keyword">case</span> RUNNING:
+                    <span class="hljs-keyword">break</span>;
+                <span class="hljs-keyword">case</span> SHUTDOWN_ALREADY:
+                    <span class="hljs-keyword">break</span>;
+                <span class="hljs-keyword">case</span> START_FAILED:
+                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The Factory object["</span> + <span class="hljs-keyword">this</span>.getClientId() + <span class="hljs-string">"] has been created before, and failed."</span>, <span class="hljs-keyword">null</span>);
+                <span class="hljs-keyword">default</span>:
+                    <span class="hljs-keyword">break</span>;
+            &#125;
+        &#125;
+    &#125;</code></pre>
+
+<h3 id="二-消费方的负载均衡"><a href="#二-消费方的负载均衡" class="headerlink" title="二. 消费方的负载均衡"></a>二. 消费方的负载均衡</h3><p>​    在启动rebalanceService服务后，默认会以20s为一个周期来调整消费者和topic队列的对应关系，以便在队列信息发生变更和一个消费组中加入(移除)消费方进行调整:</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/mw690/006HiYd9ly1g0gsykgq8fj30xg0e80wr.jpg" srcset="/img/loading.gif" alt=""></p>
+<p>我们这里以集群模式下的消费来讲：</p>
+<pre><code class="hljs java">               <span class="hljs-comment">// 获取一个topic下的所有队列</span>
+               Set&lt;MessageQueue&gt; mqSet = <span class="hljs-keyword">this</span>.topicSubscribeInfoTable.get(topic);
+               <span class="hljs-comment">// 获取订阅某topic下某个消费组的所有实例id</span>
+               List&lt;String&gt; cidAll = <span class="hljs-keyword">this</span>.mQClientFactory.findConsumerIdList(topic, consumerGroup);
+               <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == mqSet) &#123;
+                   <span class="hljs-keyword">if</span> (!topic.startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) &#123;
+                       log.warn(<span class="hljs-string">"doRebalance, &#123;&#125;, but the topic[&#123;&#125;] not exist."</span>, consumerGroup, topic);
+                   &#125;
+               &#125;
+
+               <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == cidAll) &#123;
+                   log.warn(<span class="hljs-string">"doRebalance, &#123;&#125; &#123;&#125;, get consumer id list failed"</span>, consumerGroup, topic);
+               &#125;
+
+               <span class="hljs-keyword">if</span> (mqSet != <span class="hljs-keyword">null</span> &amp;&amp; cidAll != <span class="hljs-keyword">null</span>) &#123;
+                   List&lt;MessageQueue&gt; mqAll = <span class="hljs-keyword">new</span> ArrayList&lt;MessageQueue&gt;();
+                   mqAll.addAll(mqSet);
+
+                   Collections.sort(mqAll);
+                   Collections.sort(cidAll);
+
+                   <span class="hljs-comment">// 获取消费端的负载均衡策略，默认是均分模式，即尽量让同一个消费组下的消费组平分messageQueue</span>
+                   AllocateMessageQueueStrategy strategy = <span class="hljs-keyword">this</span>.allocateMessageQueueStrategy;
+
+                   List&lt;MessageQueue&gt; allocateResult = <span class="hljs-keyword">null</span>;
+                   <span class="hljs-keyword">try</span> &#123;
+                       allocateResult = strategy.allocate(
+                           <span class="hljs-keyword">this</span>.consumerGroup,
+                           <span class="hljs-keyword">this</span>.mQClientFactory.getClientId(),
+                           mqAll,
+                           cidAll);
+                   &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;
+                       log.error(<span class="hljs-string">"AllocateMessageQueueStrategy.allocate Exception. allocateMessageQueueStrategyName=&#123;&#125;"</span>, strategy.getName(),
+                           e);
+                       <span class="hljs-keyword">return</span>;
+                   &#125;
+
+                   Set&lt;MessageQueue&gt; allocateResultSet = <span class="hljs-keyword">new</span> HashSet&lt;MessageQueue&gt;();
+                   <span class="hljs-keyword">if</span> (allocateResult != <span class="hljs-keyword">null</span>) &#123;
+                       allocateResultSet.addAll(allocateResult);
+                   &#125;
+
+                   <span class="hljs-comment">// 这里进行检测之前的分配关系是否发生变化(刚启动时必然是变化的)</span>
+                   <span class="hljs-keyword">boolean</span> changed = <span class="hljs-keyword">this</span>.updateProcessQueueTableInRebalance(topic, allocateResultSet, isOrder);
+                   <span class="hljs-keyword">if</span> (changed) &#123;
+                       log.info(
+                           <span class="hljs-string">"rebalanced result changed. allocateMessageQueueStrategyName=&#123;&#125;, group=&#123;&#125;, topic=&#123;&#125;, clientId=&#123;&#125;, mqAllSize=&#123;&#125;, cidAllSize=&#123;&#125;, rebalanceResultSize=&#123;&#125;, rebalanceResultSet=&#123;&#125;"</span>,
+                           strategy.getName(), consumerGroup, topic, <span class="hljs-keyword">this</span>.mQClientFactory.getClientId(), mqSet.size(), cidAll.size(),
+                           allocateResultSet.size(), allocateResultSet);
+                       <span class="hljs-keyword">this</span>.messageQueueChanged(topic, mqSet, allocateResultSet);
+                   &#125;
+               &#125;
+               <span class="hljs-keyword">break</span>;
+           &#125;
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">updateProcessQueueTableInRebalance</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String topic, <span class="hljs-keyword">final</span> Set&lt;MessageQueue&gt; mqSet, <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> isOrder)</span> </span>&#123;
+    	... 省略若干步骤
+       List&lt;PullRequest&gt; pullRequestList = <span class="hljs-keyword">new</span> ArrayList&lt;PullRequest&gt;();
+       <span class="hljs-keyword">for</span> (MessageQueue mq : mqSet) &#123;
+           <span class="hljs-comment">// 将新增的队列加入到processQueueTable中来</span>
+           <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.processQueueTable.containsKey(mq)) &#123;
+               <span class="hljs-keyword">if</span> (isOrder &amp;&amp; !<span class="hljs-keyword">this</span>.lock(mq)) &#123;
+                   log.warn(<span class="hljs-string">"doRebalance, &#123;&#125;, add a new mq failed, &#123;&#125;, because lock failed"</span>, consumerGroup, mq);
+                   <span class="hljs-keyword">continue</span>;
+               &#125;
+
+               <span class="hljs-keyword">this</span>.removeDirtyOffset(mq);
+               ProcessQueue pq = <span class="hljs-keyword">new</span> ProcessQueue();
+               <span class="hljs-keyword">long</span> nextOffset = <span class="hljs-keyword">this</span>.computePullFromWhere(mq);
+               <span class="hljs-keyword">if</span> (nextOffset &gt;= <span class="hljs-number">0</span>) &#123;
+                   ProcessQueue pre = <span class="hljs-keyword">this</span>.processQueueTable.putIfAbsent(mq, pq);
+                   <span class="hljs-keyword">if</span> (pre != <span class="hljs-keyword">null</span>) &#123;
+                       log.info(<span class="hljs-string">"doRebalance, &#123;&#125;, mq already exists, &#123;&#125;"</span>, consumerGroup, mq);
+                   &#125; <span class="hljs-keyword">else</span> &#123;
+                       log.info(<span class="hljs-string">"doRebalance, &#123;&#125;, add a new mq, &#123;&#125;"</span>, consumerGroup, mq);
+                       PullRequest pullRequest = <span class="hljs-keyword">new</span> PullRequest();
+                       pullRequest.setConsumerGroup(consumerGroup);
+                       pullRequest.setNextOffset(nextOffset);
+                       pullRequest.setMessageQueue(mq);
+                       pullRequest.setProcessQueue(pq);
+                       pullRequestList.add(pullRequest);
+                       changed = <span class="hljs-keyword">true</span>;
+                   &#125;
+               &#125; <span class="hljs-keyword">else</span> &#123;
+                   log.warn(<span class="hljs-string">"doRebalance, &#123;&#125;, add new mq failed, &#123;&#125;"</span>, consumerGroup, mq);
+               &#125;
+           &#125;
+           <span class="hljs-comment">// 这个结合第一张流程图来看，也是后续pullRequestQueue中的数据来源(即拉取消息任务)</span>
+           <span class="hljs-keyword">this</span>.dispatchPullRequest(pullRequestList);
+       &#125;</code></pre>
+
+<p>​    在集群模式下获取订阅某topic下某个消费组的所有实例id以及该topic下的message queue集合在某一特定负载均衡策略下进行分配，其中processQueueTable维护的是一个消费组下对topic下某一队列的消费状况(因为是集群模式消费，所以所有消费组中的实例都会共享消费进度)，最终生成新的拉取消息的请求对象。由于是以topic为单位进行rebalance，最终一个queue就会生成一个pullRequest对象。通过<strong>Collections.sort(mqAll)</strong>和<strong>Collections.sort(cidAll)</strong>操作目的是后续topic队列信息和消费者实例数就算发生变化，也可以保证统一的数据排列方式和分配方式，比如第一个实例永远会对应第一个队列。</p>
+<h3 id="三-消费方拉取消息"><a href="#三-消费方拉取消息" class="headerlink" title="三. 消费方拉取消息"></a>三. 消费方拉取消息</h3><p>​    consumer启动时也会同时启动后台任务来获取pullRequest对象来拉取任务，在pull消息，会带上几个比较重要的参数：</p>
+<pre><code class="hljs java"><span class="hljs-keyword">int</span> sysFlag = PullSysFlag.buildSysFlag(
+            commitOffsetEnable, <span class="hljs-comment">// commitOffset</span>
+            <span class="hljs-keyword">true</span>, <span class="hljs-comment">// suspend</span>
+            subExpression != <span class="hljs-keyword">null</span>, 
+            classFilter 
+        );  
+<span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-keyword">this</span>.pullAPIWrapper.pullKernelImpl(
+                pullRequest.getMessageQueue(), <span class="hljs-comment">// 向哪个队列信息消息拉取，queue &lt;-&gt; pullRequest</span>
+                subExpression, <span class="hljs-comment">// tag订阅表达式</span>
+                subscriptionData.getExpressionType(), <span class="hljs-comment">// tag订阅类型，sql92以及"||"分隔形式</span>
+                subscriptionData.getSubVersion(),
+                pullRequest.getNextOffset(),  <span class="hljs-comment">// 队列消费起始偏移量，集群模式下同一个消费组共享消费进度</span>
+                <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getPullBatchSize(), <span class="hljs-comment">// 一次处理的消息数，默认是1</span>
+                sysFlag, <span class="hljs-comment">// 这个根据上面的构建代码可以看出里面包含当当前request无法立即获取消息后是否被broker hold住请求</span>
+                commitOffsetValue, <span class="hljs-comment">// 消费完成后的确认偏移量</span>
+                BROKER_SUSPEND_MAX_TIME_MILLIS, <span class="hljs-comment">// 最大hold时间</span>
+                CONSUMER_TIMEOUT_MILLIS_WHEN_SUSPEND,  <span class="hljs-comment">// 消费超时时间</span>
+                CommunicationMode.ASYNC, <span class="hljs-comment">// 异步发送请求</span>
+                pullCallback  <span class="hljs-comment">// 获取响应的回调处理逻辑</span>
+            );
+        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+            log.error(<span class="hljs-string">"pullKernelImpl exception"</span>, e);
+            <span class="hljs-keyword">this</span>.executePullRequestLater(pullRequest, PULL_TIME_DELAY_MILLS_WHEN_EXCEPTION);
+        &#125;</code></pre>
+
+<p>最终消息的拉取是要通过netty发送请求到broker端来获取的</p>
+<blockquote>
+<p>RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.PULL_MESSAGE, requestHeader);</p>
+</blockquote>
+<p>通过构建特定requestCode来进行消息拉取，说道requestCode，在broker刚刚启动时会在org.apache.rocketmq.broker.BrokerController#initialize中调用org.apache.rocketmq.broker.BrokerController#registerProcessor方法中注册若干个Processor到本地processorTable中，对应每一个requestCode，都有相应的线程池来处理请求。在netty端通过事件处理器来监听请求数据</p>
+<pre><code class="hljs java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NettyServerHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleChannelInboundHandler</span>&lt;<span class="hljs-title">RemotingCommand</span>&gt; </span>&#123;
+
+       <span class="hljs-meta">@Override</span>
+       <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRead0</span><span class="hljs-params">(ChannelHandlerContext ctx, RemotingCommand msg)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+           processMessageReceived(ctx, msg);
+       &#125;
+   &#125;</code></pre>
+
+<p>在拉取消息的PullMessageProcessor中进行消息的拉取，其中会做一些权限检查，tag和consumerGroup等参数合法性校验, 最终定位到</p>
+<pre><code class="hljs java">
+<span class="hljs-keyword">final</span> GetMessageResult getMessageResult =
+    <span class="hljs-keyword">this</span>.brokerController.getMessageStore().getMessage(requestHeader.getConsumerGroup(), requestHeader.getTopic(),
+        requestHeader.getQueueId(), requestHeader.getQueueOffset(), requestHeader.getMaxMsgNums(), messageFilter);</code></pre>
+
+<p>在此处获取消息不管结果如何都会立即返回，真正的结果处理还是在PullMessageProcessor中，在获取拉取结果后，无非就是三大类：成功获取，拉取异常，消息未找到</p>
+<ol>
+<li><p>异常拉取</p>
+<pre><code class="hljs java"><span class="hljs-comment">//  获取当前commitLog中的最大消息偏移量</span>
+<span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> maxOffsetPy = <span class="hljs-keyword">this</span>.commitLog.getMaxOffset();
+ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
+      <span class="hljs-keyword">if</span> (consumeQueue != <span class="hljs-keyword">null</span>) &#123;
+          <span class="hljs-comment">// 获取topic下某一个队列的最小和最大偏移量</span>
+          minOffset = consumeQueue.getMinOffsetInQueue();
+          maxOffset = consumeQueue.getMaxOffsetInQueue();
+   
+          <span class="hljs-keyword">if</span> (maxOffset == <span class="hljs-number">0</span>) &#123;
+              status = GetMessageStatus.NO_MESSAGE_IN_QUEUE;
+              nextBeginOffset = nextOffsetCorrection(offset, <span class="hljs-number">0</span>);
+          &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (offset &lt; minOffset) &#123; <span class="hljs-comment">// offset表示之前pullRequest中的当前队列消费起始偏移量(一个消费进度)</span>
+              status = GetMessageStatus.OFFSET_TOO_SMALL;
+              nextBeginOffset = nextOffsetCorrection(offset, minOffset);
+          &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (offset == maxOffset) &#123;
+              status = GetMessageStatus.OFFSET_OVERFLOW_ONE;
+              nextBeginOffset = nextOffsetCorrection(offset, offset);
+          &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (offset &gt; maxOffset) &#123;
+              status = GetMessageStatus.OFFSET_OVERFLOW_BADLY;
+              <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span> == minOffset) &#123;
+                  nextBeginOffset = nextOffsetCorrection(offset, minOffset);
+              &#125; <span class="hljs-keyword">else</span> &#123;
+                  nextBeginOffset = nextOffsetCorrection(offset, maxOffset);
+              &#125;
+          &#125;
+      &#125;</code></pre>
+
+<p>这些判断都在是在保证所传偏移量不会超出正常偏移量限制，对于logic offset，由于consumer queue的消息存储单元大小是20bytes，分别由8bytes的在commit log的offset，4bytes表示的消息大小和tag hashcode。其中第一个是可以映射commit log的实体消息的，tag hashcode用于过滤订阅消息的，minOffset和maxOffset就相当于queue offset大小，指向commit log中的位置。具体见下图：</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g0hhnpilt8j30pa0e2t9d.jpg" srcset="/img/loading.gif" alt="consumer queue结构图"></p>
+</li>
+</ol>
+<p>由于consumer queue中的数据并不是对应commit log中相邻的消息体，所以拿到consumer queue后需要对其中的所有消息进行读取，</p>
+<blockquote>
+<pre><code class="hljs java"><span class="hljs-keyword">long</span> offsetPy = bufferConsumeQueue.getByteBuffer().getLong();
+<span class="hljs-keyword">int</span> sizePy = bufferConsumeQueue.getByteBuffer().getInt();
+<span class="hljs-keyword">long</span> tagsCode = bufferConsumeQueue.getByteBuffer().getLong();</code></pre>
+</blockquote>
+<p>这三块就对应consumer queue中消息单元的三个组成部分，表面上看上去似乎是一个随机读，但是由于命中page cache，效率上近似于顺序读最终通过获得offsetPy和sizePy就可以定位commit log中的消息。</p>
+<p>对于暂时无法获取的消息，会走以下逻辑：</p>
+<pre><code class="hljs java"><span class="hljs-keyword">if</span> (brokerAllowSuspend &amp;&amp; hasSuspendFlag) &#123;
+                    <span class="hljs-keyword">long</span> pollingTimeMills = suspendTimeoutMillisLong;
+                    <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.brokerController.getBrokerConfig().isLongPollingEnable()) &#123;
+                        pollingTimeMills = <span class="hljs-keyword">this</span>.brokerController.getBrokerConfig().getShortPollingTimeMills();
+                    &#125;
+
+                    String topic = requestHeader.getTopic();
+                    <span class="hljs-keyword">long</span> offset = requestHeader.getQueueOffset();
+                    <span class="hljs-keyword">int</span> queueId = requestHeader.getQueueId();
+                    PullRequest pullRequest = <span class="hljs-keyword">new</span> PullRequest(request, channel, pollingTimeMills,
+                        <span class="hljs-keyword">this</span>.brokerController.getMessageStore().now(), offset, subscriptionData, messageFilter);
+                    <span class="hljs-keyword">this</span>.brokerController.getPullRequestHoldService().suspendPullRequest(topic, queueId, pullRequest);
+                    response = <span class="hljs-keyword">null</span>;
+                    <span class="hljs-keyword">break</span>;
+                &#125;</code></pre>
+
+<p>​    通过之前consumer所传brokerAllowSuspend的参数判断是否先hold住此次请求，如果是的话就将这次请求放入pullRequestTable中, 等待有消息时获取通知。在broker启动后，同时会有一个reputMessageService线程一直在后台检测有没有新消息的到来。当有新数据产生时，reputMessageService本身维护一个reputFromOffset的偏移量(初始值为0)用以对比和 CommitLog 文件中的消息总偏移量的差距。当这两个偏移量不同的时候表示有新消息到来。会主动拉取pullRequestTable中的请求进行客户端通知。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isCommitLogAvailable</span><span class="hljs-params">()</span> </span>&#123;
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.reputFromOffset &lt; DefaultMessageStore.<span class="hljs-keyword">this</span>.commitLog.getMaxOffset();
+        &#125;</code></pre>
+
+<p>​    另一方面，在PullRequestHoldService服务会主动轮询pullRequestTable的pullRequest对象，看在topic消息队列中是否有符合其要求的新消息产生，最终都是通过org.apache.rocketmq.broker.longpolling.PullRequestHoldService#notifyMessageArriving方法进行回调通知。</p>
+<pre><code class="hljs java"><span class="hljs-keyword">switch</span> (pullResult.getPullStatus()) &#123;
+                        <span class="hljs-keyword">case</span> FOUND:
+                            <span class="hljs-keyword">long</span> prevRequestOffset = pullRequest.getNextOffset();
+                            pullRequest.setNextOffset(pullResult.getNextBeginOffset());
+                            <span class="hljs-keyword">long</span> pullRT = System.currentTimeMillis() - beginTimestamp;
+                            DefaultMQPushConsumerImpl.<span class="hljs-keyword">this</span>.getConsumerStatsManager().incPullRT(pullRequest.getConsumerGroup(),
+                                pullRequest.getMessageQueue().getTopic(), pullRT);
+
+                            <span class="hljs-keyword">long</span> firstMsgOffset = Long.MAX_VALUE;
+                            <span class="hljs-keyword">if</span> (pullResult.getMsgFoundList() == <span class="hljs-keyword">null</span> || pullResult.getMsgFoundList().isEmpty()) &#123;
+                                DefaultMQPushConsumerImpl.<span class="hljs-keyword">this</span>.executePullRequestImmediately(pullRequest);
+                            &#125; <span class="hljs-keyword">else</span> &#123;
+                                firstMsgOffset = pullResult.getMsgFoundList().get(<span class="hljs-number">0</span>).getQueueOffset();
+
+                                DefaultMQPushConsumerImpl.<span class="hljs-keyword">this</span>.getConsumerStatsManager().incPullTPS(pullRequest.getConsumerGroup(),
+                                    pullRequest.getMessageQueue().getTopic(), pullResult.getMsgFoundList().size());
+
+                                <span class="hljs-keyword">boolean</span> dispatchToConsume = processQueue.putMessage(pullResult.getMsgFoundList());
+                                <span class="hljs-comment">// 将捞取到的消息封装成一个ConsumeRequest对象回传给consumer</span>
+                                DefaultMQPushConsumerImpl.<span class="hljs-keyword">this</span>.consumeMessageService.submitConsumeRequest(
+                                    pullResult.getMsgFoundList(),
+                                    processQueue,
+                                    pullRequest.getMessageQueue(),
+                                    dispatchToConsume);
+
+                                <span class="hljs-keyword">if</span> (DefaultMQPushConsumerImpl.<span class="hljs-keyword">this</span>.defaultMQPushConsumer.getPullInterval() &gt; <span class="hljs-number">0</span>) &#123;
+                                    DefaultMQPushConsumerImpl.<span class="hljs-keyword">this</span>.executePullRequestLater(pullRequest,
+                                        DefaultMQPushConsumerImpl.<span class="hljs-keyword">this</span>.defaultMQPushConsumer.getPullInterval());
+                                &#125; <span class="hljs-keyword">else</span> &#123;
+                                    DefaultMQPushConsumerImpl.<span class="hljs-keyword">this</span>.executePullRequestImmediately(pullRequest);
+                                &#125;
+                            &#125;
+
+                            <span class="hljs-keyword">if</span> (pullResult.getNextBeginOffset() &lt; prevRequestOffset
+                                || firstMsgOffset &lt; prevRequestOffset) &#123;
+                                log.warn(
+                                    <span class="hljs-string">"[BUG] pull message result maybe data wrong, nextBeginOffset: &#123;&#125; firstMsgOffset: &#123;&#125; prevRequestOffset: &#123;&#125;"</span>,
+                                    pullResult.getNextBeginOffset(),
+                                    firstMsgOffset,
+                                    prevRequestOffset);
+                            &#125;
+
+                            <span class="hljs-keyword">break</span>;</code></pre>
+
+<p>​    在consumer接收到broker那边的回调通知后，将对应的结果封装成consumer request之中并保存在pullRequest的一个TreeMap之中(由于consumer端本身做了流控，所以不必担心大量消息请求结果会放在treeMap中以至撑爆内存，不过也需要注意下游消息的消费快慢问题)。</p>
+<p>​    在消息成功到达之后，对于处理结果也有两种情况，消费成功(CONSUME_SUCCESS)以及稍后重试(RECONSUME_LATER)，并将处理结果上报给broker端。同时更新消费进度。</p>
+<h3 id="四-消息重试"><a href="#四-消息重试" class="headerlink" title="四. 消息重试"></a>四. 消息重试</h3><p>​    在consumer启动时，它会将其订阅的topic使用org.apache.rocketmq.client.impl.consumer.DefaultMQPushConsumerImpl#copySubscription方法进行拷贝，同时在集群模式下会订阅一个特殊的重试topic，其构成是%RETRY% + 他所在的consumerGroup名，以便后续接收broker那边的消息。之前有说到不管消息处理的结果如何，都一定会将结果上报给broker端，那么重试状况下一样如此。对于消费后的状态返回，在返回值为null或抛出异常或返回RECONSUME_LATER时都会触发消息的重新消费，消费频率默认情况下是由broker端来进行控制(未配置情况下最大重试次数为16次)，整个流程如下图：</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g0ofwimxklj31no15ydsx.jpg" srcset="/img/loading.gif" alt="消息重试时序图"></p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g0ogo5k6a4j318k12a13j.jpg" srcset="/img/loading.gif" alt="延时消息发送流程，借图"></p>
+<p>​    在第一次进行重试时，它的延时级别会被置为3，这主要时避免消息重发过于频繁导致broker端的压力，每个延时级别都有对应的一个存储队列用来存储对应固定时延的(对应org.apache.rocketmq.store.schedule.ScheduleMessageService#delayLevelTable)，每一个队列抽象为一个个DeliverDelayedMessageTimerTask，在broker启动时，通过以下代码初始化：</p>
+<pre><code class="hljs java"><span class="hljs-keyword">for</span> (Map.Entry&lt;Integer, Long&gt; entry : <span class="hljs-keyword">this</span>.delayLevelTable.entrySet()) &#123;
+            Integer level = entry.getKey();
+            Long timeDelay = entry.getValue();
+            Long offset = <span class="hljs-keyword">this</span>.offsetTable.get(level);
+            <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == offset) &#123;
+                offset = <span class="hljs-number">0L</span>;
+            &#125;
+
+            <span class="hljs-keyword">if</span> (timeDelay != <span class="hljs-keyword">null</span>) &#123;
+                <span class="hljs-keyword">this</span>.timer.schedule(<span class="hljs-keyword">new</span> DeliverDelayedMessageTimerTask(level, offset), FIRST_DELAY_TIME);
+            &#125;
+        &#125;</code></pre>
+
+<p>刚开始的时候offset都为0，后续通过offset的变化寻找consumerQueue中的延时消息(offset可以看成consumerQueue中消息序号，从0开始，每次加一)。到时的延时消息通过重新put至commitLog中触发reputMessageService将消息重新取出进行投递。</p>
+<h3 id="五-消息过滤"><a href="#五-消息过滤" class="headerlink" title="五. 消息过滤"></a>五. 消息过滤</h3><p>​    消息过滤的方式主要有基于tag以及sql92的方式，sql92具体参考<a href="https://en.wikipedia.org/wiki/SQL-92" target="_blank" rel="noopener">sql92维基百科</a>，这里主要以更常见的tag方式为例，当有到达时，在org.apache.rocketmq.broker.longpolling.PullRequestHoldService#notifyMessageArriving中会对消息与pullRequest中的请求信息进行对比。符合条件的才会回传给客户端</p>
+<pre><code class="hljs java"> <span class="hljs-keyword">boolean</span> match = request.getMessageFilter().isMatchedByConsumeQueue(tagsCode,
+                            <span class="hljs-keyword">new</span> ConsumeQueueExt.CqExtUnit(tagsCode, msgStoreTime, filterBitMap));
+
+<span class="hljs-comment">// 可见比较的是tag的hashCode而不是名字</span>
+<span class="hljs-keyword">return</span> subscriptionData.getSubString().equals(SubscriptionData.SUB_ALL)
+            || subscriptionData.getCodeSet().contains(tagsCode.intValue());</code></pre>
+
+<p>在consumer启动时:</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> SubscriptionData <span class="hljs-title">buildSubscriptionData</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String consumerGroup, String topic,</span></span>
+<span class="hljs-function"><span class="hljs-params">        String subString)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+        SubscriptionData subscriptionData = <span class="hljs-keyword">new</span> SubscriptionData();
+        subscriptionData.setTopic(topic);
+        subscriptionData.setSubString(subString);
+
+        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == subString || subString.equals(SubscriptionData.SUB_ALL) || subString.length() == <span class="hljs-number">0</span>) &#123;
+            subscriptionData.setSubString(SubscriptionData.SUB_ALL);
+        &#125; <span class="hljs-keyword">else</span> &#123;
+            <span class="hljs-comment">// 通过"||"进行tag拆分，然后将名称以及hashCode分别保存起来</span>
+            String[] tags = subString.split(<span class="hljs-string">"\\|\\|"</span>);
+            <span class="hljs-keyword">if</span> (tags.length &gt; <span class="hljs-number">0</span>) &#123;
+                <span class="hljs-keyword">for</span> (String tag : tags) &#123;
+                    <span class="hljs-keyword">if</span> (tag.length() &gt; <span class="hljs-number">0</span>) &#123;
+                        String trimString = tag.trim();
+                        <span class="hljs-keyword">if</span> (trimString.length() &gt; <span class="hljs-number">0</span>) &#123;
+                            subscriptionData.getTagsSet().add(trimString);
+                            subscriptionData.getCodeSet().add(trimString.hashCode());
+                        &#125;
+                    &#125;
+                &#125;
+            &#125; <span class="hljs-keyword">else</span> &#123;
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Exception(<span class="hljs-string">"subString split error"</span>);
+            &#125;
+        &#125;
+
+        <span class="hljs-keyword">return</span> subscriptionData;
+    &#125;</code></pre>
+
+
+            </article>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java/">Java</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6/">消息中间件</a>
+                    
+                      <a class="hover-with-bg" href="/tags/RocketMQ/">RocketMQ</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/05/08/%E6%B5%85%E8%B0%88Redis%E4%B8%AD%E7%9A%84%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">浅谈Redis中的内存优化设计</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/2018/11/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%BA%8C-broker/">
+                        <span class="hidden-mobile">RocketMQ学习(二) broker</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "RocketMQ学习-四-consumer&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/me.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IT,互联网">
+  <meta name="author" content="zsfblues">
+  <meta name="keywords" content="">
+  <title>String,StringBuilder和StringBuffer比较 - zsfblues&#39; blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark.min.css" />
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>zsfblues</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="iconfont icon-home-fill"></i>
+              首页</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">
+              <i class="iconfont icon-archive-fill"></i>
+              归档</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">
+              <i class="iconfont icon-category-fill"></i>
+              分类</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">
+              <i class="iconfont icon-tags-fill"></i>
+              标签</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">
+              <i class="iconfont icon-user-fill"></i>
+              关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/index-bg.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <div class="mt-3 post-meta">
+                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+                  <time datetime="2016-05-19 23:59">
+                    2016年5月19日 晚上
+                  </time>
+                </div>
+              
+
+              <div class="mt-1">
+                
+                  
+                  <span class="post-meta mr-2">
+                    <i class="iconfont icon-chart"></i>
+                    1.8k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta mr-2">
+                      <i class="iconfont icon-clock-fill"></i>
+                    
+                    
+                    21
+                     分钟
+                  </span>
+                
+
+                
+              </div>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <article class="markdown-body">
+              <p>说起Java的字符串处理，不得不提API中的字符串三剑客：String,StringBuilder和StringBuffer。很多人一定都使用过这三者(或其中几个)，但从源码的角度，我想以一种更加细致的角度来讲述它们的区别。</p>
+<h3 id="String"><a href="#String" class="headerlink" title="String"></a>String</h3><p>开篇先来讲述String，它也是后面两个的基础。</p>
+<p>不变性</p>
+<p>String作为最知名的不可变，不可继承对象(主要怕破坏其不变性，基本所有的不可变对象都不可继承)：在初始化后其值就不可更改，如果企图对其进行修改的话，会重新创建一个String对象，并将原来的String对象指向新对象，具体的话以下列的程序来讲解：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span></span>
+<span class="hljs-function"></span>&#123;
+   String s1 = <span class="hljs-string">"java1"</span>;
+   String s2 = <span class="hljs-string">"java1"</span>;
+   s1 = s1 + <span class="hljs-string">""</span>;
+   
+   System.out.println(s1 == s2);
+&#125;</code></pre>
+
+<p>结果自然是false</p>
+<blockquote>
+<p>此程序试图修改String对象的值，通过对程序的调试可以发现，其主要经历了以下三个过程<br>1.创建一个StringBuilder对象(其本质是用一个char数组看来储存字符，默认大小是16，String对象内部也是由char数组保存，String讲完后会说明)<br>2.利用创建的StringBuilder对象<strong>分别</strong>将s1和”1”装进StringBuilder数组对象中<br>3.通过封装好的char数组实例化一个新的String对象</p>
+</blockquote>
+<p>但值得注意的是，将上面的程序稍微改改：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span></span>
+<span class="hljs-function"> </span>&#123;
+     String s1;
+     <span class="hljs-keyword">final</span> String s = <span class="hljs-string">""</span>;
+     String s2 = <span class="hljs-string">"java1"</span>;
+     s1 = <span class="hljs-string">"java1"</span> + s;
+     System.out.println(s1 == s2);
+ &#125;</code></pre>
+
+<p>结果将变成true<br>上面的变化主要使用final关键字修饰了一下String变量。当final变量是基本数据类型以及String类型时，如果在编译期间能知道它的确切值，则编译器会把它当做编译期常量使用。也就是说在用到该final变量的地方，相当于直接访问的这个常量，不需要在运行时确定。更近一步说，java编译器会将到其对应的常量池中查找该对象的引用(基本数据类型是对应的封装类型，String则对应堆中的字符串常量池(从1.7已经移到堆中))</p>
+<p><strong>创建</strong><br>创建字符串的方式很多，归纳起来有三类：<br>(一).使用new关键字创建字符串，比如String s1 = new String(“abc”);<br>(二).直接指定。比如String s2 = “abc”;<br>(三).使用串联生成新的字符串。比如String s3 = “ab” + “c”;<br>第一种会在堆中直接创建一个字符串对象，而第二、三种则会先尝试到常量池查找，没找到才创建。<br>对于new关键字进行字符串对象创建，Java API提供了很多种构造函数，方式更加灵活多变</p>
+<h3 id="StringBuilder"><a href="#StringBuilder" class="headerlink" title="StringBuilder"></a>StringBuilder</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StringBuilder</span></span>
+<span class="hljs-class">    <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractStringBuilder</span></span>
+<span class="hljs-class">    <span class="hljs-keyword">implements</span> <span class="hljs-title">java</span>.<span class="hljs-title">io</span>.<span class="hljs-title">Serializable</span>, <span class="hljs-title">CharSequence</span></span></code></pre>
+
+<p>从上可以看出StringBuilder继承AbstractStringBuilder类，它也是StringBuilder实现可变性的关键。至于CharSequence，它提供了字符序列的有序访问，比如charAt方法和subSequence方法。 StringBuilder和String的最大区别就在于其是可变的，并且API与StringBuffer兼容，但不保证线程安全，因而在单线程情况下有更好的性能 StringBuilder的核心函数就是append()和insert()。接下来主要讲解它们。 append()：主要就是对于字符串进行追加操作，无论是调用构造函数还是直接调用append函数，都会直接或间接调用append函数，其底层调用的就是AbstractStringBuilder的append函数</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> AbstractStringBuilder <span class="hljs-title">append</span><span class="hljs-params">(CharSequence s)</span> </span>&#123;
+       <span class="hljs-comment">//s为null，直接在StringBuilder后追加"null"字符串</span>
+       <span class="hljs-keyword">if</span> (str == <span class="hljs-keyword">null</span>)
+          <span class="hljs-keyword">return</span> appendNull();
+       <span class="hljs-keyword">int</span> len = str.length();
+       <span class="hljs-comment">//确定追加后的char数组需不需扩容</span>
+       ensureCapacityInternal(count + len);
+       <span class="hljs-comment">//将字符从此字符串复制到目标字符数组，最终调用System.arraycopy，参数有点长</span>
+       str.getChars(<span class="hljs-number">0</span>, len, value, count);
+       count += len;
+       <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+   &#125;
+   
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">ensureCapacityInternal</span><span class="hljs-params">(<span class="hljs-keyword">int</span> minimumCapacity)</span> </span>&#123;
+       <span class="hljs-comment">// overflow-conscious code</span>
+       <span class="hljs-keyword">if</span> (minimumCapacity - value.length &gt; <span class="hljs-number">0</span>)
+           expandCapacity(minimumCapacity);
+   &#125;
+   
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">expandCapacity</span><span class="hljs-params">(<span class="hljs-keyword">int</span> minimumCapacity)</span> </span>&#123;
+       <span class="hljs-keyword">int</span> newCapacity = value.length * <span class="hljs-number">2</span> + <span class="hljs-number">2</span>;
+       <span class="hljs-keyword">if</span> (newCapacity - minimumCapacity &lt; <span class="hljs-number">0</span>)
+           newCapacity = minimumCapacity;
+       <span class="hljs-keyword">if</span> (newCapacity &lt; <span class="hljs-number">0</span>) &#123;
+           <span class="hljs-keyword">if</span> (minimumCapacity &lt; <span class="hljs-number">0</span>) <span class="hljs-comment">// overflow</span>
+               <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> OutOfMemoryError();
+           <span class="hljs-comment">//千万注意别到这一步，不然可能要提前进行FullGC(自带stop the world效果)</span>
+           <span class="hljs-comment">//来挤出这么大的空间来</span>
+           newCapacity = Integer.MAX_VALUE;
+       &#125;
+       value = Arrays.copyOf(value, newCapacity);
+   &#125;</code></pre>
+
+<p>对于append函数，还有一个比较隐蔽的性能问题，这主要发生在我的一次编程中(由于IDEA的强大提示功能，看来好的IDE可以在一定程度上帮助程序员发现技术盲区)，看下面一段代码：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span></span>
+<span class="hljs-function"></span>&#123;
+     StringBuilder  sb = <span class="hljs-keyword">new</span> StringBuilder();
+     sb.append(<span class="hljs-keyword">new</span> Object() + <span class="hljs-string">""</span>);
+&#125;</code></pre>
+
+<p>当写出上面那段代码后，IDE提示有性能问题,这主要是因为在调用append过程中由于发现了隐式的类型转换，会存在append函数的链式调用问题，通过源码调试可以发现，其主要经历了以下过程：</p>
+<blockquote>
+<p>1.首先会创建Object对象，将Object对象转换为String对象，并且会第一次调用append函数将其追加进来。<br>2.第二次调用append函数将””放进char数组中，<br>3.将char数组作为参数实例化一个String对象<br>4.第三次调用append函数将String对象追加进来</p>
+</blockquote>
+<p>就因为一个隐式的类型转化，却饶了一大圈，一但将sb.append(new Object() + “”);放在一个循环体里，性能就会受到较大影响，如果非要强转，可以在append之前进行或者调用两次append方法，即sb.append(new Object()).append(“”)</p>
+<p>insert()：相对与append函数只能在字符序列尾部进行插入，insert函数可以指明待插入的位置</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> AbstractStringBuilder <span class="hljs-title">insert</span><span class="hljs-params">(<span class="hljs-keyword">int</span> offset, String str)</span> </span>&#123;
+       <span class="hljs-keyword">if</span> ((offset &lt; <span class="hljs-number">0</span>) || (offset &gt; length()))
+           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> StringIndexOutOfBoundsException(offset);
+       <span class="hljs-keyword">if</span> (str == <span class="hljs-keyword">null</span>)
+           str = <span class="hljs-string">"null"</span>;
+       <span class="hljs-keyword">int</span> len = str.length();
+       ensureCapacityInternal(count + len);
+       <span class="hljs-comment">//将offset之后的字符保存至[offset + len, count + len]区间</span>
+       System.arraycopy(value, offset, value, offset + len, count - offset);
+       <span class="hljs-comment">//中间的len长度保存待插入字符</span>
+       str.getChars(value, offset);
+       count += len;
+       <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+   &#125;</code></pre>
+
+<p>其insert函数过程大致如上，其重载版本大同小异，无非就是增加类型转换，边界检查的条件不同</p>
+<h3 id="StringBuffer"><a href="#StringBuffer" class="headerlink" title="StringBuffer"></a>StringBuffer</h3><p>StringBuffer和StringBuilder的最大区别就是是否是线程安全，其手段主要是在StringBuilder的方法用synchronized进行同步，除此之外，它们的API在很多地方是相互兼容的，而和String相比，其作用主要在于对字符串的更改操作(插入和删除)都是对对象本身进行操作，对内存友好。除此之外，StringBuffer内部还提供了一个叫toStringCache的字符缓冲数组，它主要用于保存上一次调用toString方法是保留的字符对象(也就是作为缓冲对象的暂存处)，当我们试图修改字符串的内容是，上一个toStringCache缓冲的内容就会被清除。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>综合而言，这三者之间并没有谁比谁优秀的说法，对于不同的应用场景，可以按需求选取，但就我个人而言，对于StringBuffer的实现简单地使用synchronized进行同步来实现线程安全还是不太友好，也希望Java的设计者能找到更好的做法</p>
+
+            </article>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java/">Java</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/2016/05/23/%E5%85%B3%E4%BA%8E%E7%BA%A2%E9%BB%91%E6%A0%91%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%87%A0%E7%82%B9%E7%90%86%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">关于红黑树学习的几点理解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/2016/05/13/LinkedList%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-JDK8/">
+                        <span class="hidden-mobile">LinkedList源码分析(JDK8)</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "String,StringBuilder和StringBuffer比较&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

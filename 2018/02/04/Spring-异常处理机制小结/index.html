@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/me.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IT,互联网">
+  <meta name="author" content="zsfblues">
+  <meta name="keywords" content="">
+  <title>Spring 异常处理机制小结 - zsfblues&#39; blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark.min.css" />
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>zsfblues</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="iconfont icon-home-fill"></i>
+              首页</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">
+              <i class="iconfont icon-archive-fill"></i>
+              归档</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">
+              <i class="iconfont icon-category-fill"></i>
+              分类</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">
+              <i class="iconfont icon-tags-fill"></i>
+              标签</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">
+              <i class="iconfont icon-user-fill"></i>
+              关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/index-bg.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <div class="mt-3 post-meta">
+                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+                  <time datetime="2018-02-04 18:28">
+                    2018年2月4日 晚上
+                  </time>
+                </div>
+              
+
+              <div class="mt-1">
+                
+                  
+                  <span class="post-meta mr-2">
+                    <i class="iconfont icon-chart"></i>
+                    1.8k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta mr-2">
+                      <i class="iconfont icon-clock-fill"></i>
+                    
+                    
+                    22
+                     分钟
+                  </span>
+                
+
+                
+              </div>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <article class="markdown-body">
+              <p>前几天想把公司某个项目中的参数处理通过某一种统一的机制进行封装后并将返回结果统一处理，参照资料后发现可以通过</p>
+<p>JSR之前定义的一些参数校验标准来对一些进行简单的设置</p>
+<blockquote>
+<p>javax.validation.constraints包下面有如下注解:</p>
+<table>
+<thead>
+<tr>
+<th>注解</th>
+<th>数据类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@Null</td>
+<td>任意类型</td>
+<td>必须为空</td>
+</tr>
+<tr>
+<td>@NotNull</td>
+<td>任意类型</td>
+<td>必须不为空</td>
+</tr>
+<tr>
+<td>@AssertFalse</td>
+<td>boolean,Boolean</td>
+<td>注解布尔值为false</td>
+</tr>
+<tr>
+<td>@AssertTrue</td>
+<td>同@AssertFalse</td>
+<td>注解布尔值为true</td>
+</tr>
+<tr>
+<td>@Max(value=值)</td>
+<td>BigDecimal，BigInteger, byte,short, int, long，等任何Number</td>
+<td>设置最大值</td>
+</tr>
+<tr>
+<td>@Min(value=值)</td>
+<td>同@Min</td>
+<td>设置最小值</td>
+</tr>
+<tr>
+<td>@DecimalMax(value=值)</td>
+<td>同@Min</td>
+<td>设置最大值</td>
+</tr>
+<tr>
+<td>@Digits(integer=整数位数,fraction=小数位数)</td>
+<td>同@Min</td>
+<td>设置整数位和小数位的精度</td>
+</tr>
+<tr>
+<td>@Future</td>
+<td>java.util.Date,java.util.Calendar;Joda Time类库的日期类型</td>
+<td>比当前时间晚</td>
+</tr>
+<tr>
+<td>@Past</td>
+<td>同@Future</td>
+<td>比当前时间早</td>
+</tr>
+<tr>
+<td>@Size(min=最小值,max=最大值)</td>
+<td>字符串、Collection、Map、数组等</td>
+<td>长度</td>
+</tr>
+<tr>
+<td>@Pattern(regexp=正则表达式)</td>
+<td>String</td>
+<td>匹配正则表达式</td>
+</tr>
+</tbody></table>
+<p>除此之外，还有Hibernate Validation提供的注解：</p>
+<table>
+<thead>
+<tr>
+<th>注解</th>
+<th>数据类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@Range(min=最小值, max=最大值)</td>
+<td>同@Min</td>
+<td>验证注解的元素值在最小值和最大值之间</td>
+</tr>
+<tr>
+<td>@URL</td>
+<td>String</td>
+<td>校验URL格式</td>
+</tr>
+<tr>
+<td>@Email</td>
+<td>String</td>
+<td>校验Email格式</td>
+</tr>
+<tr>
+<td>@NotBlank</td>
+<td>String</td>
+<td>不为null,不为””</td>
+</tr>
+<tr>
+<td>@NotEmpty</td>
+<td>任意类型</td>
+<td>不为null,字符串长度不为0,集合大小不为0</td>
+</tr>
+</tbody></table>
+</blockquote>
+<pre><code>通过在一个 pojo 对象的 field 中加上这些注解并在 Controller 层对应的 pojo 对象前加上@Valid 注解就可以使用，并将校验不通过的异常信息包装在一个 BindingResult对象，整个处理十分方便，具体用法网上有很多，就不赘述了。</code></pre><hr>
+<pre><code>上述对于这种校验需要包装一个完整的 pojo 对象，有时候在入参不多的情况下有点多余，一般就是对指定的参数校验，我就想在参数校验不通过的情况下对异常信息统一处理，于是马上想到可以通过 ExceptionHandler + ControllerAdvice注解的方式对进行统一处理，对于ConstraintViolationException这个异常进行捕获就可以了，可惜理想丰满现实骨感。在 web 容器加载后请求对应的mapping始终没有在@ExceptionHandler修饰的方法中捕获异常，这个配置方法和Spring提供的教程相差无几，为什么会没有处理…</code></pre><h3 id="Spring-统一的异常处理接口HandlerExceptionResolver"><a href="#Spring-统一的异常处理接口HandlerExceptionResolver" class="headerlink" title="Spring 统一的异常处理接口HandlerExceptionResolver"></a>Spring 统一的异常处理接口HandlerExceptionResolver</h3><p> 在 Spring 的整个异常处理体系中，HandlerExceptionResolver接口是一个基础入口，其中的resolveException方法专门用于处理请求过程中发生的Exception，参数如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> ModelAndView <span class="hljs-title">resolveException</span><span class="hljs-params">(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)</span></span>;</code></pre>
+
+
+
+<p>在对源码进行调试之后，发现请求流程中如下：</p>
+<ol>
+<li><p>对于所有的 http 请求，通过DispatcherServlet这个类进行分发，这个类是一个核心请求类，处理包括但不限于</p>
+<ul>
+<li>将请求参数请求解析并将解析后的参数放入 RequestMapping 修饰的方法的入参中</li>
+<li>调用定义好的拦截器对方法进行增强</li>
+<li>根据HttpServletRequest对象类型 将请求正确分发到对应 HandlerAdapter中</li>
+<li>将处理好的请求结果封装到一个 ModelAndView 对象中返回，如果是直接返回到一个结果页面还要进行视图的渲染</li>
+<li>对请求过程中异常的处理</li>
+</ul>
+</li>
+<li><p>在请求处理完成后，有如下代码(省略一些次要代码，下同)</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doDispatch</span><span class="hljs-params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+		HttpServletRequest processedRequest = request;
+		HandlerExecutionChain mappedHandler = <span class="hljs-keyword">null</span>;
+		<span class="hljs-keyword">boolean</span> multipartRequestParsed = <span class="hljs-keyword">false</span>;
+		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+		<span class="hljs-keyword">try</span> &#123;
+			ModelAndView mv = <span class="hljs-keyword">null</span>;
+			Exception dispatchException = <span class="hljs-keyword">null</span>;
+			<span class="hljs-keyword">try</span> &#123;
+				<span class="hljs-comment">// Determine handler for the current request.</span>
+				mappedHandler = getHandler(processedRequest);
+				<span class="hljs-keyword">if</span> (mappedHandler == <span class="hljs-keyword">null</span> || mappedHandler.getHandler() == <span class="hljs-keyword">null</span>) &#123;
+					noHandlerFound(processedRequest, response);
+					<span class="hljs-keyword">return</span>;
+				&#125;
+				<span class="hljs-comment">// Determine handler adapter for the current request.</span>
+				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
+				<span class="hljs-keyword">if</span> (!mappedHandler.applyPreHandle(processedRequest, response)) &#123;
+					<span class="hljs-keyword">return</span>;
+				&#125;
+				<span class="hljs-comment">// Actually invoke the handler.</span>
+				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+				mappedHandler.applyPostHandle(processedRequest, response, mv);
+			&#125;
+			<span class="hljs-keyword">catch</span> (Exception ex) &#123;
+				dispatchException = ex;
+			&#125;
+			<span class="hljs-keyword">catch</span> (Throwable err) &#123;
+				<span class="hljs-comment">// As of 4.3, we're processing Errors thrown from handler methods as well,</span>
+				<span class="hljs-comment">// making them available for @ExceptionHandler methods and other scenarios.</span>
+				dispatchException = <span class="hljs-keyword">new</span> NestedServletException(<span class="hljs-string">"Handler dispatch failed"</span>, err);
+			&#125;
+			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
+		&#125;
+		<span class="hljs-keyword">catch</span> (Exception ex) &#123;
+			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
+		&#125;
+		<span class="hljs-keyword">catch</span> (Throwable err) &#123;
+			triggerAfterCompletion(processedRequest, response, mappedHandler,
+					<span class="hljs-keyword">new</span> NestedServletException(<span class="hljs-string">"Handler processing failed"</span>, err));
+		&#125;
+	&#125;
+<span class="hljs-comment">// 在请求完成后会有对异常的检查和处理，由processDispatchResult方法的processHandlerException处理</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> ModelAndView <span class="hljs-title">processHandlerException</span><span class="hljs-params">(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+		ModelAndView exMv = <span class="hljs-keyword">null</span>;
+  		<span class="hljs-comment">// 遍历之前应用启动时所有在IOC容器中注册的异常处理器(都基于HandlerExceptionResolver接口)</span>
+		<span class="hljs-keyword">for</span> (HandlerExceptionResolver handlerExceptionResolver : <span class="hljs-keyword">this</span>.handlerExceptionResolvers) &#123;
+			exMv = handlerExceptionResolver.resolveException(request, response, handler, ex);
+			<span class="hljs-keyword">if</span> (exMv != <span class="hljs-keyword">null</span>) &#123;
+				<span class="hljs-keyword">break</span>;
+			&#125;
+		&#125;
+		<span class="hljs-keyword">throw</span> ex;
+	&#125;</code></pre>
+
+
+</li>
+</ol>
+<p>看到这里，基本可以发现大致的问题，我的这个项目在启动时只有项目的异常配置ExceptionResolver，于是我又新建一个可以使用@ExceptionHandler注解的项目，观察它的ExceptionResolver类型，对比后发现：</p>
+<p>失效配置</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5kyhij30xu076400.jpg" srcset="/img/loading.gif" alt=""></p>
+<p>正常配置</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5l4p5j30vm080wg6.jpg" srcset="/img/loading.gif" alt=""></p>
+<p>继续跟踪一下发现在<strong>ExceptionHandlerExceptionResolver</strong>这个异常处理器</p>
+<pre><code class="hljs java"><span class="hljs-comment">// ExceptionHandlerExceptionResolver内部用两个Map来存储所有ExceptionHandlerMethodResolver类，</span>
+<span class="hljs-comment">// 他并不直接实现HandlerExceptionResolver接口，而是靠外部其它类来包装</span>
+<span class="hljs-comment">// 在ExceptionHandlerMethodResolver中会去发现所有由@ExceptionHandler修饰的方法</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;Class&lt;?&gt;, ExceptionHandlerMethodResolver&gt; exceptionHandlerCache =
+			<span class="hljs-keyword">new</span> ConcurrentHashMap&lt;Class&lt;?&gt;, ExceptionHandlerMethodResolver&gt;(<span class="hljs-number">64</span>); <span class="hljs-comment">// 处理具体 Controller中的ExceptionHandler</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;ControllerAdviceBean, ExceptionHandlerMethodResolver&gt; exceptionHandlerAdviceCache =
+			<span class="hljs-keyword">new</span> LinkedHashMap&lt;ControllerAdviceBean, ExceptionHandlerMethodResolver&gt;(); <span class="hljs-comment">//处理ControllerAdvice中的ExceptionHandler</span></code></pre>
+
+<h3 id="Spring-中异常处理方式"><a href="#Spring-中异常处理方式" class="headerlink" title="Spring 中异常处理方式"></a>Spring 中异常处理方式</h3><p>很显然，Spring 对于异常的处理有以下几种方式：</p>
+<ol>
+<li>某一具体Controller方法中抛出的异常，由Controller中有@ExceptionHandler修饰的方法处理(如果异常类型可以匹配上的话)</li>
+<li>通过ControllerAdvice + ExceptionHandler注解相结合的方法全局处理各个Controller中的异常</li>
+<li>自定义异常解析器并实现HandlerExceptionResolver接口</li>
+</ol>
+<p>而在我这个ExceptionHandler注解失效项目中，显然采用第三种方法处理异常，并且我采用了@EnableWebMvc注解作为全局的 web 配置，默认这个配置会读取WebMvcConfigurationSupport这个类中的配置；但不幸的是这个配置会被继承WebMvcConfigurerAdapter或实现WebMvcConfigurer接口的配置类所覆盖，我们项目中正好继承了WebMvcConfigurerAdapter类并且只添加了一种自定义的异常解析器作为全局处理</p>
+<pre><code class="hljs java">&gt; <span class="hljs-comment">// Java Doc 中对WebMvcConfigurationSupport异常解析器的部分描述</span>
+&gt; Registers a &#123;<span class="hljs-meta">@link</span> HandlerExceptionResolverComposite&#125; with <span class="hljs-keyword">this</span> chain of
+&gt; exception resolvers:
+&gt;
+&gt; &#123;<span class="hljs-meta">@link</span> ExceptionHandlerExceptionResolver&#125; <span class="hljs-keyword">for</span> handling exceptions
+&gt; through @&#123;<span class="hljs-meta">@link</span> ExceptionHandler&#125; methods.
+&gt; &#123;<span class="hljs-meta">@link</span> ResponseStatusExceptionResolver&#125; <span class="hljs-keyword">for</span> exceptions annotated
+&gt; with @&#123;<span class="hljs-meta">@link</span> ResponseStatus&#125;.
+&gt; &#123;<span class="hljs-meta">@link</span> DefaultHandlerExceptionResolver&#125; <span class="hljs-keyword">for</span> resolving known Spring
+&gt; exception types
+&gt;</code></pre>
+
+<pre><code>看到这里，有人会问，当初继承WebMvcConfigurerAdapter这个类自定义配置是为了满足业务需求，尤其是异常这块希望有一个全局处理机制，但后来发现需要对某一特定异常进行处理的时候却发现ExceptionHandler注解失效，难道不能两种兼得吗？答案当然是可以，仔细查阅 Spring WebMvcConfigurer源码中的 Java Doc 发现，自定义的异常解析器有两种添加方法： </code></pre><pre><code class="hljs java"><span class="hljs-comment">// 以覆盖WebMvcConfigurationSupport的默认解析器方法重新定义异常解析器</span>
+<span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">configureHandlerExceptionResolvers</span><span class="hljs-params">(List&lt;HandlerExceptionResolver&gt; exceptionResolvers)</span> </span>&#123;
+&#125;
+<span class="hljs-comment">// 以继承WebMvcConfigurationSupport的默认解析器方法扩展异常解析器</span>
+<span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">extendHandlerExceptionResolvers</span><span class="hljs-params">(List&lt;HandlerExceptionResolver&gt; exceptionResolvers)</span> </span>&#123;
+&#125;</code></pre>
+
+<p>显然，第二种就能满足我们的需求了，效果如下：</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5rx3hj30ue0awmzb.jpg" srcset="/img/loading.gif" alt=""></p>
+
+            </article>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Spring/">Spring</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/06/24/RocketMQ%E5%AD%A6%E4%B9%A0-namesrv/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RocketMQ学习(一) namesrv</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/2018/01/21/%E5%9F%BA%E7%A1%80%E5%90%8C%E6%AD%A5%E6%A1%86%E6%9E%B6-AbstractQueuedSynchronizer/">
+                        <span class="hidden-mobile">基础同步框架 - AbstractQueuedSynchronizer</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "Spring 异常处理机制小结&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

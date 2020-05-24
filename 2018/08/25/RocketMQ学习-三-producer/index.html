@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/me.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IT,互联网">
+  <meta name="author" content="zsfblues">
+  <meta name="keywords" content="">
+  <title>RocketMQ学习(三) producer - zsfblues&#39; blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark.min.css" />
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>zsfblues</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="iconfont icon-home-fill"></i>
+              首页</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">
+              <i class="iconfont icon-archive-fill"></i>
+              归档</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">
+              <i class="iconfont icon-category-fill"></i>
+              分类</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">
+              <i class="iconfont icon-tags-fill"></i>
+              标签</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">
+              <i class="iconfont icon-user-fill"></i>
+              关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/index-bg.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <div class="mt-3 post-meta">
+                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+                  <time datetime="2018-08-25 17:27">
+                    2018年8月25日 下午
+                  </time>
+                </div>
+              
+
+              <div class="mt-1">
+                
+                  
+                  <span class="post-meta mr-2">
+                    <i class="iconfont icon-chart"></i>
+                    2k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta mr-2">
+                      <i class="iconfont icon-clock-fill"></i>
+                    
+                    
+                    25
+                     分钟
+                  </span>
+                
+
+                
+              </div>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <article class="markdown-body">
+              <p>RockterMq本质上作为一个高性能的消息中间件，通过消息来联动各个系统的状态，作为消息发起方的producer自然有必要了解一下其中的原理。讲解以官方demo为基础。</p>
+<hr>
+<h3 id="数据初始化"><a href="#数据初始化" class="headerlink" title="数据初始化"></a>数据初始化</h3><p>在实例化一个producer之后，首先需要进行一系列数据初始化，这些初始化操作为后面的数据发送奠定基础。</p>
+<p>以默认的DefaultMQProducer类为例：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">(<span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> startFactory)</span> <span class="hljs-keyword">throws</span> MQClientException </span>&#123;
+       <span class="hljs-keyword">switch</span> (<span class="hljs-keyword">this</span>.serviceState) &#123;
+           <span class="hljs-keyword">case</span> CREATE_JUST:
+               <span class="hljs-keyword">this</span>.serviceState = ServiceState.START_FAILED;
+
+               <span class="hljs-keyword">this</span>.checkConfig();
+
+               <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.defaultMQProducer.getProducerGroup().equals(MixAll.CLIENT_INNER_PRODUCER_GROUP)) &#123;
+                   <span class="hljs-keyword">this</span>.defaultMQProducer.changeInstanceNameToPID();
+               &#125;
+			<span class="hljs-comment">// 1</span>
+               <span class="hljs-keyword">this</span>.mQClientFactory = MQClientManager.getInstance().getAndCreateMQClientInstance(<span class="hljs-keyword">this</span>.defaultMQProducer, rpcHook);
+			<span class="hljs-comment">// 2</span>
+               <span class="hljs-keyword">boolean</span> registerOK = mQClientFactory.registerProducer(<span class="hljs-keyword">this</span>.defaultMQProducer.getProducerGroup(), <span class="hljs-keyword">this</span>);
+               <span class="hljs-keyword">if</span> (!registerOK) &#123;
+                   <span class="hljs-keyword">this</span>.serviceState = ServiceState.CREATE_JUST;
+                   <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The producer group["</span> + <span class="hljs-keyword">this</span>.defaultMQProducer.getProducerGroup()
+                       + <span class="hljs-string">"] has been created before, specify another name please."</span> + FAQUrl.suggestTodo(FAQUrl.GROUP_NAME_DUPLICATE_URL),
+                       <span class="hljs-keyword">null</span>);
+               &#125;
+
+               <span class="hljs-keyword">this</span>.topicPublishInfoTable.put(<span class="hljs-keyword">this</span>.defaultMQProducer.getCreateTopicKey(), <span class="hljs-keyword">new</span> TopicPublishInfo());
+
+               <span class="hljs-keyword">if</span> (startFactory) &#123;
+                   <span class="hljs-comment">// 3</span>
+                   mQClientFactory.start();
+               &#125;
+
+               log.info(<span class="hljs-string">"the producer [&#123;&#125;] start OK. sendMessageWithVIPChannel=&#123;&#125;"</span>, <span class="hljs-keyword">this</span>.defaultMQProducer.getProducerGroup(),
+                   <span class="hljs-keyword">this</span>.defaultMQProducer.isSendMessageWithVIPChannel());
+               <span class="hljs-keyword">this</span>.serviceState = ServiceState.RUNNING;
+               <span class="hljs-keyword">break</span>;
+           <span class="hljs-keyword">case</span> RUNNING:
+           <span class="hljs-keyword">case</span> START_FAILED:
+           <span class="hljs-keyword">case</span> SHUTDOWN_ALREADY:
+               <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The producer service state not OK, maybe started once, "</span>
+                   + <span class="hljs-keyword">this</span>.serviceState
+                   + FAQUrl.suggestTodo(FAQUrl.CLIENT_SERVICE_NOT_OK),
+                   <span class="hljs-keyword">null</span>);
+           <span class="hljs-keyword">default</span>:
+               <span class="hljs-keyword">break</span>;
+       &#125;
+
+    	<span class="hljs-comment">// 4</span>
+       <span class="hljs-keyword">this</span>.mQClientFactory.sendHeartbeatToAllBrokerWithLock();
+   &#125;</code></pre>
+
+
+
+<ol>
+<li>从第一点可以看出RocketMq(以下简称rmq)对于不同的客户端是通过不同clientIp和instanceName，这反映了rmq在分辨客户端时可以将其看成一台机器或是一个标准进程。</li>
+<li>将上一步生成的客户端与生产者组名关联起来并缓存起来</li>
+<li>启动mq客户端实例，这一步也是完成数据初始化的关键步骤</li>
+<li>向broker发送心跳包</li>
+</ol>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> MQClientException </span>&#123;
+
+       <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;
+           <span class="hljs-keyword">switch</span> (<span class="hljs-keyword">this</span>.serviceState) &#123;
+               <span class="hljs-keyword">case</span> CREATE_JUST:
+                   <span class="hljs-keyword">this</span>.serviceState = ServiceState.START_FAILED;
+                   <span class="hljs-comment">// If not specified,looking address from name server</span>
+                   <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == <span class="hljs-keyword">this</span>.clientConfig.getNamesrvAddr()) &#123;
+                       <span class="hljs-keyword">this</span>.mQClientAPIImpl.fetchNameServerAddr();
+                   &#125;
+                   <span class="hljs-comment">// 初始化netty连接，方便后续消息发送</span>
+                   <span class="hljs-keyword">this</span>.mQClientAPIImpl.start();
+                  	
+                   <span class="hljs-keyword">this</span>.startScheduledTask();
+                   <span class="hljs-comment">// 开始持续拉取消息消费</span>
+                   <span class="hljs-keyword">this</span>.pullMessageService.start();
+                   <span class="hljs-comment">// 主要是调整具体消费的队列，之后介绍消费者会详述</span>
+                   <span class="hljs-keyword">this</span>.rebalanceService.start();
+                   <span class="hljs-comment">// Start push service</span>
+                   <span class="hljs-keyword">this</span>.defaultMQProducer.getDefaultMQProducerImpl().start(<span class="hljs-keyword">false</span>);
+                   log.info(<span class="hljs-string">"the client factory [&#123;&#125;] start OK"</span>, <span class="hljs-keyword">this</span>.clientId);
+                   <span class="hljs-keyword">this</span>.serviceState = ServiceState.RUNNING;
+                   <span class="hljs-keyword">break</span>;
+               <span class="hljs-keyword">case</span> RUNNING:
+                   <span class="hljs-keyword">break</span>;
+               <span class="hljs-keyword">case</span> SHUTDOWN_ALREADY:
+                   <span class="hljs-keyword">break</span>;
+               <span class="hljs-keyword">case</span> START_FAILED:
+                   <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The Factory object["</span> + <span class="hljs-keyword">this</span>.getClientId() + <span class="hljs-string">"] has been created before, and failed."</span>, <span class="hljs-keyword">null</span>);
+               <span class="hljs-keyword">default</span>:
+                   <span class="hljs-keyword">break</span>;
+           &#125;
+       &#125;
+   &#125;</code></pre>
+
+<pre><code>其中startScheduledTask方法用于启动各种定时任务(所有任务都是泡在一个单例线程池中以节省资源)</code></pre><ol>
+<li>包括定时拉取namesrv地址</li>
+<li>从namesrv获取最新的路由信息，包括获取本地消费组下订阅不同topic的消费组信息，不同生产者组中生产者信息，以及最为重要的是还会检测上述topic(topic就是上述消费者和生产者关联的topic信息)下的路由信息是否发生变更，变更的话需要重新获取相应的路由信息(什么是路由信息在发送消息环节会详述)</li>
+<li>向broker定时发送心跳包来更新当前的客户端的生存状态</li>
+<li>持久化本地消费记录信息</li>
+</ol>
+<hr>
+<h3 id="发送消息"><a href="#发送消息" class="headerlink" title="发送消息"></a>发送消息</h3><pre><code>对于rmq消息而言，主要包含三个部分(两个必填，一个可选)：topic，tag以及key。对于三者的关系，一句话概括就是一本书，它表达出具体消息关注某一方面(比如金融书，计算机类书)，tag则是书的章节，侧重描述某一细节，key的作用主要用于标识消息的唯一性，不过考虑到消息本身带有的id属性，这一个也可以不填。</code></pre><p>对于发送消息，主要有三种方式：同步，异步和单向传输。producer在发送消息时会选择一个namesrv，从而获取到broker的相关信息。由于每个namesrv是独立存在的，因而我们可以随机选取一台建立连接并通信，建立连接失败的话就接着选取下一台就行了。具体选择的代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-keyword">final</span> List&lt;String&gt; addrList = <span class="hljs-keyword">this</span>.namesrvAddrList.get();
+        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.lockNamesrvChannel.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) &#123;
+            <span class="hljs-keyword">try</span> &#123;
+                addr = <span class="hljs-keyword">this</span>.namesrvAddrChoosed.get();
+                <span class="hljs-keyword">if</span> (addr != <span class="hljs-keyword">null</span>) &#123;
+                    ChannelWrapper cw = <span class="hljs-keyword">this</span>.channelTables.get(addr);
+                    <span class="hljs-keyword">if</span> (cw != <span class="hljs-keyword">null</span> &amp;&amp; cw.isOK()) &#123;
+                        <span class="hljs-keyword">return</span> cw.getChannel();
+                    &#125;
+                &#125;
+
+                <span class="hljs-keyword">if</span> (addrList != <span class="hljs-keyword">null</span> &amp;&amp; !addrList.isEmpty()) &#123;
+                    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; addrList.size(); i++) &#123;
+                        <span class="hljs-keyword">int</span> index = <span class="hljs-keyword">this</span>.namesrvIndex.incrementAndGet();
+                        index = Math.abs(index);
+                        index = index % addrList.size();
+                        String newAddr = addrList.get(index);
+
+                        <span class="hljs-keyword">this</span>.namesrvAddrChoosed.set(newAddr);
+                        log.info(<span class="hljs-string">"new name server is chosen. OLD: &#123;&#125; , NEW: &#123;&#125;. namesrvIndex = &#123;&#125;"</span>, addr, newAddr, namesrvIndex);
+                        Channel channelNew = <span class="hljs-keyword">this</span>.createChannel(newAddr);
+                        <span class="hljs-keyword">if</span> (channelNew != <span class="hljs-keyword">null</span>) &#123;
+                            <span class="hljs-keyword">return</span> channelNew;
+                        &#125;
+                    &#125;
+                &#125;
+            &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+                log.error(<span class="hljs-string">"getAndCreateNameserverChannel: create name server channel exception"</span>, e);
+            &#125; <span class="hljs-keyword">finally</span> &#123;
+                <span class="hljs-keyword">this</span>.lockNamesrvChannel.unlock();
+            &#125;</code></pre>
+
+<blockquote>
+<p>namesrvIndex的初始化是由如下代码执行的</p>
+<pre><code class="hljs java">&gt;<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">initValueIndex</span><span class="hljs-params">()</span> </span>&#123;
+   Random r = <span class="hljs-keyword">new</span> Random();
+
+   <span class="hljs-keyword">return</span> Math.abs(r.nextInt() % <span class="hljs-number">999</span>) % <span class="hljs-number">999</span>;
+&gt;&#125;</code></pre>
+</blockquote>
+<p>根据发送的topic去寻找对应的broker信息，找不到会直接请求namesrv来获取路由信息(包含broker信息以及topic下的队列信息)。通过namesrv知道topic下的队列信息，再通过队列信息找到对应的broker(队列信息中会包含所属的broker)，从而间接建立topic和broker的映射关系，以便后续消息存储消费走对应的broker。这样一来，消息发送的压力就平摊到不同的broker上面，主要关系如下图：</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5rwnaj313y0jotdc.jpg" srcset="/img/loading.gif" alt=""></p>
+<p>通过将不同的message queue划分到不同的broker group中，所以对于客户端来说，分布在不同broker group的message queue成为一个服务集群，但客户端会把请求分摊到不同的queue。这样对消息的存储和转发均起到了负载均衡的作用。</p>
+<h4 id="消息发送方式"><a href="#消息发送方式" class="headerlink" title="消息发送方式"></a>消息发送方式</h4><ol>
+<li><p>同步方式(SYNC)：</p>
+<blockquote>
+<p>同步消息发送是三种发送方式中唯一会直接返回发送结果的。第一次会随机从topic下选择message queue进行消息投递，随后就是依次向不同的message queue投递消息。在发送失败后会重试(默认重试两次)。并最终将发送结果返回(发送结果的获取是利用countDownLatch的超时机制实现的)。</p>
+</blockquote>
+</li>
+<li><p>异步发送(ASYNC)：</p>
+<blockquote>
+<p>异步发送流程上没有太多区别，主要就是发送结果会在返回响应后通过回调函数将通知包装在请求上下文</p>
+</blockquote>
+</li>
+<li><p>单向(Oneway)发送：只负责发送消息，不等待服务器回应且没有回调函数触发，即只发送请求不等待应答。此方式发送消息的过程耗时非常短。但是对发送可靠性不作保障，比较适合像日志收集，应用埋点等需求。</p>
+</li>
+</ol>
+<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><pre><code>rmq也支持顺序消息，不过这种消息只限于将消息投递到某个topic下的一个message queue中，考虑到全局有序对性能影响较大具体可以参考[分布式开放消息系统(RocketMQ)的原理与实践](https://www.jianshu.com/p/453c6e7ff81c), 里面有一些，而在沈询之前讨论mq设计的视频中也说明过(详见[阿里分布式开放消息服务(ONS)原理与实践](http://i.youku.com/u/UMTcwMTg3NDc1Mg==?from=113-2-1-2))。此外rmq也支持发送批量消息，以官网为例：</code></pre><pre><code class="hljs java">String topic = <span class="hljs-string">"BatchTest"</span>;
+List&lt;Message&gt; messages = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+messages.add(<span class="hljs-keyword">new</span> Message(topic, <span class="hljs-string">"TagA"</span>, <span class="hljs-string">"OrderID001"</span>, <span class="hljs-string">"Hello world 0"</span>.getBytes()));
+messages.add(<span class="hljs-keyword">new</span> Message(topic, <span class="hljs-string">"TagA"</span>, <span class="hljs-string">"OrderID002"</span>, <span class="hljs-string">"Hello world 1"</span>.getBytes()));
+messages.add(<span class="hljs-keyword">new</span> Message(topic, <span class="hljs-string">"TagA"</span>, <span class="hljs-string">"OrderID003"</span>, <span class="hljs-string">"Hello world 2"</span>.getBytes()));
+<span class="hljs-keyword">try</span> &#123;
+    producer.send(messages);
+&#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+    e.printStackTrace();
+    <span class="hljs-comment">//handle the error</span>
+&#125;</code></pre>
+
+<pre><code>rmq在一定程度上是支持定时消息的，不过延时时间不是由用户来决定的，因为这样一来就需要在broker层面对消息进行排序，就又回到了上述的弊端。因为rmq支持的延时级别，级别越高，延时越长：</code></pre><table>
+<thead>
+<tr>
+<th align="center">延迟级别</th>
+<th align="center">延时时长</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td align="center">1s</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">5s</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">10s</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td align="center">30s</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td align="center">1m</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td align="center">2m</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td align="center">3m</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td align="center">4m</td>
+</tr>
+<tr>
+<td align="center">9</td>
+<td align="center">5m</td>
+</tr>
+<tr>
+<td align="center">10</td>
+<td align="center">6m</td>
+</tr>
+<tr>
+<td align="center">11</td>
+<td align="center">7m</td>
+</tr>
+<tr>
+<td align="center">12</td>
+<td align="center">8m</td>
+</tr>
+<tr>
+<td align="center">13</td>
+<td align="center">9m</td>
+</tr>
+<tr>
+<td align="center">14</td>
+<td align="center">10m</td>
+</tr>
+<tr>
+<td align="center">15</td>
+<td align="center">20m</td>
+</tr>
+<tr>
+<td align="center">16</td>
+<td align="center">30m</td>
+</tr>
+<tr>
+<td align="center">17</td>
+<td align="center">1h</td>
+</tr>
+<tr>
+<td align="center">18</td>
+<td align="center">2h</td>
+</tr>
+</tbody></table>
+<p>在发送时，设置：</p>
+<pre><code class="hljs java">Message message = <span class="hljs-keyword">new</span> Message(<span class="hljs-string">"TestTopic"</span>, (<span class="hljs-string">"Hello scheduled message"</span>).getBytes());
+msg.setDelayTimeLevel(level);</code></pre>
+
+<p>具体代码在org.apache.rocketmq.store.schedule.ScheduleMessageService的parseDelayLevel方法中，可见producer是不会对延时消息做任何处理，就像普通消息发送出去，在broker那再作处理。</p>
+
+            </article>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java/">Java</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6/">消息中间件</a>
+                    
+                      <a class="hover-with-bg" href="/tags/RocketMQ/">RocketMQ</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/11/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%BA%8C-broker/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RocketMQ学习(二) broker</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/2018/06/24/RocketMQ%E5%AD%A6%E4%B9%A0-namesrv/">
+                        <span class="hidden-mobile">RocketMQ学习(一) namesrv</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "RocketMQ学习(三) producer&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

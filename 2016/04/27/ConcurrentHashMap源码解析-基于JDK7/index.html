@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/me.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IT,互联网">
+  <meta name="author" content="zsfblues">
+  <meta name="keywords" content="">
+  <title>ConcurrentHashMap源码解析(基于JDK7) - zsfblues&#39; blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark.min.css" />
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>zsfblues</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="iconfont icon-home-fill"></i>
+              首页</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">
+              <i class="iconfont icon-archive-fill"></i>
+              归档</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">
+              <i class="iconfont icon-category-fill"></i>
+              分类</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">
+              <i class="iconfont icon-tags-fill"></i>
+              标签</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">
+              <i class="iconfont icon-user-fill"></i>
+              关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/index-bg.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <div class="mt-3 post-meta">
+                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+                  <time datetime="2016-04-27 23:12">
+                    2016年4月27日 晚上
+                  </time>
+                </div>
+              
+
+              <div class="mt-1">
+                
+                  
+                  <span class="post-meta mr-2">
+                    <i class="iconfont icon-chart"></i>
+                    3.2k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta mr-2">
+                      <i class="iconfont icon-clock-fill"></i>
+                    
+                    
+                    43
+                     分钟
+                  </span>
+                
+
+                
+              </div>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <article class="markdown-body">
+              <h5 id="JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法-非阻塞的无锁算法-代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少-代码激增至6000多行-。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释-水平有限，毕竟学生o-╯□╰-o"><a href="#JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法-非阻塞的无锁算法-代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少-代码激增至6000多行-。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释-水平有限，毕竟学生o-╯□╰-o" class="headerlink" title="JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法(非阻塞的无锁算法)代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少(代码激增至6000多行)。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释(水平有限，毕竟学生o(╯□╰)o)"></a>JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法(非阻塞的无锁算法)代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少(代码激增至6000多行)。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释(水平有限，毕竟学生o(╯□╰)o)</h5><hr>
+<pre><code>ConcurrentHashMap的出现主要是用来高效地解决多线程下不同线程对数据的争用问题。在早期，Java为了解决传统HashMap的非线程安全问题是采用的是对每个方法进行synchronized同步(比如HashTable)，而synchronized本质采用了独占锁(也叫悲观锁)的机制，多个线程对数据的访问必须串行化地进行，从而导致多个用户线程进入阻塞，严重影响效率。因而为了尽可能减少阻塞，ConcurrentHashMap就应运而生了 首先来介绍ConcurrentHashMap的几个常量</code></pre><pre><code class="hljs java"><span class="hljs-comment">//哈希表的最大容量</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MAXIMUM_CAPACITY = <span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">30</span>;
+<span class="hljs-comment">//ConcurrentHashMap的负载因子，当哈希表的的长度达到CAPACITY * LOAD_FACTOR时哈希表会扩容</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">float</span> LOAD_FACTOR = <span class="hljs-number">0.75f</span>;
+<span class="hljs-comment">//ConcurrentHashMap的默认容量，要设置为2的指数幂</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> DEFAULT_CAPACITY = <span class="hljs-number">16</span>;
+<span class="hljs-comment">//分段锁的取值范围,必须为2的指数幂，便于通过键的hash值确定键在哪个区段</span>
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MIN_SEGMENT_TABLE_CAPACITY = <span class="hljs-number">2</span>;
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MAX_SEGMENTS = <span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">16</span>; <span class="hljs-comment">// slightly conservative</span></code></pre>
+
+<p>在ConcurrentHashMap中，开创性地使用了<strong>分段锁</strong>的概念，什么是分段锁？看下图：</p>
+<p><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/concurrenthashmap.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5t99aj30nm0mdjte.jpg" srcset="/img/loading.gif" alt="concurrenthashmap.png"></a></p>
+<p>从图中可以看到，ConcurrentHashMap内部分为很多个Segment（继承ReentrantLock），每一个Segment拥有一把锁且管理一个HashEntry数组(本质就是一个哈希表)。对于一个key，需要经过三次hash操作，才能最终定位这个元素的位置，这三次hash分别为：</p>
+<blockquote>
+<p>对于一个key，先进行一次hash操作，得到hash值h1，也即h1 = key.hashCode()（如果key所属类型重写了hashCode方法，就调用具体的hashCode方法）；<br>将得到的h1的高几位与低几位进行异或运算得到hash值h2，也即h2 = hash2(h1高几位),通过h2能够确定该元素的放在哪个Segment；<br>将得到的h1进行第三次hash，得到hash值h3，也即h3 = hash3(h1)，通过h3能够确定该元素放置在哪个HashEntry。</p>
+</blockquote>
+<p>关于为什么确定数据在哪个Segment要进行2次哈希，首先我们来看看JDK的hash函数源码(此函数参与第二次hash)：</p>
+<pre><code class="hljs java"><span class="hljs-comment">/**</span>
+<span class="hljs-comment">* Applies a supplemental hash function to a given hashCode, which</span>
+<span class="hljs-comment">* defends against poor quality hash functions.  This is critical</span>
+<span class="hljs-comment">* because ConcurrentHashMap uses power-of-two length hash tables,</span>
+<span class="hljs-comment">* that otherwise encounter collisions for hashCodes that do not</span>
+<span class="hljs-comment">* differ in lower or upper bits.</span>
+<span class="hljs-comment">*/</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">hash</span><span class="hljs-params">(<span class="hljs-keyword">int</span> h)</span></span>
+<span class="hljs-function"></span>&#123;
+    <span class="hljs-keyword">int</span> h = hashSeed;
+    <span class="hljs-keyword">if</span> ((<span class="hljs-number">0</span> != h) &amp;&amp; (k <span class="hljs-keyword">instanceof</span> String)) &#123;
+            <span class="hljs-keyword">return</span> sun.misc.Hashing.stringHash32((String) k);
+        &#125;
+    h ^= k.hashCode();
+    <span class="hljs-comment">// Spread bits to regularize both segment and index locations,</span>
+    <span class="hljs-comment">// using variant of single-word Wang/Jenkins hash.</span>
+    h += (h &lt;&lt;  <span class="hljs-number">15</span>) ^ <span class="hljs-number">0xffffcd7d</span>;
+    h ^= (h &gt;&gt;&gt; <span class="hljs-number">10</span>);
+    h += (h &lt;&lt;   <span class="hljs-number">3</span>);
+    h ^= (h &gt;&gt;&gt;  <span class="hljs-number">6</span>);
+    h += (h &lt;&lt;   <span class="hljs-number">2</span>) + (h &lt;&lt; <span class="hljs-number">14</span>);
+    <span class="hljs-keyword">return</span> h ^ (h &gt;&gt;&gt; <span class="hljs-number">16</span>);
+&#125;</code></pre>
+
+<p>源码中大意说此hash函数是用来解决传统的hash函数所带来的低效问题，因为一旦hash值化为二进制后，由于只与后几位进行位与运算，造成高位的hash值被掩盖从而使得较大数的hash值与较小数的hash值无异，举个例子：</p>
+<pre><code class="hljs java">System.out.println(Integer.parseInt(<span class="hljs-string">"0001111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
+System.out.println(Integer.parseInt(<span class="hljs-string">"0011111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
+System.out.println(Integer.parseInt(<span class="hljs-string">"0111111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
+System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);</code></pre>
+
+<p>由于15只有后四位是全1，因而对于相差32,64,128的数值而言与15的哈希值一样，这样碰撞的几率大增，因而多个线程仍有很大几率访问同一个segment，分段锁的优势也就荡然无存了，但是如果我们先把上例中的二进制数字使用hash()函数先进行一次预hash，得到的结果是这样的：</p>
+<blockquote>
+<p>0100｜0111｜0110｜0111｜1101｜1010｜0100｜1110<br>1111｜0111｜0100｜0011｜0000｜0001｜1011｜1000<br>0111｜0111｜0110｜1001｜0100｜0110｜0011｜1110<br>1000｜0011｜0000｜0000｜1100｜1000｜0001｜1010</p>
+</blockquote>
+<p>默认情况下segmentShift为28，segmentMask为15，再哈希后的数最大是32位二进制数据，向右无符号移动28位，意思是让高4位参与到hash运算中， (hash &gt;&gt;&gt; segmentShift) &amp; segmentMask的运算结果分别是4，15，7和8，可以看到hash值没有发生冲突。ConcurrentHashMap通过以下哈希算法定位segment</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> Segment&lt;K,V&gt; <span class="hljs-title">segmentFor</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash)</span></span>
+<span class="hljs-function"></span>&#123;
+	<span class="hljs-keyword">return</span> segments[(hash &gt;&gt;&gt; segmentShift) &amp; segmentMask];
+&#125;</code></pre>
+
+<p>关于ConcurrentHashMap的<strong>初始化</strong>，有这样一个函数</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConcurrentHashMap</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity,</span></span>
+<span class="hljs-function"><span class="hljs-params">                           <span class="hljs-keyword">float</span> loadFactor, <span class="hljs-keyword">int</span> concurrencyLevel)</span></span>&#123;
+      <span class="hljs-keyword">if</span> (!(loadFactor &gt; <span class="hljs-number">0</span>) || initialCapacity &lt; <span class="hljs-number">0</span> || concurrencyLevel &lt;= <span class="hljs-number">0</span>)
+          <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException();
+      <span class="hljs-keyword">if</span> (concurrencyLevel &gt; MAX_SEGMENTS)
+          concurrencyLevel = MAX_SEGMENTS;
+      <span class="hljs-comment">// Find power-of-two sizes best matching arguments</span>
+      <span class="hljs-keyword">int</span> sshift = <span class="hljs-number">0</span>;
+      <span class="hljs-keyword">int</span> ssize = <span class="hljs-number">1</span>;
+      <span class="hljs-keyword">while</span> (ssize &lt; concurrencyLevel) &#123;
+          ++sshift;
+          ssize &lt;&lt;= <span class="hljs-number">1</span>;
+      &#125;
+      <span class="hljs-keyword">this</span>.segmentShift = <span class="hljs-number">32</span> - sshift;
+      <span class="hljs-keyword">this</span>.segmentMask = ssize - <span class="hljs-number">1</span>;
+      <span class="hljs-keyword">if</span> (initialCapacity &gt; MAXIMUM_CAPACITY)
+          initialCapacity = MAXIMUM_CAPACITY;
+      <span class="hljs-keyword">int</span> c = initialCapacity / ssize;
+      <span class="hljs-keyword">if</span> (c * ssize &lt; initialCapacity)
+          ++c;
+      <span class="hljs-keyword">int</span> cap = MIN_SEGMENT_TABLE_CAPACITY;
+      <span class="hljs-keyword">while</span> (cap &lt; c)
+          cap &lt;&lt;= <span class="hljs-number">1</span>;
+      <span class="hljs-comment">// create segments and segments[0]</span>
+      Segment&lt;K,V&gt; s0 =
+          <span class="hljs-keyword">new</span> Segment&lt;K,V&gt;(loadFactor, (<span class="hljs-keyword">int</span>)(cap * loadFactor),
+                           (HashEntry&lt;K,V&gt;[])<span class="hljs-keyword">new</span> HashEntry[cap]);
+      Segment&lt;K,V&gt;[] ss = (Segment&lt;K,V&gt;[])<span class="hljs-keyword">new</span> Segment[ssize];
+      UNSAFE.putOrderedObject(ss, SBASE, s0); <span class="hljs-comment">// ordered write of segments[0]</span>
+      <span class="hljs-keyword">this</span>.segments = ss;
+  &#125;</code></pre>
+
+<p>如果在未设置下concurrencyLevel的默认值为<strong>static final int DEFAULT_CONCURRENCY_LEVEL = 16;</strong>，此值也是用来表示segment的数量(不可太大，否则可能有segment存不上值，浪费内存空间，太小的话数据争用仍会比较严重)。循环结束后ssize的值为16，sshift则为4，segmentShift为28，segmentMask为15。而cap这个值为每个Segment平均应该放置多少个元素。其默认值 <strong>static final int MIN_SEGMENT_TABLE_CAPACITY = 2;</strong>表示每个segment对应的HashEntry数组的容量(要求是大于等于c，并且必须为2的指数幂)<br>最后创建一个Segment实例，将其当做Segment数组的第一个元素。</p>
+<p><strong>put操作</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">put</span><span class="hljs-params">(K key, V value)</span> </span>&#123;
+       Segment&lt;K,V&gt; s;
+       <span class="hljs-keyword">if</span> (value == <span class="hljs-keyword">null</span>)
+           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException();
+       <span class="hljs-keyword">int</span> hash = hash(key.hashCode());
+       <span class="hljs-keyword">int</span> j = (hash &gt;&gt;&gt; segmentShift) &amp; segmentMask;
+       <span class="hljs-keyword">if</span> ((s = (Segment&lt;K,V&gt;)UNSAFE.getObject          <span class="hljs-comment">// nonvolatile; recheck</span>
+            (segments, (j &lt;&lt; SSHIFT) + SBASE)) == <span class="hljs-keyword">null</span>) <span class="hljs-comment">//  in ensureSegment</span>
+           s = ensureSegment(j);
+       <span class="hljs-keyword">return</span> s.put(key, hash, value, <span class="hljs-keyword">false</span>);
+   &#125;
+   
+   
+   <span class="hljs-comment">/****   put(K key, int hash, V value, boolean onlyIfAbsent)[是一个Segment方法]   ****/</span>
+   <span class="hljs-function"><span class="hljs-keyword">final</span> V <span class="hljs-title">put</span><span class="hljs-params">(K key, <span class="hljs-keyword">int</span> hash, V value, <span class="hljs-keyword">boolean</span> onlyIfAbsent)</span> </span>&#123;
+	HashEntry&lt;K,V&gt; node = tryLock() ? <span class="hljs-keyword">null</span> :
+		scanAndLockForPut(key, hash, value);
+	V oldValue;
+	<span class="hljs-keyword">try</span> &#123;
+		HashEntry&lt;K,V&gt;[] tab = table;
+           	<span class="hljs-comment">//第三次hash</span>
+		<span class="hljs-keyword">int</span> index = (tab.length - <span class="hljs-number">1</span>) &amp; hash;
+           	<span class="hljs-comment">//根据hash值找到具体该插入到hash数组的哪个位置</span>
+		HashEntry&lt;K,V&gt; first = entryAt(tab, index);
+           	<span class="hljs-comment">//如果冲突，则遍历线性表</span>
+		<span class="hljs-keyword">for</span> (HashEntry&lt;K,V&gt; e = first;;) &#123;
+			<span class="hljs-keyword">if</span> (e != <span class="hljs-keyword">null</span>) &#123;
+				K k;
+				<span class="hljs-keyword">if</span> ((k = e.key) == key ||
+					(e.hash == hash &amp;&amp; key.equals(k))) &#123;
+					oldValue = e.value;
+					<span class="hljs-keyword">if</span> (!onlyIfAbsent) &#123;
+						e.value = value;
+						++modCount;
+					&#125;
+					<span class="hljs-keyword">break</span>;
+				&#125;
+				e = e.next;
+			&#125;
+               		<span class="hljs-comment">//如果插入元素后HashEntry数组长度达到Capacity * loadFactor，</span>
+                   	<span class="hljs-comment">//则进行扩容并根据值的hash重新确定元素在数组中的位置，即rehash(node)</span>
+			<span class="hljs-keyword">else</span> &#123;
+				<span class="hljs-keyword">if</span> (node != <span class="hljs-keyword">null</span>)
+					node.setNext(first);
+				<span class="hljs-keyword">else</span>
+					node = <span class="hljs-keyword">new</span> HashEntry&lt;K,V&gt;(hash, key, value, first);
+				<span class="hljs-keyword">int</span> c = count + <span class="hljs-number">1</span>;
+				<span class="hljs-keyword">if</span> (c &gt; threshold &amp;&amp; tab.length &lt; MAXIMUM_CAPACITY)
+					rehash(node);
+				<span class="hljs-keyword">else</span>
+					setEntryAt(tab, index, node);
+				++modCount;
+				count = c;
+				oldValue = <span class="hljs-keyword">null</span>;
+				<span class="hljs-keyword">break</span>;
+			&#125;
+		&#125;
+	&#125; <span class="hljs-keyword">finally</span> &#123;
+		unlock();
+	&#125;
+	<span class="hljs-keyword">return</span> oldValue;
+&#125;</code></pre>
+
+<p>从上面很明显里看出ConcurrentHashMap中的key和value值都不能为null，在进行前两次hash运算后通过<strong>(hash &gt;&gt;&gt; segmentShift) &amp; segmentMask</strong>最终确定数据在哪个segment，然后获得相应的segment对象之后再将其插入到该segment的HashEntry数组的某个位置。比如取hash的高四位(在初始化的时候我们说过segmentShift的值等于32-sshift，例如concurrencyLevel等于16，则sshift等于4，则segmentShift为28。segmentMask为15)</p>
+<p><strong>get操作</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(Object key)</span> </span>&#123;
+        Segment&lt;K,V&gt; s; <span class="hljs-comment">// manually integrate access methods to reduce overhead</span>
+        HashEntry&lt;K,V&gt;[] tab;
+        <span class="hljs-keyword">int</span> h = hash(key);
+        <span class="hljs-keyword">long</span> u = (((h &gt;&gt;&gt; segmentShift) &amp; segmentMask) &lt;&lt; SSHIFT) + SBASE;
+        <span class="hljs-keyword">if</span> ((s = (Segment&lt;K,V&gt;)UNSAFE.getObjectVolatile(segments, u)) != <span class="hljs-keyword">null</span> &amp;&amp;
+            (tab = s.table) != <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-keyword">for</span> (HashEntry&lt;K,V&gt; e = (HashEntry&lt;K,V&gt;) UNSAFE.getObjectVolatile
+                     (tab, ((<span class="hljs-keyword">long</span>)(((tab.length - <span class="hljs-number">1</span>) &amp; h)) &lt;&lt; TSHIFT) + TBASE);
+                 e != <span class="hljs-keyword">null</span>; e = e.next) &#123;
+                K k;
+                <span class="hljs-keyword">if</span> ((k = e.key) == key || (e.hash == h &amp;&amp; key.equals(k)))
+                    <span class="hljs-keyword">return</span> e.value;
+            &#125;
+        &#125;
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+    &#125;</code></pre>
+
+<p>与put操作类似，都是通过key三次hash后确定其在哪个HashEntry，然后从某个HashEntry对象开始遍历寻找(相当于从链表头结点向下遍历),get方法是基于UNSAFE.getObjectVolatile原子操作，没有显示的使用锁（基于乐观锁，即失败就反复尝试），从而提高了吞吐量。这是由于统计当前Segement大小的count字段和用于存储值的HashEntry及其值value定义成volatile关键字修饰的变量，在java内存模型的happens-before规则下，对其写一定要优先于读，保证在多线程情况下，一个线程对值的修改立即对其它线程可见。但值得注意的是get方法是<strong>弱一致</strong>的，也就是你期望往ConcurrentHashMap底层数据结构中加入一个元素后，立马能对get可见，但ConcurrentHashMap并不能如你所愿。换句话说，put操作将一个元素加入到底层数据结构后，get可能在某段时间内还看不到这个元素。具体可参照<a href="http://ifeve.com/concurrenthashmap-weakly-consistent/" target="_blank" rel="noopener">为什么ConcurrentHashMap是弱一致的</a></p>
+<pre><code class="hljs java"><span class="hljs-comment">/**</span>
+<span class="hljs-comment">* The per-segment table. Elements are accessed via</span>
+<span class="hljs-comment">* entryAt/setEntryAt providing volatile semantics.</span>
+<span class="hljs-comment">*/</span>
+<span class="hljs-keyword">transient</span> <span class="hljs-keyword">volatile</span> HashEntry&lt;K,V&gt;[] table;
+<span class="hljs-comment">/**</span>
+<span class="hljs-comment">* The number of elements. Accessed only either within locks</span>
+<span class="hljs-comment">* or among other volatile reads that maintain visibility.</span>
+<span class="hljs-comment">*/</span>
+<span class="hljs-keyword">transient</span> <span class="hljs-keyword">int</span> count;
+<span class="hljs-comment">/**********************************************/</span>
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HashEntry</span>&lt;<span class="hljs-title">K</span>,<span class="hljs-title">V</span>&gt; </span>&#123;
+        <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> hash;
+        <span class="hljs-keyword">final</span> K key;
+        <span class="hljs-keyword">volatile</span> V value;
+        <span class="hljs-keyword">volatile</span> HashEntry&lt;K,V&gt; next;
+        
+        HashEntry(<span class="hljs-keyword">int</span> hash, K key, V value, HashEntry&lt;K,V&gt; next) &#123;
+            <span class="hljs-keyword">this</span>.hash = hash;
+            <span class="hljs-keyword">this</span>.key = key;
+            <span class="hljs-keyword">this</span>.value = value;
+            <span class="hljs-keyword">this</span>.next = next;
+        &#125;
+&#125;</code></pre>
+
+<p><strong>size操作</strong> </p>
+<p>size操作与put和get操作最大的区别在于，size操作需要遍历所有的Segment才能算出整个Map的大小，而put和get都只关心一个Segment。假设我们当前遍历的Segment为SA，那么在遍历SA过程中其他的Segment比如SB可能会被修改，于是这一次运算出来的size值可能并不是Map当前的真正大小。所以一个比较简单的办法就是计算Map大小的时候所有的Segment都Lock住，不能更新(包含put，remove等等)数据，计算完之后再Unlock。这是普通人能够想到的方案，但是牛逼的作者还有一个更好的Idea：先给3次机会，不lock所有的Segment，遍历所有Segment，累加各个Segment的大小得到整个Map的大小，如果某相邻的两次计算获取的所有Segment的更新的次数（每个Segment都有一个modCount变量，这个变量在Segment中的Entry被修改时会加一，通过这个值可以得到每个Segment的更新操作的次数）是一样的，说明计算过程中没有更新操作，则直接返回这个值。如果这三次不加锁的计算过程中Map的更新次数有变化，则之后的计算先对所有的Segment加锁，再遍历所有Segment计算Map大小，最后再解锁所有Segment。源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">size</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-comment">// Try a few times to get accurate count. On failure due to</span>
+        <span class="hljs-comment">// continuous async changes in table, resort to locking.</span>
+        <span class="hljs-keyword">final</span> Segment&lt;K,V&gt;[] segments = <span class="hljs-keyword">this</span>.segments;
+        <span class="hljs-keyword">int</span> size;
+        <span class="hljs-keyword">boolean</span> overflow; <span class="hljs-comment">// true if size overflows 32 bits</span>
+        <span class="hljs-keyword">long</span> sum;         <span class="hljs-comment">// sum of modCounts</span>
+        <span class="hljs-keyword">long</span> last = <span class="hljs-number">0L</span>;   <span class="hljs-comment">// previous sum</span>
+        <span class="hljs-keyword">int</span> retries = -<span class="hljs-number">1</span>; <span class="hljs-comment">// first iteration isn't retry</span>
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-keyword">for</span> (;;) &#123;
+                <span class="hljs-keyword">if</span> (retries++ == RETRIES_BEFORE_LOCK) &#123;
+                    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> j = <span class="hljs-number">0</span>; j &lt; segments.length; ++j)
+                        ensureSegment(j).lock(); <span class="hljs-comment">// force creation</span>
+                &#125;
+                sum = <span class="hljs-number">0L</span>;
+                size = <span class="hljs-number">0</span>;
+                overflow = <span class="hljs-keyword">false</span>;
+                <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> j = <span class="hljs-number">0</span>; j &lt; segments.length; ++j) &#123;
+                    Segment&lt;K,V&gt; seg = segmentAt(segments, j);
+                    <span class="hljs-keyword">if</span> (seg != <span class="hljs-keyword">null</span>) &#123;
+                        sum += seg.modCount;
+                        <span class="hljs-keyword">int</span> c = seg.count;
+                        <span class="hljs-keyword">if</span> (c &lt; <span class="hljs-number">0</span> || (size += c) &lt; <span class="hljs-number">0</span>)
+                            overflow = <span class="hljs-keyword">true</span>;
+                    &#125;
+                &#125;
+                <span class="hljs-keyword">if</span> (sum == last)
+                    <span class="hljs-keyword">break</span>;
+                last = sum;
+            &#125;
+        &#125; <span class="hljs-keyword">finally</span> &#123;
+            <span class="hljs-keyword">if</span> (retries &gt; RETRIES_BEFORE_LOCK) &#123;
+                <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> j = <span class="hljs-number">0</span>; j &lt; segments.length; ++j)
+                    segmentAt(segments, j).unlock();
+            &#125;
+        &#125;
+        <span class="hljs-keyword">return</span> overflow ? Integer.MAX_VALUE : size;
+    &#125;</code></pre>
+
+<p>注意<strong>static final int RETRIES_BEFORE_LOCK = 2;</strong>以及<strong>sum += seg.modCount;</strong>和</p>
+<blockquote>
+<p>if (sum == last)<br>{break;}<br>last = sum;</p>
+</blockquote>
+<p>现在我们假定一共有4个segment，当第一次循环后他们所对应的modCount分别为2，4，4,8。则和为2+4+4+8=18，第二次循环后就变为3，4,5,9，和为3+4+5+9=21,由于与last不相等，故进行第三次循环并将last更新为21，如果第三次比较还与last不相等，那就别怪我太粗鲁了(锁全部segment)，类似的操作还有containsValue方法(containsKey方法则不用这么麻烦，因为key一旦确立则不可更改)</p>
+<p><strong>结语</strong><br>ConcurrentHashMap虽然作为一个相对高效的线程安全类，但其并不能保证使用了ConcurrentHashMap的操作都是线程安全的！很简单，比如用ConcurrentHashMap作两次put操作，只能保证单个put操作的原子性，但两次put操作并没有值依赖关系，依然会受指令重排序的影响(具体涉及Java内存模型的知识，可参照并发编程网的<a href="http://ifeve.com/java-memory-model-0/" target="_blank" rel="noopener">深入理解java内存模型</a>)<br>另外特别感谢<a href="http://qifuguang.me/2015/09/10/[Java%E5%B9%B6%E5%8F%91%E5%8C%85%E5%AD%A6%E4%B9%A0%E5%85%AB]%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90ConcurrentHashMap/" target="_blank" rel="noopener">此博文</a>对我的帮助，我的这篇文章借鉴了他的部分观点</p>
+
+            </article>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">集合框架</a>
+                    
+                  </div>
+                
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/2016/05/13/LinkedList%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-JDK8/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">LinkedList源码分析(JDK8)</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "ConcurrentHashMap源码解析(基于JDK7)&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

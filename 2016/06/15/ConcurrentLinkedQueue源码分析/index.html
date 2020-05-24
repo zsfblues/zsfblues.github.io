@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/me.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IT,互联网">
+  <meta name="author" content="zsfblues">
+  <meta name="keywords" content="">
+  <title>ConcurrentLinkedQueue源码分析 - zsfblues&#39; blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark.min.css" />
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>zsfblues</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="iconfont icon-home-fill"></i>
+              首页</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">
+              <i class="iconfont icon-archive-fill"></i>
+              归档</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">
+              <i class="iconfont icon-category-fill"></i>
+              分类</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">
+              <i class="iconfont icon-tags-fill"></i>
+              标签</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">
+              <i class="iconfont icon-user-fill"></i>
+              关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/index-bg.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <div class="mt-3 post-meta">
+                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+                  <time datetime="2016-06-15 20:37">
+                    2016年6月15日 晚上
+                  </time>
+                </div>
+              
+
+              <div class="mt-1">
+                
+                  
+                  <span class="post-meta mr-2">
+                    <i class="iconfont icon-chart"></i>
+                    2.7k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta mr-2">
+                      <i class="iconfont icon-clock-fill"></i>
+                    
+                    
+                    31
+                     分钟
+                  </span>
+                
+
+                
+              </div>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <article class="markdown-body">
+              <p>ConcurrentLinkedQueue作为Doug Lea在JDK5.0推出的又一个并发容器，使用的是基于FIFO的队列结构，在队尾入队，在队首出队，但使用的基于CAS的”wait-free”进行的，也就是线程竞争锁失败后不会挂起，这在一定程度使得线程的等待时间减少，但CAS并不是一个算法，它是一个CPU直接支持的硬件指令，这也就在一定程度上决定了它的平台相关性<br>当前常用的多线程同步机制可以分为下面三种类型：</p>
+<blockquote>
+<ol>
+<li>volatile 变量：轻量级多线程同步机制，不会引起上下文切换和线程调度。仅提供内存可见性保证，不提供原子性。</li>
+<li>CAS 原子指令：轻量级多线程同步机制，不会引起上下文切换和线程调度。它同时提供内存可见性和原子化更新保证。</li>
+<li>互斥锁：重量级多线程同步机制，可能会引起上下文切换和线程调度，它同时提供内存可见性和原子性。<br>注：上下文切换就是CPU在不同线程中分配时间片，在不同线程任务中切换</li>
+</ol>
+</blockquote>
+<p>ConcurrentLinkedQueue 的非阻塞算法实现主要可概括为下面几点：</p>
+<ol>
+<li>使用 CAS 原子指令来处理对数据的并发访问，这是非阻塞算法得以实现的基础。</li>
+<li>head/tail 并非总是指向队列的头 / 尾节点，也就是说允许队列处于不一致状态。 这个特性把入队 / 出队时，原本需要一起原子化执行的两个步骤分离开来，从而缩小了入队 / 出队时需要原子化更新值的范围到唯一变量。这是非阻塞算法得以实现的关键。</li>
+<li>以批处理方式来更新head/tail，从整体上减少入队 / 出队操作的开销。</li>
+</ol>
+<p>在ConcurrentLinkedQueue的源码中，有一段红字规定了的一些基本不变性条件</p>
+<blockquote>
+<ol>
+<li>在入队时最后一个结点中的next域为null</li>
+<li>队列中的所有未删除结点的item域不能为null且从head都可以在O(N)时间内遍历到</li>
+<li>对于要删除的结点，不是将其引用直接置为空，而是将其的item域先置为null(迭代器在遍历是会跳过item为null的结点)</li>
+<li>允许head和tail滞后更新，也就是上文提到的head/tail并非总是指向队列的头 / 尾节点（这主要是为了减少CAS指令执行的次数，但同时会增加volatile读的次数，但是这种消耗较小）。具体而言就是，当在队列中插入一个元素是，会检测tail和最后一个结点之间的距离是否在两个结点及以上(内部称之为hop)；而在出队时，对head的检测就是与队列的第一个结点的距离是否达到两个，有则将head指向第一个结点并将head原来指向的结点的next域指向自己，这样就能断开与队列的联系从而帮助GC</li>
+</ol>
+</blockquote>
+<p><strong>head的不变性和可变性条件</strong></p>
+<blockquote>
+<p>不变性：</p>
+<ol>
+<li>所有未删除节点，都能从head通过调用succ()方法遍历可达。</li>
+<li>head不能为null。</li>
+<li>head节点的next域不能引用到自身。</li>
+</ol>
+<p>可变性：</p>
+<ol>
+<li>head节点的item域可能为null，也可能不为null。</li>
+<li>允许tail滞后（lag behind）于head，也就是说：从head开始遍历队列，不一定能到达tail。</li>
+</ol>
+</blockquote>
+<p><strong>tail的不变性和可变性条件</strong></p>
+<blockquote>
+<p>不变性：</p>
+<ol>
+<li>通过tail调用succ()方法，最后节点总是可达的。</li>
+<li>tail不能为null。</li>
+</ol>
+<p>可变性：</p>
+<ol>
+<li>tail节点的item域可能为null，也可能不为 null。</li>
+<li>允许tail滞后于head，也就是说：从head开始遍历队列，不一定能到达tail。</li>
+<li>tail节点的next域可以引用到自身。</li>
+</ol>
+</blockquote>
+<p><strong>初始化</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConcurrentLinkedQueue</span><span class="hljs-params">()</span></span>&#123;    <span class="hljs-comment">//将head和tail的item和next域置为null    head = tail = new Node&lt;E&gt;(null);&#125;</span></code></pre>
+
+<p><strong>入队操作</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">offer</span><span class="hljs-params">(E e)</span> </span>
+<span class="hljs-function"></span>&#123;
+     checkNotNull(e);
+     <span class="hljs-keyword">final</span> Node&lt;E&gt; newNode = <span class="hljs-keyword">new</span> Node&lt;E&gt;(e);
+     <span class="hljs-keyword">for</span> (Node&lt;E&gt; t = tail, p = t;;)   <span class="hljs-comment">//1</span>
+     &#123;
+         Node&lt;E&gt; q = p.next;
+         <span class="hljs-keyword">if</span> (q == <span class="hljs-keyword">null</span>)				<span class="hljs-comment">//2</span>
+         &#123;
+             <span class="hljs-keyword">if</span> (p.casNext(<span class="hljs-keyword">null</span>, newNode)) <span class="hljs-comment">//3</span>
+             &#123;
+                 <span class="hljs-keyword">if</span> (p != t)		<span class="hljs-comment">//4</span>
+                     casTail(t, newNode);	
+                 <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+             &#125;
+         &#125;
+         <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (p == q)	<span class="hljs-comment">//5</span>
+             p = (t != (t = tail)) ? t : head; 
+         <span class="hljs-keyword">else</span>
+             p = (p != t &amp;&amp; t != (t = tail)) ? t : q;<span class="hljs-comment">//6</span>
+     &#125;
+ &#125;</code></pre>
+
+<p>1：对于入队操作，采用失败即重试的方式，直到入队成功 </p>
+<p>2：表明p是最后一个结点 </p>
+<p>3：采用CAS指令修改队列的最后一个结点的next域，从而保证最后一个结点是新插入的结点，同时将p指向这个新结点 </p>
+<p>4：如果插入结点后tail和p距离达到两个结点，则修改tail的指向(失败也没关系)，这里在判断tail为最后一个结点后仍然要判断hop是否达到2主要是为了预防在并发修改下，多个线程同时修改的问题 </p>
+<p>5：根据tail的可变性条件和滞后更新策略，我们知道tail的next域可以引用到自身，在ConcurrentLinkedQueue规定如果tail的next如果指向自己的话，则表明tail现在所在指向的结点已被删除(从head遍历无法到达tail)，那么就要从head开始遍历到所有的未删除结点(这也是上文head的不变性条件保证的)具体看下图：</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueueOffer.png" srcset="/img/loading.gif" alt=""></p>
+<pre><code>当然，我们还是要判断其他线程是否已经提前修改tail的指向，修改的话就表明tail结点已经更新完毕，没有引用到自身了，就可以直接重新尝试插入了。其实从这我们大致可以揣摩出作者的设计的巧妙部分：即虽然tail有滞后更新策略从而导致无法一次就将结点插入，但结点要想插入的话还是必须要当tail为最后一个结点才行 6：tail未指向尾结点，同时也没有滞后head，就像下图这样： 插入前：</code></pre><p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueueOffer1.png" srcset="/img/loading.gif" alt=""></p>
+<p>这时候表明tail结点还未更新，但需要事先判断其他线程是否可能抢先插入了一个结点，如下图： 其它线程抢先插入后：</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueueOffer2.png" srcset="/img/loading.gif" alt=""></p>
+<p>在这种情况下如果插入元素的话导致tail和最后一个结点的距离达到两个,就要更新tail的指向(不得不承认这句代码的简洁性，但还是要吐槽一下，从可读性的角度和JDK6.0的版本比起来实在是难以理解)，并且tail已经指向尾结点，说明下一个结点可以直接将tail赋给p以便重新尝试插入。<br>其实仔细分析的话就可以明白多个if判断表明tail的三种可能状态：</p>
+<blockquote>
+<ol>
+<li>tail滞后于 head。</li>
+<li>tail指向尾结点。</li>
+<li>tail指向非尾结点。</li>
+</ol>
+</blockquote>
+<p><strong>出队操作</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> E <span class="hljs-title">poll</span><span class="hljs-params">()</span></span>
+<span class="hljs-function"></span>&#123;
+      restartFromHead:
+      <span class="hljs-keyword">for</span> (;;) 
+      &#123;
+          <span class="hljs-keyword">for</span> (Node&lt;E&gt; h = head, p = h, q;;) 
+          &#123;
+              E item = p.item;
+              <span class="hljs-keyword">if</span> (item != <span class="hljs-keyword">null</span> &amp;&amp; p.casItem(item, <span class="hljs-keyword">null</span>)) 	<span class="hljs-comment">//1</span>
+              &#123;
+                  <span class="hljs-keyword">if</span> (p != h)		<span class="hljs-comment">//2</span>
+                      updateHead(h, ((q = p.next) != <span class="hljs-keyword">null</span>) ? q : p);
+                  <span class="hljs-keyword">return</span> item;
+              &#125;
+              <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ((q = p.next) == <span class="hljs-keyword">null</span>) <span class="hljs-comment">//3</span>
+              &#123;
+                  updateHead(h, p);
+                  <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+              &#125;
+              <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (p == q)	<span class="hljs-comment">//4</span>
+                  <span class="hljs-keyword">continue</span> restartFromHead;
+              <span class="hljs-keyword">else</span>	<span class="hljs-comment">//5</span>
+                  p = q;
+          &#125;
+      &#125;
+  &#125;</code></pre>
+
+<p>1：在获取head结点后，如果item不为null的话将其设为null实现删除头结点(这是一个特殊的删除策略，即item为null的结点就是已经删除的结点，即使它还在队列中）</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll1.png" srcset="/img/loading.gif" alt=""></p>
+<p>2：删除该结点后检查head是否与头结点相差两个结点，有则向后推进一个item非null结点来更新head <img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll2.png" srcset="/img/loading.gif" alt=" "></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">updateHead</span><span class="hljs-params">(Node&lt;E&gt; h, Node&lt;E&gt; p)</span> </span>&#123;
+     <span class="hljs-comment">// 如果两个结点不相同，尝试用CAS指令原子更新head指向新头节点</span>
+     <span class="hljs-keyword">if</span> (h != p &amp;&amp; casHead(h, p))
+     	 <span class="hljs-comment">//将旧的头结点指向自身以实现删除</span>
+	 h.lazySetNext(h);
+&#125;</code></pre>
+
+<p>3：head的item为null则向后选取一个结点，如果item为null的结点，设置head指向p节点（此时队列没有元素，只有一个伪结点p） 4：结点出队失败，重新进行出队(关于p == q的判断条件我是在有点难以理解，在此只能作一个不负责任的猜测：就是上一次判断先执行了步骤5，使得p和q指向同一个item不为null的结点，在下一次循环开始前其它线程线程先删除了该结点导致步骤4的发生，这样的话就要重新获取head进行删除) A线程执行步骤5后(为了方便没有画出tail，<strong>再次声明，只是个人观点</strong>)： <a href="http://7xti77.com1.z0.glb.clouddn.com/ConcurrentLinkedQueuePoll3.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll3.png" srcset="/img/loading.gif" alt="img"></a> </p>
+<p>B线程抢先删除结点后A线程执行步骤4：<br><a href="http://7xti77.com1.z0.glb.clouddn.com/ConcurrentLinkedQueuePoll4.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll4.png" srcset="/img/loading.gif" alt="img"></a><br>5：在结点出队失败后可以保证下次尝试出队时p不为空(之前q = p.next ！= null才有可能跳到这一步)</p>
+<p>根据head的不变性和可变性条件，在执行出队操作前，head在队列中的位置共有两种可能：</p>
+<blockquote>
+<ol>
+<li>head指向有效结点(从head向后遍历可达的结点当中，item域不为null的结点)</li>
+<li>head指向无效结点(从head向后遍历可达的结点当中，item域为null的结点)</li>
+</ol>
+</blockquote>
+<p><strong>队列判空</strong><br>有些人在判断队列是否为空时喜欢用</p>
+<blockquote>
+<p>queue.size()==0</p>
+</blockquote>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">size</span><span class="hljs-params">()</span> </span>
+<span class="hljs-function"></span>&#123;
+     <span class="hljs-keyword">int</span> count = <span class="hljs-number">0</span>;
+     <span class="hljs-keyword">for</span> (Node&lt;E&gt; p = first(); p != <span class="hljs-keyword">null</span>; p = succ(p))
+         <span class="hljs-keyword">if</span> (p.item != <span class="hljs-keyword">null</span>)
+             <span class="hljs-comment">// Collection.size() spec says to max out</span>
+             <span class="hljs-keyword">if</span> (++count == Integer.MAX_VALUE)
+                 <span class="hljs-keyword">break</span>;
+     <span class="hljs-keyword">return</span> count;
+ &#125;</code></pre>
+
+<p>在计算队列的长度是并没有向我们往常一样直接通过一个变量来存储，这样主要是要尽可能保证队列在并发访问下的数据的正确性，但由于遍历时还是会有其它线程对队列的状态进行修改，因而数据仍有可能错误(removeAll,retainAll,containsAll,equals,toArray也有一样的问题)<br>可以看到这样在队列在结点较多时会依次遍历所有结点，这样的性能会有较大影响，因而可以考虑empty函数，它只要判断第一个结点(注意不一定是head指向的结点)</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isEmpty</span><span class="hljs-params">()</span></span>
+<span class="hljs-function"></span>&#123;
+    <span class="hljs-keyword">return</span> first() == <span class="hljs-keyword">null</span>;
+&#125;</code></pre>
+
+
+
+<p><strong>最后</strong><br>ConcurrentLinkedQueue的迭代器是弱一致性的，这在并发容器中是比较普遍的现象，主要是指在一个线程在遍历队列结点而另一个线程尝试对某个队列结点进行修改的话不会抛出ConcurrentModificationException，这也就造成在遍历某个尚未被修改的结点时，在next方法返回时可以看到该结点的修改，但在遍历后再对该结点修改时就看不到这种变化。特别注意的是ConcurrentLinkedQueue提供的线程安全操作只是相对安全的，即只对单个函数调用所涉及的操作提供安全性</p>
+<hr>
+<p><strong>参考资料</strong></p>
+<ul>
+<li><p><a href="http://www.ibm.com/developerworks/cn/java/j-lo-concurrent/index.html" target="_blank" rel="noopener">非阻塞算法在并发容器中的实现</a></p>
+</li>
+<li><p><a href="http://www.cs.rochester.edu/u/scott/papers/1996_PODC_queues.pdf" target="_blank" rel="noopener">ConcurrentLinkedQueue实现的算法理论基础</a></p>
+</li>
+</ul>
+
+            </article>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java/">Java</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">集合框架</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/2016/06/16/%E4%BC%98%E7%A7%80%E5%8D%9A%E5%AE%A2%E9%93%BE%E6%8E%A5%E6%B1%87%E6%80%BB-%E9%95%BF%E6%9C%9F%E6%9B%B4%E6%96%B0/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">优秀博客链接汇总(长期更新)</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/2016/05/23/%E5%85%B3%E4%BA%8E%E7%BA%A2%E9%BB%91%E6%A0%91%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%87%A0%E7%82%B9%E7%90%86%E8%A7%A3/">
+                        <span class="hidden-mobile">关于红黑树学习的几点理解</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "ConcurrentLinkedQueue源码分析&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/me.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IT,互联网">
+  <meta name="author" content="zsfblues">
+  <meta name="keywords" content="">
+  <title>RocketMQ学习(二) broker - zsfblues&#39; blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark.min.css" />
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>zsfblues</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="iconfont icon-home-fill"></i>
+              首页</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">
+              <i class="iconfont icon-archive-fill"></i>
+              归档</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">
+              <i class="iconfont icon-category-fill"></i>
+              分类</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">
+              <i class="iconfont icon-tags-fill"></i>
+              标签</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">
+              <i class="iconfont icon-user-fill"></i>
+              关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/index-bg.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <div class="mt-3 post-meta">
+                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+                  <time datetime="2018-11-25 20:36">
+                    2018年11月25日 晚上
+                  </time>
+                </div>
+              
+
+              <div class="mt-1">
+                
+                  
+                  <span class="post-meta mr-2">
+                    <i class="iconfont icon-chart"></i>
+                    2.3k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta mr-2">
+                      <i class="iconfont icon-clock-fill"></i>
+                    
+                    
+                    34
+                     分钟
+                  </span>
+                
+
+                
+              </div>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <article class="markdown-body">
+              <p>​    broker的启动和producer一样，启动时会同时启动多个定时任务，包括消息持久化，netty客户端启动，监听文件内容变更的等等…</p>
+<hr>
+<h3 id="消息持久化"><a href="#消息持久化" class="headerlink" title="消息持久化"></a>消息持久化</h3><p>消息持久化是broker最重要的任务，其稳定与否关系到消费者是否能消费到消息，整个mq是否会丢消息。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+
+       lock = lockFile.getChannel().tryLock(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-keyword">false</span>);
+       <span class="hljs-keyword">if</span> (lock == <span class="hljs-keyword">null</span> || lock.isShared() || !lock.isValid()) &#123;
+           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(<span class="hljs-string">"Lock failed,MQ already started"</span>);
+       &#125;
+
+       lockFile.getChannel().write(ByteBuffer.wrap(<span class="hljs-string">"lock"</span>.getBytes()));
+       lockFile.getChannel().force(<span class="hljs-keyword">true</span>);
+
+ 
+       <span class="hljs-keyword">this</span>.flushConsumeQueueService.start();
+       <span class="hljs-keyword">this</span>.commitLog.start();
+       <span class="hljs-keyword">this</span>.storeStatsService.start();
+
+       <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.scheduleMessageService != <span class="hljs-keyword">null</span> &amp;&amp; SLAVE != messageStoreConfig.getBrokerRole()) &#123;
+           <span class="hljs-keyword">this</span>.scheduleMessageService.start();
+       &#125;
+
+       <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.getMessageStoreConfig().isDuplicationEnable()) &#123;
+           <span class="hljs-keyword">this</span>.reputMessageService.setReputFromOffset(<span class="hljs-keyword">this</span>.commitLog.getConfirmOffset());
+       &#125; <span class="hljs-keyword">else</span> &#123;
+           <span class="hljs-keyword">this</span>.reputMessageService.setReputFromOffset(<span class="hljs-keyword">this</span>.commitLog.getMaxOffset());
+       &#125;
+       <span class="hljs-keyword">this</span>.reputMessageService.start();
+
+       <span class="hljs-keyword">this</span>.haService.start();
+
+       <span class="hljs-keyword">this</span>.createTempFile();
+       <span class="hljs-keyword">this</span>.addScheduleTask();
+       <span class="hljs-keyword">this</span>.shutdown = <span class="hljs-keyword">false</span>;
+   &#125;</code></pre>
+
+<ol>
+<li>flushConsumeQueueService作用是用来持久化一些producer发送到对应topic中的的不同队列的消息，核心代码如下：</li>
+</ol>
+<pre><code class="hljs java">ConcurrentMap&lt;String, ConcurrentMap&lt;Integer, ConsumeQueue&gt;&gt; tables = DefaultMessageStore.<span class="hljs-keyword">this</span>.consumeQueueTable;
+
+         <span class="hljs-comment">// 针对不同topic的每个消费队列进行消息读取并刷新到commitLog</span>
+         <span class="hljs-keyword">for</span> (ConcurrentMap&lt;Integer, ConsumeQueue&gt; maps : tables.values()) &#123;
+             <span class="hljs-keyword">for</span> (ConsumeQueue cq : maps.values()) &#123;
+                 <span class="hljs-keyword">boolean</span> result = <span class="hljs-keyword">false</span>;
+                 <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; retryTimes &amp;&amp; !result; i++) &#123;
+                     result = cq.flush(flushConsumeQueueLeastPages);
+                 &#125;
+             &#125;
+         &#125;
+
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">flush</span><span class="hljs-params">(<span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> flushLeastPages)</span> </span>&#123;
+     <span class="hljs-keyword">boolean</span> result = <span class="hljs-keyword">true</span>;
+     MappedFile mappedFile = <span class="hljs-keyword">this</span>.findMappedFileByOffset(<span class="hljs-keyword">this</span>.flushedWhere, <span class="hljs-keyword">this</span>.flushedWhere == <span class="hljs-number">0</span>);
+     <span class="hljs-keyword">if</span> (mappedFile != <span class="hljs-keyword">null</span>) &#123;
+         <span class="hljs-keyword">long</span> tmpTimeStamp = mappedFile.getStoreTimestamp();
+         <span class="hljs-keyword">int</span> offset = mappedFile.flush(flushLeastPages);
+         <span class="hljs-keyword">long</span> where = mappedFile.getFileFromOffset() + offset;
+         result = where == <span class="hljs-keyword">this</span>.flushedWhere;
+         <span class="hljs-keyword">this</span>.flushedWhere = where;
+         <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span> == flushLeastPages) &#123;
+             <span class="hljs-keyword">this</span>.storeTimestamp = tmpTimeStamp;
+         &#125;
+     &#125;
+
+     <span class="hljs-keyword">return</span> result;
+ &#125;</code></pre>
+
+<p>其中flushConsumeQueueLeastPages用来确定一次最终刷多少页的数据到磁盘，findMappedFileByOffset方法可以确定当前应该刷新哪个文件中，因为在commitLog中维护一个名为mapedFileQueue的文件映射队列，这个队列记录了所有的记录消息的映射文件。每个文件大小默认为1G。这样通过上次刷新的偏移量就能确定mapedFile。值得注意的时，在往文件中写的时候，会去检验文件是否可以写入(是否写满)，以及当前已写入到内存中的数据是否可以刷入指定页数的数据到磁盘，如果flushLeastPages 等于0的话就一次性将所有可以的落盘的数据一次性刷入磁盘(OS_PAGE_SIZE为操作系统默认的页大小)。</p>
+<pre><code class="hljs java"> <span class="hljs-keyword">if</span> (flushLeastPages &gt; <span class="hljs-number">0</span>) &#123;
+            <span class="hljs-keyword">return</span> ((write / OS_PAGE_SIZE) - (flush / OS_PAGE_SIZE)) &gt;= flushLeastPages;
+        &#125;
+<span class="hljs-keyword">return</span> write &gt; flush;
+
+<span class="hljs-comment">// 最终刷盘的代码</span>
+   <span class="hljs-keyword">try</span> &#123;
+                
+       <span class="hljs-keyword">if</span> (writeBuffer != <span class="hljs-keyword">null</span> || <span class="hljs-keyword">this</span>.fileChannel.position() != <span class="hljs-number">0</span>) &#123;
+           <span class="hljs-keyword">this</span>.fileChannel.force(<span class="hljs-keyword">false</span>);
+       &#125; <span class="hljs-keyword">else</span> &#123;
+           <span class="hljs-keyword">this</span>.mappedByteBuffer.force();
+       &#125;
+   &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;
+       log.error(<span class="hljs-string">"Error occurred when force data to disk."</span>, e);
+   &#125;</code></pre>
+
+<p>FileChannel.force()方法将通道里尚未写入磁盘的数据强制写到磁盘上。出于性能方面的考虑，操作系统会将数据缓存在内存中，所以无法保证写入到FileChannel里的数据一定会即时写到磁盘上。要保证这一点，需要调用force()方法。参数标明是否将元数据一同刷入。</p>
+<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/mw690/006HiYd9ly1g0oihjp0mrj313e0nw0um.jpg" srcset="/img/loading.gif" alt=""></p>
+<ol start="2">
+<li>commitLog刷盘</li>
+</ol>
+<p>主要有两种刷盘方式进行选择：</p>
+<ol>
+<li>同步刷盘</li>
+<li>异步刷盘(默认方式)</li>
+</ol>
+<p>刷盘方式在初始化commitLog指定</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CommitLog</span><span class="hljs-params">(<span class="hljs-keyword">final</span> DefaultMessageStore defaultMessageStore)</span> </span>&#123;
+    <span class="hljs-keyword">this</span>.mappedFileQueue = <span class="hljs-keyword">new</span> MappedFileQueue(defaultMessageStore.getMessageStoreConfig().getStorePathCommitLog(),
+        defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog(), defaultMessageStore.getAllocateMappedFileService());
+    <span class="hljs-keyword">this</span>.defaultMessageStore = defaultMessageStore;
+
+    <span class="hljs-keyword">if</span> (FlushDiskType.SYNC_FLUSH == defaultMessageStore.getMessageStoreConfig().getFlushDiskType()) &#123;
+        <span class="hljs-keyword">this</span>.flushCommitLogService = <span class="hljs-keyword">new</span> GroupCommitService();
+    &#125; <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-keyword">this</span>.flushCommitLogService = <span class="hljs-keyword">new</span> FlushRealTimeService();
+    &#125;
+
+    <span class="hljs-keyword">this</span>.commitLogService = <span class="hljs-keyword">new</span> CommitRealTimeService();
+
+    <span class="hljs-keyword">this</span>.appendMessageCallback = <span class="hljs-keyword">new</span> DefaultAppendMessageCallback(defaultMessageStore.getMessageStoreConfig().getMaxMessageSize());
+    batchEncoderThreadLocal = <span class="hljs-keyword">new</span> ThreadLocal&lt;MessageExtBatchEncoder&gt;() &#123;
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">protected</span> MessageExtBatchEncoder <span class="hljs-title">initialValue</span><span class="hljs-params">()</span> </span>&#123;
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> MessageExtBatchEncoder(defaultMessageStore.getMessageStoreConfig().getMaxMessageSize());
+        &#125;
+    &#125;;
+    <span class="hljs-keyword">this</span>.putMessageLock = defaultMessageStore.getMessageStoreConfig().isUseReentrantLockWhenPutMessage() ? <span class="hljs-keyword">new</span> PutMessageReentrantLock() : <span class="hljs-keyword">new</span> PutMessageSpinLock();
+
+&#125;</code></pre>
+
+<p>(1) 同步刷盘：GroupCommitService</p>
+<p>同步刷盘策略在设计上比较巧妙，采用一种交换锁的方式来减少线程的竞争，具体方式为两个队列，初始状态下，写队列用来存储请求，同时不断在读队列中获取获取刷盘请求，当请求处理完成后迅速交换引用。写队列指向读队列，读队列指向写队列，而请求的来源来自另一个不断从处理发送的消息的定时任务中来</p>
+<p>​    关于队列中的数据来源，比较典型的就是延时消息，在broker启动时同步会启动一个投递延时消息的定时任务，</p>
+<pre><code class="hljs java"><span class="hljs-comment">// 有需要发送的延时消息</span>
+<span class="hljs-keyword">if</span> (msgExt != <span class="hljs-keyword">null</span>) &#123;
+    <span class="hljs-keyword">try</span> &#123;
+        MessageExtBrokerInner msgInner = <span class="hljs-keyword">this</span>.messageTimeup(msgExt);
+        PutMessageResult putMessageResult =
+            ScheduleMessageService.<span class="hljs-keyword">this</span>.defaultMessageStore
+            .putMessage(msgInner);<span class="hljs-comment">// 这里开始发送消息</span>
+
+        <span class="hljs-keyword">if</span> (putMessageResult != <span class="hljs-keyword">null</span>
+            &amp;&amp; putMessageResult.getPutMessageStatus() == PutMessageStatus.PUT_OK) &#123;
+            <span class="hljs-keyword">continue</span>;
+        &#125; <span class="hljs-keyword">else</span> &#123;
+            <span class="hljs-comment">// <span class="hljs-doctag">XXX:</span> warn and notify me</span>
+            log.error(
+                <span class="hljs-string">"ScheduleMessageService, a message time up, but reput it failed, topic: &#123;&#125; msgId &#123;&#125;"</span>,
+                msgExt.getTopic(), msgExt.getMsgId());
+            ScheduleMessageService.<span class="hljs-keyword">this</span>.timer.schedule(
+                <span class="hljs-keyword">new</span> DeliverDelayedMessageTimerTask(<span class="hljs-keyword">this</span>.delayLevel,
+                                                   nextOffset), DELAY_FOR_A_PERIOD);
+            ScheduleMessageService.<span class="hljs-keyword">this</span>.updateOffset(<span class="hljs-keyword">this</span>.delayLevel,
+                                                     nextOffset);
+            <span class="hljs-keyword">return</span>;
+        &#125;
+    &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+        log.error(
+            <span class="hljs-string">"ScheduleMessageService, messageTimeup execute error, drop it. msgExt="</span>
+            + msgExt + <span class="hljs-string">", nextOffset="</span> + nextOffset + <span class="hljs-string">",offsetPy="</span>
+            + offsetPy + <span class="hljs-string">",sizePy="</span> + sizePy, e);
+    &#125;
+&#125;
+&#125;
+
+ <span class="hljs-function"><span class="hljs-keyword">public</span> PutMessageResult <span class="hljs-title">putMessage</span><span class="hljs-params">(<span class="hljs-keyword">final</span> MessageExtBrokerInner msg)</span> </span>&#123;
+        <span class="hljs-comment">// Set the storage time</span>
+        msg.setStoreTimestamp(System.currentTimeMillis());
+        <span class="hljs-comment">// Set the message body BODY CRC (consider the most appropriate setting</span>
+        <span class="hljs-comment">// on the client)</span>
+        msg.setBodyCRC(UtilAll.crc32(msg.getBody()));
+        <span class="hljs-comment">// Back to Results</span>
+        AppendMessageResult result = <span class="hljs-keyword">null</span>;
+
+        StoreStatsService storeStatsService = <span class="hljs-keyword">this</span>.defaultMessageStore.getStoreStatsService();
+
+        String topic = msg.getTopic();
+        <span class="hljs-keyword">int</span> queueId = msg.getQueueId();
+
+        <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> tranType = MessageSysFlag.getTransactionValue(msg.getSysFlag());
+        <span class="hljs-keyword">if</span> (tranType == MessageSysFlag.TRANSACTION_NOT_TYPE
+            || tranType == MessageSysFlag.TRANSACTION_COMMIT_TYPE) &#123;
+            <span class="hljs-comment">// Delay Delivery</span>
+            <span class="hljs-keyword">if</span> (msg.getDelayTimeLevel() &gt; <span class="hljs-number">0</span>) &#123;
+                <span class="hljs-keyword">if</span> (msg.getDelayTimeLevel() &gt; <span class="hljs-keyword">this</span>.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel()) &#123;
+                    msg.setDelayTimeLevel(<span class="hljs-keyword">this</span>.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel());
+                &#125;
+
+                topic = ScheduleMessageService.SCHEDULE_TOPIC;
+                queueId = ScheduleMessageService.delayLevel2QueueId(msg.getDelayTimeLevel());
+
+                <span class="hljs-comment">// Backup real topic, queueId</span>
+                MessageAccessor.putProperty(msg, MessageConst.PROPERTY_REAL_TOPIC, msg.getTopic());
+                MessageAccessor.putProperty(msg, MessageConst.PROPERTY_REAL_QUEUE_ID, String.valueOf(msg.getQueueId()));
+                msg.setPropertiesString(MessageDecoder.messageProperties2String(msg.getProperties()));
+
+                msg.setTopic(topic);
+                msg.setQueueId(queueId);
+            &#125;
+        &#125;
+
+        <span class="hljs-keyword">long</span> eclipseTimeInLock = <span class="hljs-number">0</span>;
+        MappedFile unlockMappedFile = <span class="hljs-keyword">null</span>;
+        MappedFile mappedFile = <span class="hljs-keyword">this</span>.mappedFileQueue.getLastMappedFile();
+
+        putMessageLock.lock(); <span class="hljs-comment">//spin or ReentrantLock ,depending on store config</span>
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-keyword">long</span> beginLockTimestamp = <span class="hljs-keyword">this</span>.defaultMessageStore.getSystemClock().now();
+            <span class="hljs-keyword">this</span>.beginTimeInLock = beginLockTimestamp;
+
+            <span class="hljs-comment">// Here settings are stored timestamp, in order to ensure an orderly</span>
+            <span class="hljs-comment">// global</span>
+            msg.setStoreTimestamp(beginLockTimestamp);
+
+            <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == mappedFile || mappedFile.isFull()) &#123;
+                mappedFile = <span class="hljs-keyword">this</span>.mappedFileQueue.getLastMappedFile(<span class="hljs-number">0</span>); <span class="hljs-comment">// Mark: NewFile may be cause noise</span>
+            &#125;
+            <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == mappedFile) &#123;
+                log.error(<span class="hljs-string">"create mapped file1 error, topic: "</span> + msg.getTopic() + <span class="hljs-string">" clientAddr: "</span> + msg.getBornHostString());
+                beginTimeInLock = <span class="hljs-number">0</span>;
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, <span class="hljs-keyword">null</span>);
+            &#125;
+			<span class="hljs-comment">// 这里会对消息进行一定格式的组装</span>
+            result = mappedFile.appendMessage(msg, <span class="hljs-keyword">this</span>.appendMessageCallback);
+          
+            eclipseTimeInLock = <span class="hljs-keyword">this</span>.defaultMessageStore.getSystemClock().now() - beginLockTimestamp;
+            beginTimeInLock = <span class="hljs-number">0</span>;
+        &#125; <span class="hljs-keyword">finally</span> &#123;
+            putMessageLock.unlock();
+        &#125;
+
+        <span class="hljs-keyword">if</span> (eclipseTimeInLock &gt; <span class="hljs-number">500</span>) &#123;
+            log.warn(<span class="hljs-string">"[NOTIFYME]putMessage in lock cost time(ms)=&#123;&#125;, bodyLength=&#123;&#125; AppendMessageResult=&#123;&#125;"</span>, eclipseTimeInLock, msg.getBody().length, result);
+        &#125;
+
+        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != unlockMappedFile &amp;&amp; <span class="hljs-keyword">this</span>.defaultMessageStore.getMessageStoreConfig().isWarmMapedFileEnable()) &#123;
+            <span class="hljs-keyword">this</span>.defaultMessageStore.unlockMappedFile(unlockMappedFile);
+        &#125;
+
+        PutMessageResult putMessageResult = <span class="hljs-keyword">new</span> PutMessageResult(PutMessageStatus.PUT_OK, result);
+		<span class="hljs-comment">// 这里就是将数据放入队列中以便后续刷盘</span>
+        handleDiskFlush(result, putMessageResult, msg);
+        handleHA(result, putMessageResult, msg);
+
+        <span class="hljs-keyword">return</span> putMessageResult;
+    &#125;</code></pre>
+
+<p>在appendMessage这个方法之中，会对要发送的消息进行数据格式的封装(主要格式见下表)以及消息格式，长度的的一些校验，并且将延时消息的topic替换成真实的topic(每一个延时消息为了不会被消费者提前消费，会用一个特殊的名叫<strong>SCHEDULE_TOPIC_XXXX</strong>的topic替换，该topic是不会注册到namesrv的)，最终将消息存储在commitLog之中以便后续消费者可以进行消费</p>
+<p>(2) 异步刷盘：FlushRealTimeService</p>
+<p>同步刷盘要求刷盘完成才处理下面的请求，吞吐量不是很好，异步刷盘则是则是在后台默默落盘，每隔一段时间就从内存缓冲区同步一些数据(默认是4页的数据)</p>
+<p><strong>消息格式</strong></p>
+<table>
+<thead>
+<tr>
+<th>第几位</th>
+<th>字段</th>
+<th>说明</th>
+<th>数据类型</th>
+<th>字节数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>MsgLen</td>
+<td>消息总长度</td>
+<td>Int</td>
+<td>4</td>
+</tr>
+<tr>
+<td>2</td>
+<td>MagicCode</td>
+<td>MESSAGE_MAGIC_CODE</td>
+<td>Int</td>
+<td>4</td>
+</tr>
+<tr>
+<td>3</td>
+<td>BodyCRC</td>
+<td>消息内容CRC</td>
+<td>Int</td>
+<td>4</td>
+</tr>
+<tr>
+<td>4</td>
+<td>QueueId</td>
+<td>消息队列编号</td>
+<td>Int</td>
+<td>4</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Flag</td>
+<td>flag</td>
+<td>Int</td>
+<td>4</td>
+</tr>
+<tr>
+<td>6</td>
+<td>QueueOffset</td>
+<td>消息队列位置</td>
+<td>Long</td>
+<td>8</td>
+</tr>
+<tr>
+<td>7</td>
+<td>PhysicalOffset</td>
+<td>物理位置。在 <code>CommitLog</code> 的顺序存储位置。</td>
+<td>Long</td>
+<td>8</td>
+</tr>
+<tr>
+<td>8</td>
+<td>SysFlag</td>
+<td>MessageSysFlag</td>
+<td>Int</td>
+<td>4</td>
+</tr>
+<tr>
+<td>9</td>
+<td>BornTimestamp</td>
+<td>生成消息时间戳</td>
+<td>Long</td>
+<td>8</td>
+</tr>
+<tr>
+<td>10</td>
+<td>BornHost</td>
+<td>生效消息的地址+端口</td>
+<td>Long</td>
+<td>8</td>
+</tr>
+<tr>
+<td>11</td>
+<td>StoreTimestamp</td>
+<td>存储消息时间戳</td>
+<td>Long</td>
+<td>8</td>
+</tr>
+<tr>
+<td>12</td>
+<td>StoreHost</td>
+<td>存储消息的地址+端口</td>
+<td>Long</td>
+<td>8</td>
+</tr>
+<tr>
+<td>13</td>
+<td>ReconsumeTimes</td>
+<td>重新消费消息次数</td>
+<td>Int</td>
+<td>4</td>
+</tr>
+<tr>
+<td>14</td>
+<td>PreparedTransationOffset</td>
+<td></td>
+<td>Long</td>
+<td>8</td>
+</tr>
+<tr>
+<td>15</td>
+<td>BodyLength + Body</td>
+<td>内容长度 + 内容</td>
+<td>Int + Bytes</td>
+<td>4 + bodyLength</td>
+</tr>
+<tr>
+<td>16</td>
+<td>TopicLength + Topic</td>
+<td>Topic长度 + Topic</td>
+<td>Byte + Bytes</td>
+<td>1 + topicLength</td>
+</tr>
+<tr>
+<td>17</td>
+<td>PropertiesLength + Properties</td>
+<td>拓展字段长度 + 拓展字段</td>
+<td>Short + Bytes</td>
+<td>2 + PropertiesLength</td>
+</tr>
+</tbody></table>
+<p>除此之外，不论采取哪种刷盘策略，CommitRealTimeService这个服务是一定会初始化的，只不过需要在transientStorePoolEnable字段设为true才行并且刷盘策略为异步情况下且当且broker为master情况下才行，这样一来，CommitRealTimeService服务往往也是和FlushRealTimeService服务一起出现的</p>
+<p>与FlushRealTimeService大部分的流程差不多，都是每次读取刷盘页数，然后找到对应的mappedFile进行写入，仔细观察却别在于一个调用flush方法，一个则是commit方法，如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">flush</span><span class="hljs-params">(<span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> flushLeastPages)</span> </span>&#123;
+       <span class="hljs-keyword">boolean</span> result = <span class="hljs-keyword">true</span>;
+       MappedFile mappedFile = <span class="hljs-keyword">this</span>.findMappedFileByOffset(<span class="hljs-keyword">this</span>.flushedWhere, <span class="hljs-keyword">this</span>.flushedWhere == <span class="hljs-number">0</span>);
+       <span class="hljs-keyword">if</span> (mappedFile != <span class="hljs-keyword">null</span>) &#123;
+           <span class="hljs-keyword">long</span> tmpTimeStamp = mappedFile.getStoreTimestamp();
+           <span class="hljs-keyword">int</span> offset = mappedFile.flush(flushLeastPages);<span class="hljs-comment">//区别</span>
+           <span class="hljs-keyword">long</span> where = mappedFile.getFileFromOffset() + offset;
+           result = where == <span class="hljs-keyword">this</span>.flushedWhere;
+           <span class="hljs-keyword">this</span>.flushedWhere = where;
+           <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span> == flushLeastPages) &#123;
+               <span class="hljs-keyword">this</span>.storeTimestamp = tmpTimeStamp;
+           &#125;
+       &#125;
+
+       <span class="hljs-keyword">return</span> result;
+   &#125;
+
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">commit</span><span class="hljs-params">(<span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> commitLeastPages)</span> </span>&#123;
+       <span class="hljs-keyword">boolean</span> result = <span class="hljs-keyword">true</span>;
+       <span class="hljs-comment">// 获取上次所写入的commitLog 文件</span>
+       MappedFile mappedFile = <span class="hljs-keyword">this</span>.findMappedFileByOffset(<span class="hljs-keyword">this</span>.committedWhere, <span class="hljs-keyword">this</span>.committedWhere == <span class="hljs-number">0</span>);
+       <span class="hljs-keyword">if</span> (mappedFile != <span class="hljs-keyword">null</span>) &#123;
+           <span class="hljs-comment">// 找到文件后再写入这次的</span>
+           <span class="hljs-keyword">int</span> offset = mappedFile.commit(commitLeastPages);<span class="hljs-comment">//区别</span>
+           <span class="hljs-keyword">long</span> where = mappedFile.getFileFromOffset() + offset;
+           result = where == <span class="hljs-keyword">this</span>.committedWhere;
+           <span class="hljs-keyword">this</span>.committedWhere = where;
+       &#125;
+
+       <span class="hljs-keyword">return</span> result;
+   &#125;</code></pre>
+
+<p>而flush和commit方法细节如下(以下均省略细节)：</p>
+<pre><code class="hljs java"><span class="hljs-comment">//flush</span>
+<span class="hljs-keyword">try</span> &#123;
+    <span class="hljs-keyword">if</span> (writeBuffer != <span class="hljs-keyword">null</span> || <span class="hljs-keyword">this</span>.fileChannel.position() != <span class="hljs-number">0</span>) &#123;
+        <span class="hljs-keyword">this</span>.fileChannel.force(<span class="hljs-keyword">false</span>);
+    &#125; <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-keyword">this</span>.mappedByteBuffer.force();
+    &#125;
+&#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;
+    log.error(<span class="hljs-string">"Error occurred when force data to disk."</span>, e);
+&#125;
+
+<span class="hljs-comment">//commit</span>
+<span class="hljs-keyword">try</span> &#123;
+    ByteBuffer byteBuffer = writeBuffer.slice();
+    byteBuffer.position(lastCommittedPosition);
+    byteBuffer.limit(writePos);
+    <span class="hljs-keyword">this</span>.fileChannel.position(lastCommittedPosition);
+    <span class="hljs-keyword">this</span>.fileChannel.write(byteBuffer);
+    <span class="hljs-comment">// 重置上次提交的位置</span>
+    <span class="hljs-keyword">this</span>.committedPosition.set(writePos);
+&#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;
+    log.error(<span class="hljs-string">"Error occurred when commit data to FileChannel."</span>, e);
+&#125;</code></pre>
+
+<p>commit方法会在每次执行时构造出一个写缓冲buffer，然后通过fileChannel进行写入，中间隔了一个内存字节缓存，而flush就简单粗暴一些，直接请求操作系统将数据一次性刷入磁盘(force是因为操作系统一般为了提高写入效率会将数据放在缓冲中批量写入，所以force可以强制要求其此时立即将数据写入)</p>
+
+            </article>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java/">Java</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6/">消息中间件</a>
+                    
+                      <a class="hover-with-bg" href="/tags/RocketMQ/">RocketMQ</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/02/17/RocketMQ%E5%AD%A6%E4%B9%A0-%E5%9B%9B-consumer/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RocketMQ学习-四-consumer</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/2018/08/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%B8%89-producer/">
+                        <span class="hidden-mobile">RocketMQ学习(三) producer</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "RocketMQ学习(二) broker&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/me.jpg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IT,互联网">
+  <meta name="author" content="zsfblues">
+  <meta name="keywords" content="">
+  <title>有序的HashMap-LinkedHashMap - zsfblues&#39; blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark.min.css" />
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>zsfblues</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="iconfont icon-home-fill"></i>
+              首页</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">
+              <i class="iconfont icon-archive-fill"></i>
+              归档</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">
+              <i class="iconfont icon-category-fill"></i>
+              分类</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">
+              <i class="iconfont icon-tags-fill"></i>
+              标签</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">
+              <i class="iconfont icon-user-fill"></i>
+              关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/index-bg.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <div class="mt-3 post-meta">
+                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+                  <time datetime="2016-09-03 19:54">
+                    2016年9月3日 晚上
+                  </time>
+                </div>
+              
+
+              <div class="mt-1">
+                
+                  
+                  <span class="post-meta mr-2">
+                    <i class="iconfont icon-chart"></i>
+                    1.2k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta mr-2">
+                      <i class="iconfont icon-clock-fill"></i>
+                    
+                    
+                    18
+                     分钟
+                  </span>
+                
+
+                
+              </div>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <article class="markdown-body">
+              <p>​    LinkedHashMap作为一个可以按插入顺序遍历的Map集合，在许多功能上和HashMap是重叠，这也难怪，谁叫LinkedHashMap是HashMap的子类。不仅如此，LinkedHashMap还可以根据近期访问某个键值对的顺序（从近期访问最少到近期访问最多的顺序）来遍历元素，这可让需要利用LRU方法进行缓存结果的用户提供一个新的解决方案。</p>
+<hr>
+<p>LinkedHashMap中有一个核心元素：</p>
+<pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Entry</span>&lt;<span class="hljs-title">K</span>,<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">HashMap</span>.<span class="hljs-title">Node</span>&lt;<span class="hljs-title">K</span>,<span class="hljs-title">V</span>&gt; </span>&#123;
+      Entry&lt;K,V&gt; before, after;
+      Entry(<span class="hljs-keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; next) &#123;
+          <span class="hljs-keyword">super</span>(hash, key, value, next);
+      &#125;
+  &#125;</code></pre>
+
+<pre><code>熟悉LinkedList的人都看出来这是一个用于构造双向链表的结点元素，其中before，after结点分别代表当前entry的前后结点，它是和其父类Node关联起来，一个Entry对应一个Node 先看看下面的程序：</code></pre><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+      LinkedHashMap&lt;String, Integer&gt; map = <span class="hljs-keyword">new</span> LinkedHashMap&lt;&gt;();
+      map.put(<span class="hljs-string">"2"</span>, <span class="hljs-number">1</span>);
+      map.put(<span class="hljs-string">"1"</span>, <span class="hljs-number">2</span>);
+      map.put(<span class="hljs-string">"0"</span>, <span class="hljs-number">3</span>);
+      map.put(<span class="hljs-string">"2"</span>, <span class="hljs-number">12</span>);
+      map.put(<span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>);
+      Set&lt;Map.Entry&lt;String, Integer&gt;&gt; keys = map.entrySet();
+      <span class="hljs-keyword">for</span> (Map.Entry entry : keys)
+          System.out.println(<span class="hljs-string">"key: "</span> + entry.getKey() + <span class="hljs-string">" value: "</span> + entry.getValue());
+  &#125;</code></pre>
+
+<p>接下来的是结果：</p>
+<blockquote>
+<p>key: 2 value: 12<br>key: 1 value: 2<br>key: 0 value: 3<br>key: null value: null</p>
+</blockquote>
+<p>拜托，这样的程序还需要演示一遍-_-#<br>断点跟踪一下，发现put方法在LinkedHashMap中是没有重写，而是直接用了HashMap的put方法((+﹏+)~狂晕,那还怎么保证有序的插入，毕竟大家都知道HashMap中的元素是按hash值以及是否冲突来确定位置的)…too young too navie, Api的编写者还会玩套路，跟进putVal方法：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> V <span class="hljs-title">putVal</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, K key, V value, <span class="hljs-keyword">boolean</span> onlyIfAbsent,</span></span>
+<span class="hljs-function"><span class="hljs-params">                <span class="hljs-keyword">boolean</span> evict)</span> </span>&#123;
+     Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; p; <span class="hljs-keyword">int</span> n, i;
+     <span class="hljs-keyword">if</span> ((tab = table) == <span class="hljs-keyword">null</span> || (n = tab.length) == <span class="hljs-number">0</span>)
+         n = (tab = resize()).length;
+     <span class="hljs-keyword">if</span> ((p = tab[i = (n - <span class="hljs-number">1</span>) &amp; hash]) == <span class="hljs-keyword">null</span>)
+         tab[i] = newNode(hash, key, value, <span class="hljs-keyword">null</span>);
+     <span class="hljs-keyword">else</span> &#123;
+         Node&lt;K,V&gt; e; K k;
+         <span class="hljs-keyword">if</span> (p.hash == hash &amp;&amp;
+             ((k = p.key) == key || (key != <span class="hljs-keyword">null</span> &amp;&amp; key.equals(k))))
+             e = p;
+         <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (p <span class="hljs-keyword">instanceof</span> TreeNode)
+             e = ((TreeNode&lt;K,V&gt;)p).putTreeVal(<span class="hljs-keyword">this</span>, tab, hash, key, value);
+         <span class="hljs-keyword">else</span> &#123;
+             <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> binCount = <span class="hljs-number">0</span>; ; ++binCount) &#123;
+                 <span class="hljs-keyword">if</span> ((e = p.next) == <span class="hljs-keyword">null</span>) &#123;
+                     p.next = newNode(hash, key, value, <span class="hljs-keyword">null</span>);
+                     <span class="hljs-keyword">if</span> (binCount &gt;= TREEIFY_THRESHOLD - <span class="hljs-number">1</span>) <span class="hljs-comment">// -1 for 1st</span>
+                         treeifyBin(tab, hash);
+                     <span class="hljs-keyword">break</span>;
+                 &#125;
+                 <span class="hljs-keyword">if</span> (e.hash == hash &amp;&amp;
+                     ((k = e.key) == key || (key != <span class="hljs-keyword">null</span> &amp;&amp; key.equals(k))))
+                     <span class="hljs-keyword">break</span>;
+                 p = e;
+             &#125;
+         &#125;
+         <span class="hljs-keyword">if</span> (e != <span class="hljs-keyword">null</span>) &#123; <span class="hljs-comment">// existing mapping for key</span>
+             V oldValue = e.value;
+             <span class="hljs-keyword">if</span> (!onlyIfAbsent || oldValue == <span class="hljs-keyword">null</span>)
+                 e.value = value;
+             afterNodeAccess(e);
+             <span class="hljs-keyword">return</span> oldValue;
+         &#125;
+     &#125;
+     ++modCount;
+     <span class="hljs-keyword">if</span> (++size &gt; threshold)
+         resize();
+     afterNodeInsertion(evict);
+     <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+ &#125;</code></pre>
+
+<p>先瞄准这一行：tab[i] = newNode(hash, key, value, null);在LinkedHashMap内部重写newNode方法，而且在LinkedHashMap中并没有调用它，看来是准备在这里用啊！</p>
+<pre><code class="hljs java"><span class="hljs-function">Node&lt;K,V&gt; <span class="hljs-title">newNode</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; e)</span> </span>&#123;
+       LinkedHashMap.Entry&lt;K,V&gt; p =
+           <span class="hljs-keyword">new</span> LinkedHashMap.Entry&lt;K,V&gt;(hash, key, value, e);
+       linkNodeLast(p);
+       <span class="hljs-keyword">return</span> p;
+   &#125;
+   
+     <span class="hljs-comment">// link at the end of list</span>
+   <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">linkNodeLast</span><span class="hljs-params">(LinkedHashMap.Entry&lt;K,V&gt; p)</span> </span>&#123;
+       LinkedHashMap.Entry&lt;K,V&gt; last = tail;
+       tail = p;
+       <span class="hljs-keyword">if</span> (last == <span class="hljs-keyword">null</span>)
+           head = p;
+       <span class="hljs-keyword">else</span> &#123;
+           p.before = last;
+           last.after = p;
+       &#125;
+   &#125;</code></pre>
+
+<pre><code>很熟悉的代码，在一个双向链表中插入一个结点，用于保证LinkedHashMap有序访问元素，就不用多加说明了。 然后再看到后面的 afterNodeAccess(e)和afterNodeInsertion(evict)，随便跟一个进去： </code></pre><pre><code class="hljs java"><span class="hljs-comment">// Callbacks to allow LinkedHashMap post-actions</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeAccess</span><span class="hljs-params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeInsertion</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> evict)</span> </span>&#123; &#125;
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeRemoval</span><span class="hljs-params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;</code></pre>
+
+<pre><code>最后来了这么一手，这三个方法在HashMap中时没什么意义的，它主要由其子类LinkedHashMap来添加访问结点后的一些动作，接着进入LinkedHashMap中：</code></pre><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeAccess</span><span class="hljs-params">(Node&lt;K,V&gt; e)</span> </span>&#123; <span class="hljs-comment">// move node to last</span>
+       LinkedHashMap.Entry&lt;K,V&gt; last;
+       <span class="hljs-keyword">if</span> (accessOrder &amp;&amp; (last = tail) != e) &#123;
+           <span class="hljs-comment">//将结点e的前后元素暂存，同时将p指向e</span>
+           LinkedHashMap.Entry&lt;K,V&gt; p =
+               (LinkedHashMap.Entry&lt;K,V&gt;)e, b = p.before, a = p.after;
+           p.after = <span class="hljs-keyword">null</span>;
+           <span class="hljs-comment">//e无前置元素</span>
+           <span class="hljs-keyword">if</span> (b == <span class="hljs-keyword">null</span>)
+               head = a;
+           <span class="hljs-keyword">else</span>
+               b.after = a;
+           <span class="hljs-comment">//e无后置元素</span>
+           <span class="hljs-keyword">if</span> (a != <span class="hljs-keyword">null</span>)
+               a.before = b;
+           <span class="hljs-keyword">else</span>
+               last = b;
+           <span class="hljs-comment">//链表无元素</span>
+           <span class="hljs-keyword">if</span> (last == <span class="hljs-keyword">null</span>)
+               head = p;
+           <span class="hljs-keyword">else</span> &#123;
+               p.before = last;
+               last.after = p;
+           &#125;
+           tail = p;
+           ++modCount;
+       &#125;
+   &#125;</code></pre>
+
+<p>重点先关一下这个accessOrder变量，之前曾经提到过LinkedHashMap可以根据近期对某一个元素的访问顺序来进行排序，类似于LRU算法，而这个结点e可以认为是在插入结点时某个待比较的元素，它可以是链表中任意一个元素(包括新插入的元素)，每次插入元素，e就相当于被访问一次(当然，通过get方法获取元素也相当于访问一次)，在LinkedHashMap中就要移动到最后一个位置，在拿之前的程序，用另一个构造函数实例化LinkedHashMap对象，结果如下：</p>
+<blockquote>
+<p>key: 1 value: 2<br>key: 0 value: 3<br>key: 2 value: 12</p>
+</blockquote>
+<p>可以看到，最后访问了一次key为”2”的元素导致其向后移动，可见谁最后访问，谁在链表中的位置就越靠后</p>
+
+            </article>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java/">Java</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">集合框架</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/01/21/%E5%9F%BA%E7%A1%80%E5%90%8C%E6%AD%A5%E6%A1%86%E6%9E%B6-AbstractQueuedSynchronizer/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">基础同步框架 - AbstractQueuedSynchronizer</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/2016/07/20/ThreadPoolExecutor%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/">
+                        <span class="hidden-mobile">ThreadPoolExecutor的原理和设计思想</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "有序的HashMap-LinkedHashMap&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
