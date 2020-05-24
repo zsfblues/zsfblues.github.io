@@ -143,7 +143,7 @@
                   
                   <span class="post-meta mr-2">
                     <i class="iconfont icon-chart"></i>
-                    3.1k 字
+                    3.3k 字
                   </span>
                 
 
@@ -153,7 +153,7 @@
                       <i class="iconfont icon-clock-fill"></i>
                     
                     
-                    38
+                    41
                      分钟
                   </span>
                 
@@ -209,21 +209,40 @@
 &#125; robj;</code></pre>
 
 <ul>
-<li><p>type：value的类型字段，占用4bit(总计表达16种)，目前就有以下几种</p>
+<li>type：value的类型字段，占用4bit(总计表达16种)，目前就有以下几种</li>
+</ul>
+<pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_STRING 0    <span class="hljs-comment">/* String object. */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_LIST 1      <span class="hljs-comment">/* List object. */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_SET 2       <span class="hljs-comment">/* Set object. */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ZSET 3      <span class="hljs-comment">/* Sorted set object. */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_HASH 4      <span class="hljs-comment">/* Hash object. */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_MODULE 5    <span class="hljs-comment">/* Module object. Redis4.0引进了可插拔的模块来扩展功能，这种类型的对象标明是由模块直接管理*/</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_STREAM 6    <span class="hljs-comment">/* Stream object. */</span></span></code></pre>
+
+
+
 <ul>
-<li><pre><code class="c"><span class="meta">#<span class="meta-keyword">define</span> OBJ_STRING 0    <span class="comment">/* String object. */</span></span>
-<span class="meta">#<span class="meta-keyword">define</span> OBJ_LIST 1      <span class="comment">/* List object. */</span></span>
-<span class="meta">#<span class="meta-keyword">define</span> OBJ_SET 2       <span class="comment">/* Set object. */</span></span>
-<span class="meta">#<span class="meta-keyword">define</span> OBJ_ZSET 3      <span class="comment">/* Sorted set object. */</span></span>
-<span class="meta">#<span class="meta-keyword">define</span> OBJ_HASH 4      <span class="comment">/* Hash object. */</span></span>
-<span class="meta">#<span class="meta-keyword">define</span> OBJ_MODULE 5    <span class="comment">/* Module object. Redis4.0引进了可插拔的模块来扩展功能，这种类型的对象标明是由模块直接管理*/</span></span>
-<span class="meta">#<span class="meta-keyword">define</span> OBJ_STREAM 6    <span class="comment">/* Stream object. */</span></span>
-&lt;!--￼<span class="number">1</span>--&gt;
-</code></pre>
-</li>
+<li>encoding：value的编码类型，占用4bit(总计表达16种)。这里是Redis在不同type的value下仍能尽可能压缩内存的关键，比如OBJ_STRING就对应有OBJ_ENCODING_RAW，OBJ_ENCODING_INT和OBJ_ENCODING_EMBSTR三种不同类型</li>
+<li>lru：在lru中标识key的访问时间，通过此值与2^24^ 取模之后算出key的空闲时间；在lfu中用低16位标识访问时间，高8位标识访问次数</li>
+<li>refcount：引用计数。它允许robj对象在某些情况下被共享。占用4bytes</li>
+<li>ptr：数据指针，占用8bytes</li>
 </ul>
-</li>
-</ul>
+<p>可见任何一种类型的吧value元数据这块都需要占用16个字节。</p>
+<h3 id="SDS"><a href="#SDS" class="headerlink" title="SDS"></a>SDS</h3><p>sds全称Simple Dynamic String，在Redis的value为string的类型中使用，它以下几个特点：</p>
+<ol>
+<li>可以动态扩容，类似于ArrayList</li>
+<li>二级制安全，不像C中字符串是以0作为结尾，无法存储二级制数据</li>
+<li>与C语言字符串类型兼容</li>
+</ol>
+<p>它的整体结构如下：</p>
+<p><img src="https://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/sds.png?x-oss-process=style/zsfimage" srcset="/img/loading.gif" alt=""></p>
+<p>从上图可知，在header结构设计上，体现着Redis内存的按需分配原则，sds总共有以下类型：</p>
+<pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_5  0</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_8  1</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_16 2</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_32 3</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_64 4</span></code></pre>
+
 <p>其中除了SDS_TYPE_5这种类型没有alloc和len字段外，其它类型都会包含，而对于SDS_TYPE_5这种类型，主要用于存储不超过32字节的字符串(5bit最大值)，在最低的3bit上用于存储flags类型信息，高5bit用户存储字符长度，不过在具体的使用上，由于这种类型扩展性不好，并不会使用这种类型进行存储，但判定字符串大于小于32字节时会自动转换为SDS_TYPE_8类型。</p>
 <p>sds的类型结构如下：</p>
 <pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> __<span class="hljs-title">attribute__</span> ((__<span class="hljs-title">packed__</span>)) <span class="hljs-title">sdshdr5</span> &#123;</span>
