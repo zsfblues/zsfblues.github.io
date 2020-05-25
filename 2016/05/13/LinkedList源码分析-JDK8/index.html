@@ -177,14 +177,14 @@
           <div class="post-content mx-auto" id="post">
             
             <article class="markdown-body">
-              <div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">//LinkedList类的关系类</span>
+              <pre><code class="hljs java"><span class="hljs-comment">//LinkedList类的关系类</span>
 <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LinkedList</span>&lt;<span class="hljs-title">E</span>&gt;</span>
 <span class="hljs-class">    <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractSequentialList</span>&lt;<span class="hljs-title">E</span>&gt;</span>
-<span class="hljs-class">    <span class="hljs-keyword">implements</span> <span class="hljs-title">List</span>&lt;<span class="hljs-title">E</span>&gt;, <span class="hljs-title">Deque</span>&lt;<span class="hljs-title">E</span>&gt;, <span class="hljs-title">Cloneable</span>, <span class="hljs-title">java</span>.<span class="hljs-title">io</span>.<span class="hljs-title">Serializable</span></span></code></pre></div>
+<span class="hljs-class">    <span class="hljs-keyword">implements</span> <span class="hljs-title">List</span>&lt;<span class="hljs-title">E</span>&gt;, <span class="hljs-title">Deque</span>&lt;<span class="hljs-title">E</span>&gt;, <span class="hljs-title">Cloneable</span>, <span class="hljs-title">java</span>.<span class="hljs-title">io</span>.<span class="hljs-title">Serializable</span></span></code></pre>
 
 <p>LinkedList 是一个继承于AbstractSequentialList的双向环状链表。它也可以被当作堆栈、队列或双端队列进行操作<br>LinkedList 实现了Cloneable接口，即覆盖了函数clone()，能克隆。<br>LinkedList 实现java.io.Serializable接口，这意味着LinkedList支持序列化<br>LinkedList 是非同步的。</p>
 <p>下面我们来看看LinkedList集合的几个重要属性</p>
-<div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">//记录list的长度，不可被序列化，因为其未实现Serializable接口(下同)</span>
+<pre><code class="hljs java"><span class="hljs-comment">//记录list的长度，不可被序列化，因为其未实现Serializable接口(下同)</span>
 <span class="hljs-keyword">transient</span> <span class="hljs-keyword">int</span> size = <span class="hljs-number">0</span>;
 <span class="hljs-comment">//LinkedList的核心，一个保存相邻结点引用的结点，LinkedList双向遍历的关键，可以将结点的插入指定在list头部插入，初始值为null</span>
 <span class="hljs-keyword">transient</span> Node&lt;E&gt; first;
@@ -202,12 +202,12 @@
      <span class="hljs-keyword">this</span>.next = next;
      <span class="hljs-keyword">this</span>.prev = prev;
   &#125;
-&#125;</code></pre></div>
+&#125;</code></pre>
 
 <p>其结构可简化为：<img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr57e37j30tm09gjrh.jpg" srcset="/img/loading.gif" alt=""></p>
 <p><strong>添加结点</strong></p>
 <p> LinkedList一般而言会在尾部插入新结点 原理就是先暂存尾结点，然后创立一个新结点，并将新结点的pre指向尾结点，如果新插入的结点为第一个结点的话，则将其置为首结点</p>
-<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">add</span><span class="hljs-params">(E e)</span> </span>&#123;
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">add</span><span class="hljs-params">(E e)</span> </span>&#123;
        linkLast(e);
        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
    &#125;
@@ -222,12 +222,12 @@
            l.next = newNode;
        size++;
        modCount++;
-   &#125;</code></pre></div>
+   &#125;</code></pre>
 
 <p>如下图：</p>
 <p><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/addlistnode.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr52v6kj30og0egmxd.jpg" srcset="/img/loading.gif" alt="img"></a></p>
 <p><strong>addAll添加全部某个集合的所有元素作为列表的结点</strong></p>
-<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">addAll</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index, Collection&lt;? extends E&gt; c)</span> </span>&#123;
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">addAll</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index, Collection&lt;? extends E&gt; c)</span> </span>&#123;
     checkPositionIndex(index);
     Object[] a = c.toArray();
     <span class="hljs-keyword">int</span> numNew = a.length;
@@ -259,11 +259,11 @@
     size += numNew;
     modCount++;
     <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
-&#125;</code></pre></div>
+&#125;</code></pre>
 
 <p>添加集合中的元素首先从last开始添加第一个元素，然后依次遍历集合的每一个元素，然后将其依次插入到尾部，当然，你也可以用index属性指定插入到list的某个位置</p>
 <p><strong>get函数</strong><br>获取某个元素最终通过node函数并且指定结点的位置来获取元素，注意这个函数和<strong>public boolean offer(E e)</strong>的区别，除了一个根据下标来获取值，一个用具体的元素来获取值意外，通过get函数来查找元素下标越界的话会抛出异常，而用offer来获取元素当查找一个不存在的元素是只会返回false，这在特定没有处理异常或忘记处理的情况下可以维护程序的稳定运行</p>
-<div class="hljs"><pre><code class="hljs java"><span class="hljs-function">Node&lt;E&gt; <span class="hljs-title">node</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span> </span>&#123;
+<pre><code class="hljs java"><span class="hljs-function">Node&lt;E&gt; <span class="hljs-title">node</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span> </span>&#123;
     <span class="hljs-comment">// assert isElementIndex(index);</span>
     <span class="hljs-comment">//因为LinkedList是双向链表，因而对于它的的遍历可以根据</span>
     <span class="hljs-comment">//index的值来优化：如若index在list左半部分的话，就从头</span>
@@ -279,10 +279,10 @@
             x = x.prev;
         <span class="hljs-keyword">return</span> x;
     &#125;
-&#125;</code></pre></div>
+&#125;</code></pre>
 
 <p><strong>clone函数</strong></p>
-<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">clone</span><span class="hljs-params">()</span> </span>&#123;
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">clone</span><span class="hljs-params">()</span> </span>&#123;
 	    <span class="hljs-comment">//调用Object的函数clone函数返回一个LinkedList对象</span>
       LinkedList&lt;E&gt; clone = superClone();
       <span class="hljs-comment">// 将克隆对象的成员还原成初始值，以便接下来重新添加元素</span>
@@ -293,11 +293,11 @@
       <span class="hljs-keyword">for</span> (Node&lt;E&gt; x = first; x != <span class="hljs-keyword">null</span>; x = x.next)
           clone.add(x.item);
       <span class="hljs-keyword">return</span> clone;
-  &#125;</code></pre></div>
+  &#125;</code></pre>
 
 <p><strong>clear函数</strong></p>
 <p> 这个没什么多说的，依次清除每个元素，并置为null好方便GC</p>
-<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">clear</span><span class="hljs-params">()</span> </span>&#123;
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">clear</span><span class="hljs-params">()</span> </span>&#123;
     <span class="hljs-keyword">for</span> (Node&lt;E&gt; x = first; x != <span class="hljs-keyword">null</span>; ) &#123;
         Node&lt;E&gt; next = x.next;
         x.item = <span class="hljs-keyword">null</span>;
@@ -308,7 +308,7 @@
     first = last = <span class="hljs-keyword">null</span>;
     size = <span class="hljs-number">0</span>;
     modCount++;
-&#125;</code></pre></div>
+&#125;</code></pre>
 
 <p>关于LinkedList，还有一个比较特别的迭代器DescendingIterator，它是基于双端队列的一个迭代器，允许从后往前开始遍历，并且提供了获取下一个元素以及删除元素的功能。另外值得注意的是由于LinkedList是一个非线程安全的集合，是的它的的迭代器具有fail-fast(快速失效)的特征，具体表现就是不允许多个线程对集合进行修改，也不允许当一个线程遍历元素时，另一个线程对其进行修改，否则会抛出ConcurrentModificationException(并发修改异常)，这是由一个叫modCount的变量控制的，具体在我关于ConcurrentHashMap的博文中也提到了 </p>
 

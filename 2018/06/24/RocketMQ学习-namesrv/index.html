@@ -177,7 +177,7 @@
           <div class="post-content mx-auto" id="post">
             
             <article class="markdown-body">
-              <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><div class="hljs"><pre><code>因为最近项目的原因用上了消息队列，且技术选型用的是RocketMQ，因而抽空花时间研究了一下其中的几个核心组件的原理(包括namesrv，broker，consumer，producer，当然RocketMQ如何处理消息堆积以及消息落盘的处理也是精华)。本文的分析是基于RocketMQ—4.3版本源码。</code></pre></div><blockquote>
+              <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><pre><code>因为最近项目的原因用上了消息队列，且技术选型用的是RocketMQ，因而抽空花时间研究了一下其中的几个核心组件的原理(包括namesrv，broker，consumer，producer，当然RocketMQ如何处理消息堆积以及消息落盘的处理也是精华)。本文的分析是基于RocketMQ—4.3版本源码。</code></pre><blockquote>
 <p>首先依据RocketMQ的官方文档明确以下几个概念，方便后续描述：</p>
 <ol>
 <li><p>Producer：消息生产者，负责产生消息，一般由业务系统负责产生消息。</p>
@@ -212,7 +212,7 @@
 </li>
 </ol>
 <h3 id="namesrv-初始化"><a href="#namesrv-初始化" class="headerlink" title="namesrv 初始化"></a>namesrv 初始化</h3><p>关于 namesrv 的初始化，主要有以下代码：</p>
-<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">initialize</span><span class="hljs-params">()</span> </span>&#123;
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">initialize</span><span class="hljs-params">()</span> </span>&#123;
         <span class="hljs-keyword">this</span>.kvConfigManager.load();
         <span class="hljs-keyword">this</span>.remotingServer = <span class="hljs-keyword">new</span> NettyRemotingServer(<span class="hljs-keyword">this</span>.nettyServerConfig, <span class="hljs-keyword">this</span>.brokerHousekeepingService);
         <span class="hljs-keyword">this</span>.remotingExecutor =
@@ -239,12 +239,12 @@
         &#125; <span class="hljs-keyword">else</span> &#123;
             <span class="hljs-keyword">this</span>.remotingServer.registerDefaultProcessor(<span class="hljs-keyword">new</span> DefaultRequestProcessor(<span class="hljs-keyword">this</span>), <span class="hljs-keyword">this</span>.remotingExecutor);
         &#125;
-    &#125;</code></pre></div>
+    &#125;</code></pre>
 
 <p> 在以上启动流程的初始化中，mq有一些初始化Processer线程池的操作，在registerProcessor方法中，会将 nettyserver 和对应的Processer线程池绑定起来，而Processer内部的processRequest方法则负责将根据将来 request code来区分不同的请求类型(比如 broker 的注册也是其中一种).</p>
 <p> 除此之外，在初始化默认的Processer线程池时(主要是防止在processorTable对象中不存在request code —&gt; Processor)，还关联一个processorTable对象，如下：</p>
-<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> HashMap&lt;Integer<span class="hljs-comment">/* request code */</span>, Pair&lt;NettyRequestProcessor, ExecutorService&gt;&gt; processorTable =
-    <span class="hljs-keyword">new</span> HashMap&lt;Integer, Pair&lt;NettyRequestProcessor, ExecutorService&gt;&gt;(<span class="hljs-number">64</span>);</code></pre></div>
+<pre><code class="hljs java"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> HashMap&lt;Integer<span class="hljs-comment">/* request code */</span>, Pair&lt;NettyRequestProcessor, ExecutorService&gt;&gt; processorTable =
+    <span class="hljs-keyword">new</span> HashMap&lt;Integer, Pair&lt;NettyRequestProcessor, ExecutorService&gt;&gt;(<span class="hljs-number">64</span>);</code></pre>
 
 <p>这个对象就是将request code与具体处理请求的线程池的绑定关系记录下来，将来nettyServer接收到请求后，封装成任务提交到该线程池.</p>
 <h3 id="namesrv设计思想"><a href="#namesrv设计思想" class="headerlink" title="namesrv设计思想"></a>namesrv设计思想</h3><p> 总体来说，namesrv是一个无状态，可任意水平扩展的服务，对于每一个namesrv而言，它无需与集群中的其它namesrv进行数据同步，所有的 broker 都会对所有的namesrv注册自己的信息并同时维护他们之前的心跳。而每一个namesrv也会拥有所有定时获取所有broker的信息。</p>
