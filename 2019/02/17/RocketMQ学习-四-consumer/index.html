@@ -342,7 +342,7 @@
     &#125;</code></pre>
 
 <h3 id="二-消费方的负载均衡"><a href="#二-消费方的负载均衡" class="headerlink" title="二. 消费方的负载均衡"></a>二. 消费方的负载均衡</h3><p>​    在启动rebalanceService服务后，默认会以20s为一个周期来调整消费者和topic队列的对应关系，以便在队列信息发生变更和一个消费组中加入(移除)消费方进行调整:</p>
-<p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/mw690/006HiYd9ly1g0gsykgq8fj30xg0e80wr.jpg" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rebalance.jpg?x-oss-process=style/zsfimage" srcset="/img/loading.gif" alt=""></p>
 <p>我们这里以集群模式下的消费来讲：</p>
 <pre><code class="hljs java">               <span class="hljs-comment">// 获取一个topic下的所有队列</span>
                Set&lt;MessageQueue&gt; mqSet = <span class="hljs-keyword">this</span>.topicSubscribeInfoTable.get(topic);
@@ -665,9 +665,9 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6/">消息中间件</a>
-                    
                       <a class="hover-with-bg" href="/tags/RocketMQ/">RocketMQ</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6/">消息中间件</a>
                     
                   </div>
                 
@@ -834,7 +834,7 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
         "RocketMQ学习-四-consumer&nbsp;",
       ],
       cursorChar: "_",
-      typeSpeed: 70,
+      typeSpeed: 60,
       loop: false,
     });
     typed.stop();
