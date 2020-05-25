@@ -189,26 +189,26 @@
 <h2 id="初识Executor"><a href="#初识Executor" class="headerlink" title="初识Executor"></a>初识Executor</h2><p>既然线程的创建有这么多不足，Java的设计者就想到了通过一种统一的机制来管理线程，包括其创建，执行和销毁(这和数据库连接池的设计思想类似)，这就是Executor框架下的Executors类。它提供了4种线程池类：</p>
 <ol>
 <li><p>ExecutorService newFixedThreadPool(int nThreads):固定大小线程池</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ExecutorService <span class="hljs-title">newFixedThreadPool</span><span class="hljs-params">(<span class="hljs-keyword">int</span> nThreads)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ExecutorService <span class="hljs-title">newFixedThreadPool</span><span class="hljs-params">(<span class="hljs-keyword">int</span> nThreads)</span> </span>&#123;
        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ThreadPoolExecutor(nThreads, nThreads,
                                      <span class="hljs-number">0L</span>, TimeUnit.MILLISECONDS,
                                      <span class="hljs-keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;());
-   &#125;</code></pre>
+   &#125;</code></pre></div>
 </li>
 <li><p>ExecutorService newSingleThreadExecutor()：包含单线程的线程池</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ExecutorService <span class="hljs-title">newSingleThreadExecutor</span><span class="hljs-params">()</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ExecutorService <span class="hljs-title">newSingleThreadExecutor</span><span class="hljs-params">()</span> </span>&#123;
         <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> FinalizableDelegatedExecutorService
             (<span class="hljs-keyword">new</span> ThreadPoolExecutor(<span class="hljs-number">1</span>, <span class="hljs-number">1</span>,
                                     <span class="hljs-number">0L</span>, TimeUnit.MILLISECONDS,
                                     <span class="hljs-keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;()));
-    &#125;</code></pre>
+    &#125;</code></pre></div>
 </li>
 <li><p>ExecutorService newCachedThreadPool()：带缓存的无界线程池</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ExecutorService <span class="hljs-title">newCachedThreadPool</span><span class="hljs-params">()</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ExecutorService <span class="hljs-title">newCachedThreadPool</span><span class="hljs-params">()</span> </span>&#123;
         <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ThreadPoolExecutor(<span class="hljs-number">0</span>, Integer.MAX_VALUE,
                                       <span class="hljs-number">60L</span>, TimeUnit.SECONDS,
                                       <span class="hljs-keyword">new</span> SynchronousQueue&lt;Runnable&gt;());
-    &#125;</code></pre>
+    &#125;</code></pre></div>
 
 
 </li>
@@ -218,14 +218,14 @@
 <hr>
 <p>上述几种线程池都是由Executors的工厂方法返回的，在很多书上都有介绍它们的基本使用，仔细观察会发现它们都是基于ThreadPoolExecutor实现的，在其JDK文档中这样描述：“ <strong>为了便于跨大量上下文使用，此类提供了很多可调整的参数和扩展钩子 (hook)。但是，强烈建议程序员使用较为方便的 Executors 工厂方法 Executors.newCachedThreadPool()（无界线程池，可以进行自动线程回收）、Executors.newFixedThreadPool(int)（固定大小线程池）和 Executors.newSingleThreadExecutor()（单个后台线程），它们均为大多数使用场景预定义了设置。否则，在手动配置和调整此类时</strong>” 可以看到ThreadPoolExecutor是线程池底层的真正实现，而之前的那几种线程池只是对其做的一层简单封装，其作用在于帮用户预先设置好了某些参数。ThreadPoolExecutor则允许用户更加灵活的配置线程池，包括核心和最大线程数，保持活动时间，如何实现缓存队列，相应的饱和策略，如何配置线程工厂以及对ThreadPoolExecutor的扩展(主要通过重写beforeExecute，afterExecute和terminated方法)</p>
 <hr>
-<h2 id="ThreadPoolExecutor"><a href="#ThreadPoolExecutor" class="headerlink" title="ThreadPoolExecutor"></a>ThreadPoolExecutor</h2><h3 id="ctl"><a href="#ctl" class="headerlink" title="ctl"></a>ctl</h3><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> AtomicInteger ctl = <span class="hljs-keyword">new</span> AtomicInteger(ctlOf(RUNNING, <span class="hljs-number">0</span>));</code></pre>
+<h2 id="ThreadPoolExecutor"><a href="#ThreadPoolExecutor" class="headerlink" title="ThreadPoolExecutor"></a>ThreadPoolExecutor</h2><h3 id="ctl"><a href="#ctl" class="headerlink" title="ctl"></a>ctl</h3><div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> AtomicInteger ctl = <span class="hljs-keyword">new</span> AtomicInteger(ctlOf(RUNNING, <span class="hljs-number">0</span>));</code></pre></div>
 
 <p>这个变量是整个类的核心，AtomicInteger保证了对这个变量的操作是原子的，ThreadPoolExecutor用这一个变量保存了两个内容：</p>
 <ul>
 <li>所有工作线程的数量</li>
 <li>各个线程的状态（runState）</li>
 </ul>
-<pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> COUNT_BITS = Integer.SIZE - <span class="hljs-number">3</span>;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> COUNT_BITS = Integer.SIZE - <span class="hljs-number">3</span>;
    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> CAPACITY   = (<span class="hljs-number">1</span> &lt;&lt; COUNT_BITS) - <span class="hljs-number">1</span>;
    <span class="hljs-comment">// runState is stored in the high-order bits</span>
    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> RUNNING    = -<span class="hljs-number">1</span> &lt;&lt; COUNT_BITS;
@@ -236,7 +236,7 @@
    <span class="hljs-comment">// Packing and unpacking ctl</span>
    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">runStateOf</span><span class="hljs-params">(<span class="hljs-keyword">int</span> c)</span>     </span>&#123; <span class="hljs-keyword">return</span> c &amp; ~CAPACITY; &#125;
    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">workerCountOf</span><span class="hljs-params">(<span class="hljs-keyword">int</span> c)</span>  </span>&#123; <span class="hljs-keyword">return</span> c &amp; CAPACITY; &#125;
-   <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">ctlOf</span><span class="hljs-params">(<span class="hljs-keyword">int</span> rs, <span class="hljs-keyword">int</span> wc)</span> </span>&#123; <span class="hljs-keyword">return</span> rs | wc; &#125;</code></pre>
+   <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">ctlOf</span><span class="hljs-params">(<span class="hljs-keyword">int</span> rs, <span class="hljs-keyword">int</span> wc)</span> </span>&#123; <span class="hljs-keyword">return</span> rs | wc; &#125;</code></pre></div>
 
 <p>从上面我们可以看到设计者将int变量的低29位存线程数(大约5亿个)，高3位存runState,这样runState有5个值</p>
 <ul>
@@ -248,13 +248,13 @@
 </ul>
 <p>其中runStateOf函数用于获取runState的值，上文提到ctl存了线程状态和工作线程数量值，也就是函数中传过来的参数c，CAPACITY的值是<br>00011111111111111111111111111111，取反后为11100000000000000000000000000000，然后进行求与运算取c的值高三位，也就是runState值。<br>对于workerCountOf函数，则是取c的低29位值，也就是workerCount<br>对于ctlOf函数，则是将参数rs(runState)和wc(workerCount)组合成ctl值，也就是说前面两个是从ctl值分离出两个值，这个则是合并</p>
 <p>接下来我们看一下ThreadPoolExecutor提供了哪些参数</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ThreadPoolExecutor</span><span class="hljs-params">(<span class="hljs-keyword">int</span> corePoolSize,</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ThreadPoolExecutor</span><span class="hljs-params">(<span class="hljs-keyword">int</span> corePoolSize,</span></span>
 <span class="hljs-function"><span class="hljs-params">                             <span class="hljs-keyword">int</span> maximumPoolSize,</span></span>
 <span class="hljs-function"><span class="hljs-params">                             <span class="hljs-keyword">long</span> keepAliveTime,</span></span>
 <span class="hljs-function"><span class="hljs-params">                             TimeUnit unit,</span></span>
 <span class="hljs-function"><span class="hljs-params">                             BlockingQueue&lt;Runnable&gt; workQueue,</span></span>
 <span class="hljs-function"><span class="hljs-params">                             ThreadFactory threadFactory,</span></span>
-<span class="hljs-function"><span class="hljs-params">                             RejectedExecutionHandler handler)</span></span></code></pre>
+<span class="hljs-function"><span class="hljs-params">                             RejectedExecutionHandler handler)</span></span></code></pre></div>
 
 <p>corePoolSize：基本线程数，当线程池没有任务需要处理时能保持的最大空闲线程数<br>maximumPoolSize：线城池的最大线程数，当缓存队列满了后如果当前线程数小于此值就创建新的线程来处理任务<br>keepAliveTime：当线程池中的空闲线程数大于corePoolSize时多出来的线程所允许的最大存活时间，后面的TimeUnit指明时间单位<br>BlockingQueue：用于存放已提交任务的一种缓存队列<br>ThreadFactory：用来创建线程的工厂<br>RejectedExecutionHandler：当缓存队列满了且无法再创建新线程时所要采取的饱和策略</p>
 <p><strong>关于缓存队列的实现策略，有以下三种</strong></p>
@@ -263,7 +263,7 @@
 <li>无界队列。其默认实现就是LinkedBlockingQueue，之前的newSingleThreadExecutor和newFixedThreadPool都是基于此策略来实现缓存队列。这种无界队列在任务提交较为迅速时能避免创建线程，但队列的持续性快速增长仍会带来性能下降的问题，最终只能抑制任务提交以免耗尽内存</li>
 <li>有界队列。可以基于ArrayBlockingQueue实现。基于这种策略的实现往往需要我们在线程数和缓存队列长度中找到一个平衡点，因为队列的有界性，当超出队列长度时只能通过创建新的线程来处理提交的任务，但无限创建线程会耗尽内存，但是通过扩大队列的长度又会导致执行任务的线程数太少，降低系统的吞吐量</li>
 </ol>
-<h3 id="执行"><a href="#执行" class="headerlink" title="执行"></a>执行</h3><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">execute</span><span class="hljs-params">(Runnable command)</span> </span>&#123;
+<h3 id="执行"><a href="#执行" class="headerlink" title="执行"></a>执行</h3><div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">execute</span><span class="hljs-params">(Runnable command)</span> </span>&#123;
        <span class="hljs-keyword">if</span> (command == <span class="hljs-keyword">null</span>)
            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException();
        <span class="hljs-keyword">int</span> c = ctl.get();
@@ -285,7 +285,7 @@
        &#125;
        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!addWorker(command, <span class="hljs-keyword">false</span>))
            reject(command);
-   &#125;</code></pre>
+   &#125;</code></pre></div>
 
 <p>此方法用于提交要执行的任务，它主要经历了以下3个步骤：</p>
 <ol>
@@ -294,7 +294,7 @@
 <li>缓存队列满了并且当前线程数不大于maximumPoolSize就创建新的线程来执行任务，否则采取相应的饱和策略来处理</li>
 </ol>
 <p>其中的addWorker难以理解，遂借用别人的理解(o(╯□╰)o)</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">addWorker</span><span class="hljs-params">(Runnable firstTask, <span class="hljs-keyword">boolean</span> core)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">addWorker</span><span class="hljs-params">(Runnable firstTask, <span class="hljs-keyword">boolean</span> core)</span> </span>&#123;
         retry: <span class="hljs-keyword">for</span> (;;) &#123;
             <span class="hljs-keyword">int</span> c = ctl.get();
             <span class="hljs-keyword">int</span> rs = runStateOf(c);<span class="hljs-comment">// 当前线程池状态</span>
@@ -372,9 +372,9 @@
                 addWorkerFailed(w);
         &#125;
         <span class="hljs-keyword">return</span> workerStarted;
-    &#125;</code></pre>
+    &#125;</code></pre></div>
 
-<h3 id="shutdown和shutdownNow"><a href="#shutdown和shutdownNow" class="headerlink" title="shutdown和shutdownNow"></a>shutdown和shutdownNow</h3><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">shutdown</span><span class="hljs-params">()</span> </span>&#123;
+<h3 id="shutdown和shutdownNow"><a href="#shutdown和shutdownNow" class="headerlink" title="shutdown和shutdownNow"></a>shutdown和shutdownNow</h3><div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">shutdown</span><span class="hljs-params">()</span> </span>&#123;
       <span class="hljs-keyword">final</span> ReentrantLock mainLock = <span class="hljs-keyword">this</span>.mainLock;
       mainLock.lock();
       <span class="hljs-keyword">try</span> &#123;
@@ -389,10 +389,10 @@
           mainLock.unlock();
       &#125;
       tryTerminate();
-  &#125;</code></pre>
+  &#125;</code></pre></div>
 
 <p>shutdown方法主要是为了阻止任务提交到缓存队列中，但对已提交的任务还是会执行，但是不保证一定执行完，如果有需求的话，可以考虑调用awaitTermination完成</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;Runnable&gt; <span class="hljs-title">shutdownNow</span><span class="hljs-params">()</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;Runnable&gt; <span class="hljs-title">shutdownNow</span><span class="hljs-params">()</span> </span>&#123;
       List&lt;Runnable&gt; tasks;
       <span class="hljs-keyword">final</span> ReentrantLock mainLock = <span class="hljs-keyword">this</span>.mainLock;
       mainLock.lock();
@@ -409,11 +409,11 @@
       &#125;
       tryTerminate();
       <span class="hljs-keyword">return</span> tasks;
-  &#125;</code></pre>
+  &#125;</code></pre></div>
 
 <p>尝试停止所有的活动执行任务、暂停等待任务的处理，并返回等待执行的任务列表。在从此方法返回的任务队列中排空（移除）这些任务。</p>
 <h3 id="线程工厂"><a href="#线程工厂" class="headerlink" title="线程工厂"></a>线程工厂</h3><p>默认的线程工厂实现智能创建一个新的非守护线程，并且不包含任何的配置信息</p>
-<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ThreadFactory</span> </span>&#123;  <span class="hljs-function">Thread <span class="hljs-title">newThread</span><span class="hljs-params">(Runnable r)</span></span>;&#125;</code></pre>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ThreadFactory</span> </span>&#123;  <span class="hljs-function">Thread <span class="hljs-title">newThread</span><span class="hljs-params">(Runnable r)</span></span>;&#125;</code></pre></div>
 
 <p>将要执行的任务封装到一个线程中执行，我们可以通过实现这个接口扩展线程工厂的行为，添加我们想要改变的信息，比如线程名字，优先级之类的</p>
 <h3 id="饱和策略"><a href="#饱和策略" class="headerlink" title="饱和策略"></a>饱和策略</h3><p>之前曾经谈到的，如果在缓存队列已满并且无法创建新的线程来执行新的线程就会启用相应的饱和策略</p>

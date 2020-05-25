@@ -180,7 +180,7 @@
               <p>​    broker的启动和producer一样，启动时会同时启动多个定时任务，包括消息持久化，netty客户端启动，监听文件内容变更的等等…</p>
 <hr>
 <h3 id="消息持久化"><a href="#消息持久化" class="headerlink" title="消息持久化"></a>消息持久化</h3><p>消息持久化是broker最重要的任务，其稳定与否关系到消费者是否能消费到消息，整个mq是否会丢消息。</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
 
        lock = lockFile.getChannel().tryLock(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-keyword">false</span>);
        <span class="hljs-keyword">if</span> (lock == <span class="hljs-keyword">null</span> || lock.isShared() || !lock.isValid()) &#123;
@@ -211,12 +211,12 @@
        <span class="hljs-keyword">this</span>.createTempFile();
        <span class="hljs-keyword">this</span>.addScheduleTask();
        <span class="hljs-keyword">this</span>.shutdown = <span class="hljs-keyword">false</span>;
-   &#125;</code></pre>
+   &#125;</code></pre></div>
 
 <ol>
 <li>flushConsumeQueueService作用是用来持久化一些producer发送到对应topic中的的不同队列的消息，核心代码如下：</li>
 </ol>
-<pre><code class="hljs java">ConcurrentMap&lt;String, ConcurrentMap&lt;Integer, ConsumeQueue&gt;&gt; tables = DefaultMessageStore.<span class="hljs-keyword">this</span>.consumeQueueTable;
+<div class="hljs"><pre><code class="hljs java">ConcurrentMap&lt;String, ConcurrentMap&lt;Integer, ConsumeQueue&gt;&gt; tables = DefaultMessageStore.<span class="hljs-keyword">this</span>.consumeQueueTable;
 
          <span class="hljs-comment">// 针对不同topic的每个消费队列进行消息读取并刷新到commitLog</span>
          <span class="hljs-keyword">for</span> (ConcurrentMap&lt;Integer, ConsumeQueue&gt; maps : tables.values()) &#123;
@@ -243,10 +243,10 @@
      &#125;
 
      <span class="hljs-keyword">return</span> result;
- &#125;</code></pre>
+ &#125;</code></pre></div>
 
 <p>其中flushConsumeQueueLeastPages用来确定一次最终刷多少页的数据到磁盘，findMappedFileByOffset方法可以确定当前应该刷新哪个文件中，因为在commitLog中维护一个名为mapedFileQueue的文件映射队列，这个队列记录了所有的记录消息的映射文件。每个文件大小默认为1G。这样通过上次刷新的偏移量就能确定mapedFile。值得注意的时，在往文件中写的时候，会去检验文件是否可以写入(是否写满)，以及当前已写入到内存中的数据是否可以刷入指定页数的数据到磁盘，如果flushLeastPages 等于0的话就一次性将所有可以的落盘的数据一次性刷入磁盘(OS_PAGE_SIZE为操作系统默认的页大小)。</p>
-<pre><code class="hljs java"> <span class="hljs-keyword">if</span> (flushLeastPages &gt; <span class="hljs-number">0</span>) &#123;
+<div class="hljs"><pre><code class="hljs java"> <span class="hljs-keyword">if</span> (flushLeastPages &gt; <span class="hljs-number">0</span>) &#123;
             <span class="hljs-keyword">return</span> ((write / OS_PAGE_SIZE) - (flush / OS_PAGE_SIZE)) &gt;= flushLeastPages;
         &#125;
 <span class="hljs-keyword">return</span> write &gt; flush;
@@ -261,7 +261,7 @@
        &#125;
    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;
        log.error(<span class="hljs-string">"Error occurred when force data to disk."</span>, e);
-   &#125;</code></pre>
+   &#125;</code></pre></div>
 
 <p>FileChannel.force()方法将通道里尚未写入磁盘的数据强制写到磁盘上。出于性能方面的考虑，操作系统会将数据缓存在内存中，所以无法保证写入到FileChannel里的数据一定会即时写到磁盘上。要保证这一点，需要调用force()方法。参数标明是否将元数据一同刷入。</p>
 <p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/mw690/006HiYd9ly1g0oihjp0mrj313e0nw0um.jpg" srcset="/img/loading.gif" alt=""></p>
@@ -274,7 +274,7 @@
 <li>异步刷盘(默认方式)</li>
 </ol>
 <p>刷盘方式在初始化commitLog指定</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CommitLog</span><span class="hljs-params">(<span class="hljs-keyword">final</span> DefaultMessageStore defaultMessageStore)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CommitLog</span><span class="hljs-params">(<span class="hljs-keyword">final</span> DefaultMessageStore defaultMessageStore)</span> </span>&#123;
     <span class="hljs-keyword">this</span>.mappedFileQueue = <span class="hljs-keyword">new</span> MappedFileQueue(defaultMessageStore.getMessageStoreConfig().getStorePathCommitLog(),
         defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog(), defaultMessageStore.getAllocateMappedFileService());
     <span class="hljs-keyword">this</span>.defaultMessageStore = defaultMessageStore;
@@ -296,12 +296,12 @@
     &#125;;
     <span class="hljs-keyword">this</span>.putMessageLock = defaultMessageStore.getMessageStoreConfig().isUseReentrantLockWhenPutMessage() ? <span class="hljs-keyword">new</span> PutMessageReentrantLock() : <span class="hljs-keyword">new</span> PutMessageSpinLock();
 
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>(1) 同步刷盘：GroupCommitService</p>
 <p>同步刷盘策略在设计上比较巧妙，采用一种交换锁的方式来减少线程的竞争，具体方式为两个队列，初始状态下，写队列用来存储请求，同时不断在读队列中获取获取刷盘请求，当请求处理完成后迅速交换引用。写队列指向读队列，读队列指向写队列，而请求的来源来自另一个不断从处理发送的消息的定时任务中来</p>
 <p>​    关于队列中的数据来源，比较典型的就是延时消息，在broker启动时同步会启动一个投递延时消息的定时任务，</p>
-<pre><code class="hljs java"><span class="hljs-comment">// 有需要发送的延时消息</span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">// 有需要发送的延时消息</span>
 <span class="hljs-keyword">if</span> (msgExt != <span class="hljs-keyword">null</span>) &#123;
     <span class="hljs-keyword">try</span> &#123;
         MessageExtBrokerInner msgInner = <span class="hljs-keyword">this</span>.messageTimeup(msgExt);
@@ -413,7 +413,7 @@
         handleHA(result, putMessageResult, msg);
 
         <span class="hljs-keyword">return</span> putMessageResult;
-    &#125;</code></pre>
+    &#125;</code></pre></div>
 
 <p>在appendMessage这个方法之中，会对要发送的消息进行数据格式的封装(主要格式见下表)以及消息格式，长度的的一些校验，并且将延时消息的topic替换成真实的topic(每一个延时消息为了不会被消费者提前消费，会用一个特殊的名叫<strong>SCHEDULE_TOPIC_XXXX</strong>的topic替换，该topic是不会注册到namesrv的)，最终将消息存储在commitLog之中以便后续消费者可以进行消费</p>
 <p>(2) 异步刷盘：FlushRealTimeService</p>
@@ -551,7 +551,7 @@
 </tbody></table>
 <p>除此之外，不论采取哪种刷盘策略，CommitRealTimeService这个服务是一定会初始化的，只不过需要在transientStorePoolEnable字段设为true才行并且刷盘策略为异步情况下且当且broker为master情况下才行，这样一来，CommitRealTimeService服务往往也是和FlushRealTimeService服务一起出现的</p>
 <p>与FlushRealTimeService大部分的流程差不多，都是每次读取刷盘页数，然后找到对应的mappedFile进行写入，仔细观察却别在于一个调用flush方法，一个则是commit方法，如下：</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">flush</span><span class="hljs-params">(<span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> flushLeastPages)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">flush</span><span class="hljs-params">(<span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> flushLeastPages)</span> </span>&#123;
        <span class="hljs-keyword">boolean</span> result = <span class="hljs-keyword">true</span>;
        MappedFile mappedFile = <span class="hljs-keyword">this</span>.findMappedFileByOffset(<span class="hljs-keyword">this</span>.flushedWhere, <span class="hljs-keyword">this</span>.flushedWhere == <span class="hljs-number">0</span>);
        <span class="hljs-keyword">if</span> (mappedFile != <span class="hljs-keyword">null</span>) &#123;
@@ -581,10 +581,10 @@
        &#125;
 
        <span class="hljs-keyword">return</span> result;
-   &#125;</code></pre>
+   &#125;</code></pre></div>
 
 <p>而flush和commit方法细节如下(以下均省略细节)：</p>
-<pre><code class="hljs java"><span class="hljs-comment">//flush</span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">//flush</span>
 <span class="hljs-keyword">try</span> &#123;
     <span class="hljs-keyword">if</span> (writeBuffer != <span class="hljs-keyword">null</span> || <span class="hljs-keyword">this</span>.fileChannel.position() != <span class="hljs-number">0</span>) &#123;
         <span class="hljs-keyword">this</span>.fileChannel.force(<span class="hljs-keyword">false</span>);
@@ -606,7 +606,7 @@
     <span class="hljs-keyword">this</span>.committedPosition.set(writePos);
 &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;
     log.error(<span class="hljs-string">"Error occurred when commit data to FileChannel."</span>, e);
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>commit方法会在每次执行时构造出一个写缓冲buffer，然后通过fileChannel进行写入，中间隔了一个内存字节缓存，而flush就简单粗暴一些，直接请求操作系统将数据一次性刷入磁盘(force是因为操作系统一般为了提高写入效率会将数据放在缓冲中批量写入，所以force可以强制要求其此时立即将数据写入)</p>
 

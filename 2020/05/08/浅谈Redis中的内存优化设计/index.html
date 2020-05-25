@@ -138,7 +138,7 @@
                   
                   <span class="post-meta mr-2">
                     <i class="iconfont icon-chart"></i>
-                    3.3k 字
+                    3.4k 字
                   </span>
                 
 
@@ -181,7 +181,7 @@
 <hr>
 <p>在介绍这两个数据结构之前，我们先聊一下基础数据结构：robj。</p>
 <p>从Redis的使用者的角度来看，一个Redis节点包含多个db（非cluster模式下默认是16个，cluster模式下只能是1个），而一个db就是维护了从key 到value的映射关系。key只能是string类型，而value可以是多种数据类型，比如：string，list，hash，zset，set等。</p>
-<pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_RAW 0     <span class="hljs-comment">/* Raw representation */</span></span>
+<div class="hljs"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_RAW 0     <span class="hljs-comment">/* Raw representation */</span></span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_INT 1     <span class="hljs-comment">/* Encoded as integer */</span></span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_HT 2      <span class="hljs-comment">/* Encoded as hash table */</span></span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_ZIPMAP 3  <span class="hljs-comment">/* 已废弃 */</span></span>
@@ -201,18 +201,18 @@
 <span class="hljs-comment">                            * and most significant 16 bits access time). */</span>
     <span class="hljs-keyword">int</span> refcount;
     <span class="hljs-keyword">void</span> *ptr;
-&#125; robj;</code></pre>
+&#125; robj;</code></pre></div>
 
 <ul>
 <li>type：value的类型字段，占用4bit(总计表达16种)，目前就有以下几种</li>
 </ul>
-<pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_STRING 0    <span class="hljs-comment">/* String object. */</span></span>
+<div class="hljs"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_STRING 0    <span class="hljs-comment">/* String object. */</span></span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_LIST 1      <span class="hljs-comment">/* List object. */</span></span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_SET 2       <span class="hljs-comment">/* Set object. */</span></span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ZSET 3      <span class="hljs-comment">/* Sorted set object. */</span></span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_HASH 4      <span class="hljs-comment">/* Hash object. */</span></span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_MODULE 5    <span class="hljs-comment">/* Module object. Redis4.0引进了可插拔的模块来扩展功能，这种类型的对象标明是由模块直接管理*/</span></span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_STREAM 6    <span class="hljs-comment">/* Stream object. */</span></span></code></pre>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_STREAM 6    <span class="hljs-comment">/* Stream object. */</span></span></code></pre></div>
 
 
 
@@ -232,15 +232,15 @@
 <p>它的整体结构如下：</p>
 <p><img src="https://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/sds.png?x-oss-process=style/zsfimage" srcset="/img/loading.gif" alt=""></p>
 <p>从上图可知，在header结构设计上，体现着Redis内存的按需分配原则，sds总共有以下类型：</p>
-<pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_5  0</span>
+<div class="hljs"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_5  0</span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_8  1</span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_16 2</span>
 <span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_32 3</span>
-<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_64 4</span></code></pre>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> SDS_TYPE_64 4</span></code></pre></div>
 
 <p>其中除了SDS_TYPE_5这种类型没有alloc和len字段外，其它类型都会包含，而对于SDS_TYPE_5这种类型，主要用于存储不超过32字节的字符串(5bit最大值)，在最低的3bit上用于存储flags类型信息，高5bit用户存储字符长度，不过在具体的使用上，由于这种类型扩展性不好，并不会使用这种类型进行存储，但判定字符串大于小于32字节时会自动转换为SDS_TYPE_8类型。</p>
 <p>sds的类型结构如下：</p>
-<pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> __<span class="hljs-title">attribute__</span> ((__<span class="hljs-title">packed__</span>)) <span class="hljs-title">sdshdr5</span> &#123;</span>
+<div class="hljs"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> __<span class="hljs-title">attribute__</span> ((__<span class="hljs-title">packed__</span>)) <span class="hljs-title">sdshdr5</span> &#123;</span>
     <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> flags; 
     <span class="hljs-keyword">char</span> buf[];
 &#125;;
@@ -267,14 +267,14 @@
     <span class="hljs-keyword">uint64_t</span> alloc; 
     <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> flags; 
     <span class="hljs-keyword">char</span> buf[];
-&#125;;</code></pre>
+&#125;;</code></pre></div>
 
 <p>len：表示当前存储字符串已消耗的字节大小</p>
 <p>alloc：总共分配的内存大小(不包含header大小以及NULL结束符所占用的大小)</p>
 <p>flags：sds的类型信息，用低3bit标识</p>
 <p><strong>__attribute__((__packed__))</strong>这个在C语言中是为了让编译器以紧凑模式来分配内存，默认情况下编译器可能会为struct的字段做优化对齐，在其中填充空字节。这样一来在内存分配上就不会连续，后续会看到Redis在获取sds的flags字段信息时是通过header的大小向低位偏移一个字节获取的。</p>
 <p>在robj为string类型时总共有三种不同encoding，其中OBJ_ENCODING_RAW和OBJ_ENCODING_EMBSTR都是由sds来表示，在object.c的文件中有一个用于创建EMBSTR类型的对象方法：</p>
-<pre><code class="hljs c"><span class="hljs-function">robj *<span class="hljs-title">createEmbeddedStringObject</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *ptr, <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs c"><span class="hljs-function">robj *<span class="hljs-title">createEmbeddedStringObject</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *ptr, <span class="hljs-keyword">size_t</span> len)</span> </span>&#123;
     robj *o = zmalloc(<span class="hljs-keyword">sizeof</span>(robj)+<span class="hljs-keyword">sizeof</span>(struct sdshdr8)+len+<span class="hljs-number">1</span>);
     <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sdshdr8</span> *<span class="hljs-title">sh</span> = (<span class="hljs-title">void</span>*)(<span class="hljs-title">o</span>+1);</span> <span class="hljs-comment">//内存连续，所以这里的1要理解为sizeof(robj)，即指针指向sdshdr</span>
 
@@ -300,7 +300,7 @@
         <span class="hljs-built_in">memset</span>(sh-&gt;buf,<span class="hljs-number">0</span>,len+<span class="hljs-number">1</span>);
     &#125;
     <span class="hljs-keyword">return</span> o;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>将robj和sds放在一个连续的内存块中分配，这样对于短字符串的存储有利于减少内存碎片，由以下部分组成</p>
 <ul>
@@ -334,7 +334,7 @@
 <p>zlend：占用1个字节，ziplist的结束标识，使用固定值255</p>
 <p>因此一个空的压缩列表由总字节长度(4字节)，尾节点偏移量(4字节)，节点数量(2字节)，以及值为255的特殊结束符(1字节)组成。</p>
 <p>重点是要谈一谈entry的设计：</p>
-<p><prevlen> <encoding> <entry-data></p>
+<p><div class="hljs"><pre> <encoding> <entry-data></p>
 <p>prevlen：用来存储前一个entry的长度，这样可以通过减去这个值快速从后向前进行遍历</p>
 <p>encoding：当前entry的编码方式，包含字符串(3种)和数字类型(5种)</p>
 <p>entry-data：保存entry的内容，在encoding为数字型时存在一种情况会被省略</p>
@@ -413,7 +413,7 @@
 </ol>
 <p>因此ziplist的整体长度就是4+4+2+9+2+1=22个字节，按照大端字节序存储就是0x16(<a href="https://www.ruanyifeng.com/blog/2016/11/byte-order.html" target="_blank" rel="noopener">关于字节序的类型说明</a> )，ztail就是(22-3=19)为0x13，</p>
 <p>接下来以插入代码来讲解一下ziplist的工作流程(省略了一下内存拷贝的操作，无关主流程)：</p>
-<pre><code class="hljs c"><span class="hljs-comment">/* Insert item at "p". */</span>
+<div class="hljs"><pre><code class="hljs c"><span class="hljs-comment">/* Insert item at "p". */</span>
 <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *__ziplistInsert(<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *zl, <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *p, <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *s, <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> slen) &#123;
     <span class="hljs-keyword">size_t</span> curlen = intrev32ifbe(ZIPLIST_BYTES(zl)), reqlen;
     <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> prevlensize, prevlen = <span class="hljs-number">0</span>;
@@ -462,9 +462,9 @@
     &#125;
 
     <span class="hljs-keyword">return</span> zl;
-&#125;</code></pre>
+&#125;</code></pre></div></div>
 
-<p>从整个流程的前半部分来看，在插入一个新节点时，也需要计算<strong><prevlen> <encoding> <entry-data></strong>三个部分的大小</p>
+<p>从整个流程的前半部分来看，在插入一个新节点时，也需要计算<strong>&lt;prevlen&gt; &lt;encoding&gt; &lt;entry-data&gt;</strong>三个部分的大小</p>
 <ol>
 <li>ZIP_DECODE_PREVLEN和zipRawEntryLength就是获取上一个节点的大小，后续通过zipStorePrevEntryLength求得编码之后的大小</li>
 <li>通过判断插入节点的类型(字符串还是整数)获取entry-data的字节数</li>

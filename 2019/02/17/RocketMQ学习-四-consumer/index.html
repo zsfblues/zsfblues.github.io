@@ -184,7 +184,7 @@
 <p>​    消息的消费模型一般说来有两种：推模型(Push)和拉模型(Pull)，不过这两种常规的模型都有着一些问题，push模型一般由消息的推送者在发出新消息后主动对下游的消费者进行推送，如果推送的速率过快导致消费方消费不过来(比如下游有一些IO操作，或者请求三方服务的操作相对耗时)就会导致消费方负载过高，这时候推送方又不能及时了解下游消费方的状态(实现这点往往又会增加推送方的复杂度)，有可能会导致下游宕机。而传统的pull模型如果希望有较好的实时性的话，就需要不断轮询推送方以便获取最新的消息，这样又会导致推送方负载过高。在这两种传统模型都存在明显缺点情况下，RocketMQ(以下简称rmq)在实现消息消费时采用是一种<strong>长轮询</strong>，来平衡 Pull/Push 模型各自的缺点，基本方式是：消费方如果尝试拉取失败，并不会立即返回响应结果(但也会设置超时等待时间)，而是把请求挂在那里 wait(也可以理解为保存在服务方那边)，如果有新的消息到来，把请求拉起，返回最新消息。</p>
 <hr>
 <h3 id="一-消费者启动"><a href="#一-消费者启动" class="headerlink" title="一. 消费者启动"></a>一. 消费者启动</h3><p>​    rmq消费也实现了push和pull模型，不过push也是实现了长轮询的一种pull，因为push对业务方实现较为简单，也是大部分情况下首选的消费模型，所以这里以push模型来讲，可以以官方demo来切入。</p>
-<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Consumer</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Consumer</span> </span>&#123;
 
     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException, MQClientException </span>&#123;
 
@@ -209,10 +209,10 @@
 
         System.out.printf(<span class="hljs-string">"Consumer Started.%n"</span>);
     &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>​    可以看见消费方实例化一个消费者实例，确定好需要订阅的topic和tag，并指定好namesrv地址。messageListener则是一个监听回调类，用于收到消息后处理相应的业务逻辑。最为关键的步骤在于start方法。</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> MQClientException </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> MQClientException </span>&#123;
         <span class="hljs-keyword">switch</span> (<span class="hljs-keyword">this</span>.serviceState) &#123;
             <span class="hljs-keyword">case</span> CREATE_JUST:
                 log.info(<span class="hljs-string">"the consumer [&#123;&#125;] start beginning. messageModel=&#123;&#125;, isUnitMode=&#123;&#125;"</span>, <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup(),
@@ -334,12 +334,12 @@
                     <span class="hljs-keyword">break</span>;
             &#125;
         &#125;
-    &#125;</code></pre>
+    &#125;</code></pre></div>
 
 <h3 id="二-消费方的负载均衡"><a href="#二-消费方的负载均衡" class="headerlink" title="二. 消费方的负载均衡"></a>二. 消费方的负载均衡</h3><p>​    在启动rebalanceService服务后，默认会以20s为一个周期来调整消费者和topic队列的对应关系，以便在队列信息发生变更和一个消费组中加入(移除)消费方进行调整:</p>
 <p><img src="https://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rebalance.jpg?x-oss-process=style/zsfimage" srcset="/img/loading.gif" alt=""></p>
 <p>我们这里以集群模式下的消费来讲：</p>
-<pre><code class="hljs java">               <span class="hljs-comment">// 获取一个topic下的所有队列</span>
+<div class="hljs"><pre><code class="hljs java">               <span class="hljs-comment">// 获取一个topic下的所有队列</span>
                Set&lt;MessageQueue&gt; mqSet = <span class="hljs-keyword">this</span>.topicSubscribeInfoTable.get(topic);
                <span class="hljs-comment">// 获取订阅某topic下某个消费组的所有实例id</span>
                List&lt;String&gt; cidAll = <span class="hljs-keyword">this</span>.mQClientFactory.findConsumerIdList(topic, consumerGroup);
@@ -428,11 +428,11 @@
            &#125;
            <span class="hljs-comment">// 这个结合第一张流程图来看，也是后续pullRequestQueue中的数据来源(即拉取消息任务)</span>
            <span class="hljs-keyword">this</span>.dispatchPullRequest(pullRequestList);
-       &#125;</code></pre>
+       &#125;</code></pre></div>
 
 <p>​    在集群模式下获取订阅某topic下某个消费组的所有实例id以及该topic下的message queue集合在某一特定负载均衡策略下进行分配，其中processQueueTable维护的是一个消费组下对topic下某一队列的消费状况(因为是集群模式消费，所以所有消费组中的实例都会共享消费进度)，最终生成新的拉取消息的请求对象。由于是以topic为单位进行rebalance，最终一个queue就会生成一个pullRequest对象。通过<strong>Collections.sort(mqAll)</strong>和<strong>Collections.sort(cidAll)</strong>操作目的是后续topic队列信息和消费者实例数就算发生变化，也可以保证统一的数据排列方式和分配方式，比如第一个实例永远会对应第一个队列。</p>
 <h3 id="三-消费方拉取消息"><a href="#三-消费方拉取消息" class="headerlink" title="三. 消费方拉取消息"></a>三. 消费方拉取消息</h3><p>​    consumer启动时也会同时启动后台任务来获取pullRequest对象来拉取任务，在pull消息，会带上几个比较重要的参数：</p>
-<pre><code class="hljs java"><span class="hljs-keyword">int</span> sysFlag = PullSysFlag.buildSysFlag(
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">int</span> sysFlag = PullSysFlag.buildSysFlag(
             commitOffsetEnable, <span class="hljs-comment">// commitOffset</span>
             <span class="hljs-keyword">true</span>, <span class="hljs-comment">// suspend</span>
             subExpression != <span class="hljs-keyword">null</span>, 
@@ -456,31 +456,31 @@
         &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
             log.error(<span class="hljs-string">"pullKernelImpl exception"</span>, e);
             <span class="hljs-keyword">this</span>.executePullRequestLater(pullRequest, PULL_TIME_DELAY_MILLS_WHEN_EXCEPTION);
-        &#125;</code></pre>
+        &#125;</code></pre></div>
 
 <p>最终消息的拉取是要通过netty发送请求到broker端来获取的</p>
 <blockquote>
 <p>RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.PULL_MESSAGE, requestHeader);</p>
 </blockquote>
 <p>通过构建特定requestCode来进行消息拉取，说道requestCode，在broker刚刚启动时会在org.apache.rocketmq.broker.BrokerController#initialize中调用org.apache.rocketmq.broker.BrokerController#registerProcessor方法中注册若干个Processor到本地processorTable中，对应每一个requestCode，都有相应的线程池来处理请求。在netty端通过事件处理器来监听请求数据</p>
-<pre><code class="hljs java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NettyServerHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleChannelInboundHandler</span>&lt;<span class="hljs-title">RemotingCommand</span>&gt; </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NettyServerHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleChannelInboundHandler</span>&lt;<span class="hljs-title">RemotingCommand</span>&gt; </span>&#123;
 
        <span class="hljs-meta">@Override</span>
        <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRead0</span><span class="hljs-params">(ChannelHandlerContext ctx, RemotingCommand msg)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
            processMessageReceived(ctx, msg);
        &#125;
-   &#125;</code></pre>
+   &#125;</code></pre></div>
 
 <p>在拉取消息的PullMessageProcessor中进行消息的拉取，其中会做一些权限检查，tag和consumerGroup等参数合法性校验, 最终定位到</p>
-<pre><code class="hljs java">
+<div class="hljs"><pre><code class="hljs java">
 <span class="hljs-keyword">final</span> GetMessageResult getMessageResult =
     <span class="hljs-keyword">this</span>.brokerController.getMessageStore().getMessage(requestHeader.getConsumerGroup(), requestHeader.getTopic(),
-        requestHeader.getQueueId(), requestHeader.getQueueOffset(), requestHeader.getMaxMsgNums(), messageFilter);</code></pre>
+        requestHeader.getQueueId(), requestHeader.getQueueOffset(), requestHeader.getMaxMsgNums(), messageFilter);</code></pre></div>
 
 <p>在此处获取消息不管结果如何都会立即返回，真正的结果处理还是在PullMessageProcessor中，在获取拉取结果后，无非就是三大类：成功获取，拉取异常，消息未找到</p>
 <ol>
 <li><p>异常拉取</p>
-<pre><code class="hljs java"><span class="hljs-comment">//  获取当前commitLog中的最大消息偏移量</span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">//  获取当前commitLog中的最大消息偏移量</span>
 <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> maxOffsetPy = <span class="hljs-keyword">this</span>.commitLog.getMaxOffset();
 ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
       <span class="hljs-keyword">if</span> (consumeQueue != <span class="hljs-keyword">null</span>) &#123;
@@ -505,7 +505,7 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
                   nextBeginOffset = nextOffsetCorrection(offset, maxOffset);
               &#125;
           &#125;
-      &#125;</code></pre>
+      &#125;</code></pre></div>
 
 <p>这些判断都在是在保证所传偏移量不会超出正常偏移量限制，对于logic offset，由于consumer queue的消息存储单元大小是20bytes，分别由8bytes的在commit log的offset，4bytes表示的消息大小和tag hashcode。其中第一个是可以映射commit log的实体消息的，tag hashcode用于过滤订阅消息的，minOffset和maxOffset就相当于queue offset大小，指向commit log中的位置。具体见下图：</p>
 <p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g0hhnpilt8j30pa0e2t9d.jpg" srcset="/img/loading.gif" alt="consumer queue结构图"></p>
@@ -513,13 +513,13 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
 </ol>
 <p>由于consumer queue中的数据并不是对应commit log中相邻的消息体，所以拿到consumer queue后需要对其中的所有消息进行读取，</p>
 <blockquote>
-<pre><code class="hljs java"><span class="hljs-keyword">long</span> offsetPy = bufferConsumeQueue.getByteBuffer().getLong();
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">long</span> offsetPy = bufferConsumeQueue.getByteBuffer().getLong();
 <span class="hljs-keyword">int</span> sizePy = bufferConsumeQueue.getByteBuffer().getInt();
-<span class="hljs-keyword">long</span> tagsCode = bufferConsumeQueue.getByteBuffer().getLong();</code></pre>
+<span class="hljs-keyword">long</span> tagsCode = bufferConsumeQueue.getByteBuffer().getLong();</code></pre></div>
 </blockquote>
 <p>这三块就对应consumer queue中消息单元的三个组成部分，表面上看上去似乎是一个随机读，但是由于命中page cache，效率上近似于顺序读最终通过获得offsetPy和sizePy就可以定位commit log中的消息。</p>
 <p>对于暂时无法获取的消息，会走以下逻辑：</p>
-<pre><code class="hljs java"><span class="hljs-keyword">if</span> (brokerAllowSuspend &amp;&amp; hasSuspendFlag) &#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (brokerAllowSuspend &amp;&amp; hasSuspendFlag) &#123;
                     <span class="hljs-keyword">long</span> pollingTimeMills = suspendTimeoutMillisLong;
                     <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.brokerController.getBrokerConfig().isLongPollingEnable()) &#123;
                         pollingTimeMills = <span class="hljs-keyword">this</span>.brokerController.getBrokerConfig().getShortPollingTimeMills();
@@ -533,15 +533,15 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
                     <span class="hljs-keyword">this</span>.brokerController.getPullRequestHoldService().suspendPullRequest(topic, queueId, pullRequest);
                     response = <span class="hljs-keyword">null</span>;
                     <span class="hljs-keyword">break</span>;
-                &#125;</code></pre>
+                &#125;</code></pre></div>
 
 <p>​    通过之前consumer所传brokerAllowSuspend的参数判断是否先hold住此次请求，如果是的话就将这次请求放入pullRequestTable中, 等待有消息时获取通知。在broker启动后，同时会有一个reputMessageService线程一直在后台检测有没有新消息的到来。当有新数据产生时，reputMessageService本身维护一个reputFromOffset的偏移量(初始值为0)用以对比和 CommitLog 文件中的消息总偏移量的差距。当这两个偏移量不同的时候表示有新消息到来。会主动拉取pullRequestTable中的请求进行客户端通知。</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isCommitLogAvailable</span><span class="hljs-params">()</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isCommitLogAvailable</span><span class="hljs-params">()</span> </span>&#123;
             <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.reputFromOffset &lt; DefaultMessageStore.<span class="hljs-keyword">this</span>.commitLog.getMaxOffset();
-        &#125;</code></pre>
+        &#125;</code></pre></div>
 
 <p>​    另一方面，在PullRequestHoldService服务会主动轮询pullRequestTable的pullRequest对象，看在topic消息队列中是否有符合其要求的新消息产生，最终都是通过org.apache.rocketmq.broker.longpolling.PullRequestHoldService#notifyMessageArriving方法进行回调通知。</p>
-<pre><code class="hljs java"><span class="hljs-keyword">switch</span> (pullResult.getPullStatus()) &#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">switch</span> (pullResult.getPullStatus()) &#123;
                         <span class="hljs-keyword">case</span> FOUND:
                             <span class="hljs-keyword">long</span> prevRequestOffset = pullRequest.getNextOffset();
                             pullRequest.setNextOffset(pullResult.getNextBeginOffset());
@@ -583,7 +583,7 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
                                     prevRequestOffset);
                             &#125;
 
-                            <span class="hljs-keyword">break</span>;</code></pre>
+                            <span class="hljs-keyword">break</span>;</code></pre></div>
 
 <p>​    在consumer接收到broker那边的回调通知后，将对应的结果封装成consumer request之中并保存在pullRequest的一个TreeMap之中(由于consumer端本身做了流控，所以不必担心大量消息请求结果会放在treeMap中以至撑爆内存，不过也需要注意下游消息的消费快慢问题)。</p>
 <p>​    在消息成功到达之后，对于处理结果也有两种情况，消费成功(CONSUME_SUCCESS)以及稍后重试(RECONSUME_LATER)，并将处理结果上报给broker端。同时更新消费进度。</p>
@@ -591,7 +591,7 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
 <p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g0ofwimxklj31no15ydsx.jpg" srcset="/img/loading.gif" alt="消息重试时序图"></p>
 <p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g0ogo5k6a4j318k12a13j.jpg" srcset="/img/loading.gif" alt="延时消息发送流程，借图"></p>
 <p>​    在第一次进行重试时，它的延时级别会被置为3，这主要时避免消息重发过于频繁导致broker端的压力，每个延时级别都有对应的一个存储队列用来存储对应固定时延的(对应org.apache.rocketmq.store.schedule.ScheduleMessageService#delayLevelTable)，每一个队列抽象为一个个DeliverDelayedMessageTimerTask，在broker启动时，通过以下代码初始化：</p>
-<pre><code class="hljs java"><span class="hljs-keyword">for</span> (Map.Entry&lt;Integer, Long&gt; entry : <span class="hljs-keyword">this</span>.delayLevelTable.entrySet()) &#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">for</span> (Map.Entry&lt;Integer, Long&gt; entry : <span class="hljs-keyword">this</span>.delayLevelTable.entrySet()) &#123;
             Integer level = entry.getKey();
             Long timeDelay = entry.getValue();
             Long offset = <span class="hljs-keyword">this</span>.offsetTable.get(level);
@@ -602,19 +602,19 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
             <span class="hljs-keyword">if</span> (timeDelay != <span class="hljs-keyword">null</span>) &#123;
                 <span class="hljs-keyword">this</span>.timer.schedule(<span class="hljs-keyword">new</span> DeliverDelayedMessageTimerTask(level, offset), FIRST_DELAY_TIME);
             &#125;
-        &#125;</code></pre>
+        &#125;</code></pre></div>
 
 <p>刚开始的时候offset都为0，后续通过offset的变化寻找consumerQueue中的延时消息(offset可以看成consumerQueue中消息序号，从0开始，每次加一)。到时的延时消息通过重新put至commitLog中触发reputMessageService将消息重新取出进行投递。</p>
 <h3 id="五-消息过滤"><a href="#五-消息过滤" class="headerlink" title="五. 消息过滤"></a>五. 消息过滤</h3><p>​    消息过滤的方式主要有基于tag以及sql92的方式，sql92具体参考<a href="https://en.wikipedia.org/wiki/SQL-92" target="_blank" rel="noopener">sql92维基百科</a>，这里主要以更常见的tag方式为例，当有到达时，在org.apache.rocketmq.broker.longpolling.PullRequestHoldService#notifyMessageArriving中会对消息与pullRequest中的请求信息进行对比。符合条件的才会回传给客户端</p>
-<pre><code class="hljs java"> <span class="hljs-keyword">boolean</span> match = request.getMessageFilter().isMatchedByConsumeQueue(tagsCode,
+<div class="hljs"><pre><code class="hljs java"> <span class="hljs-keyword">boolean</span> match = request.getMessageFilter().isMatchedByConsumeQueue(tagsCode,
                             <span class="hljs-keyword">new</span> ConsumeQueueExt.CqExtUnit(tagsCode, msgStoreTime, filterBitMap));
 
 <span class="hljs-comment">// 可见比较的是tag的hashCode而不是名字</span>
 <span class="hljs-keyword">return</span> subscriptionData.getSubString().equals(SubscriptionData.SUB_ALL)
-            || subscriptionData.getCodeSet().contains(tagsCode.intValue());</code></pre>
+            || subscriptionData.getCodeSet().contains(tagsCode.intValue());</code></pre></div>
 
 <p>在consumer启动时:</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> SubscriptionData <span class="hljs-title">buildSubscriptionData</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String consumerGroup, String topic,</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> SubscriptionData <span class="hljs-title">buildSubscriptionData</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String consumerGroup, String topic,</span></span>
 <span class="hljs-function"><span class="hljs-params">        String subString)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
         SubscriptionData subscriptionData = <span class="hljs-keyword">new</span> SubscriptionData();
         subscriptionData.setTopic(topic);
@@ -641,7 +641,7 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
         &#125;
 
         <span class="hljs-keyword">return</span> subscriptionData;
-    &#125;</code></pre>
+    &#125;</code></pre></div>
 
 
             </article>

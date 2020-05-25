@@ -229,10 +229,10 @@
 </ol>
 </blockquote>
 <p><strong>初始化</strong></p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConcurrentLinkedQueue</span><span class="hljs-params">()</span></span>&#123;    <span class="hljs-comment">//将head和tail的item和next域置为null    head = tail = new Node&lt;E&gt;(null);&#125;</span></code></pre>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConcurrentLinkedQueue</span><span class="hljs-params">()</span></span>&#123;    <span class="hljs-comment">//将head和tail的item和next域置为null    head = tail = new Node&lt;E&gt;(null);&#125;</span></code></pre></div>
 
 <p><strong>入队操作</strong></p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">offer</span><span class="hljs-params">(E e)</span> </span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">offer</span><span class="hljs-params">(E e)</span> </span>
 <span class="hljs-function"></span>&#123;
      checkNotNull(e);
      <span class="hljs-keyword">final</span> Node&lt;E&gt; newNode = <span class="hljs-keyword">new</span> Node&lt;E&gt;(e);
@@ -253,7 +253,7 @@
          <span class="hljs-keyword">else</span>
              p = (p != t &amp;&amp; t != (t = tail)) ? t : q;<span class="hljs-comment">//6</span>
      &#125;
- &#125;</code></pre>
+ &#125;</code></pre></div>
 
 <p>1：对于入队操作，采用失败即重试的方式，直到入队成功 </p>
 <p>2：表明p是最后一个结点 </p>
@@ -261,7 +261,7 @@
 <p>4：如果插入结点后tail和p距离达到两个结点，则修改tail的指向(失败也没关系)，这里在判断tail为最后一个结点后仍然要判断hop是否达到2主要是为了预防在并发修改下，多个线程同时修改的问题 </p>
 <p>5：根据tail的可变性条件和滞后更新策略，我们知道tail的next域可以引用到自身，在ConcurrentLinkedQueue规定如果tail的next如果指向自己的话，则表明tail现在所在指向的结点已被删除(从head遍历无法到达tail)，那么就要从head开始遍历到所有的未删除结点(这也是上文head的不变性条件保证的)具体看下图：</p>
 <p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueueOffer.png" srcset="/img/loading.gif" alt=""></p>
-<pre><code>当然，我们还是要判断其他线程是否已经提前修改tail的指向，修改的话就表明tail结点已经更新完毕，没有引用到自身了，就可以直接重新尝试插入了。其实从这我们大致可以揣摩出作者的设计的巧妙部分：即虽然tail有滞后更新策略从而导致无法一次就将结点插入，但结点要想插入的话还是必须要当tail为最后一个结点才行 6：tail未指向尾结点，同时也没有滞后head，就像下图这样： 插入前：</code></pre><p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueueOffer1.png" srcset="/img/loading.gif" alt=""></p>
+<div class="hljs"><pre><code>当然，我们还是要判断其他线程是否已经提前修改tail的指向，修改的话就表明tail结点已经更新完毕，没有引用到自身了，就可以直接重新尝试插入了。其实从这我们大致可以揣摩出作者的设计的巧妙部分：即虽然tail有滞后更新策略从而导致无法一次就将结点插入，但结点要想插入的话还是必须要当tail为最后一个结点才行 6：tail未指向尾结点，同时也没有滞后head，就像下图这样： 插入前：</code></pre></div><p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueueOffer1.png" srcset="/img/loading.gif" alt=""></p>
 <p>这时候表明tail结点还未更新，但需要事先判断其他线程是否可能抢先插入了一个结点，如下图： 其它线程抢先插入后：</p>
 <p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueueOffer2.png" srcset="/img/loading.gif" alt=""></p>
 <p>在这种情况下如果插入元素的话导致tail和最后一个结点的距离达到两个,就要更新tail的指向(不得不承认这句代码的简洁性，但还是要吐槽一下，从可读性的角度和JDK6.0的版本比起来实在是难以理解)，并且tail已经指向尾结点，说明下一个结点可以直接将tail赋给p以便重新尝试插入。<br>其实仔细分析的话就可以明白多个if判断表明tail的三种可能状态：</p>
@@ -273,7 +273,7 @@
 </ol>
 </blockquote>
 <p><strong>出队操作</strong></p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> E <span class="hljs-title">poll</span><span class="hljs-params">()</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> E <span class="hljs-title">poll</span><span class="hljs-params">()</span></span>
 <span class="hljs-function"></span>&#123;
       restartFromHead:
       <span class="hljs-keyword">for</span> (;;) 
@@ -298,17 +298,17 @@
                   p = q;
           &#125;
       &#125;
-  &#125;</code></pre>
+  &#125;</code></pre></div>
 
 <p>1：在获取head结点后，如果item不为null的话将其设为null实现删除头结点(这是一个特殊的删除策略，即item为null的结点就是已经删除的结点，即使它还在队列中）</p>
 <p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll1.png" srcset="/img/loading.gif" alt=""></p>
 <p>2：删除该结点后检查head是否与头结点相差两个结点，有则向后推进一个item非null结点来更新head <img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll2.png" srcset="/img/loading.gif" alt=" "></p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">updateHead</span><span class="hljs-params">(Node&lt;E&gt; h, Node&lt;E&gt; p)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">updateHead</span><span class="hljs-params">(Node&lt;E&gt; h, Node&lt;E&gt; p)</span> </span>&#123;
      <span class="hljs-comment">// 如果两个结点不相同，尝试用CAS指令原子更新head指向新头节点</span>
      <span class="hljs-keyword">if</span> (h != p &amp;&amp; casHead(h, p))
      	 <span class="hljs-comment">//将旧的头结点指向自身以实现删除</span>
 	 h.lazySetNext(h);
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>3：head的item为null则向后选取一个结点，如果item为null的结点，设置head指向p节点（此时队列没有元素，只有一个伪结点p） 4：结点出队失败，重新进行出队(关于p == q的判断条件我是在有点难以理解，在此只能作一个不负责任的猜测：就是上一次判断先执行了步骤5，使得p和q指向同一个item不为null的结点，在下一次循环开始前其它线程线程先删除了该结点导致步骤4的发生，这样的话就要重新获取head进行删除) A线程执行步骤5后(为了方便没有画出tail，<strong>再次声明，只是个人观点</strong>)： <a href="http://7xti77.com1.z0.glb.clouddn.com/ConcurrentLinkedQueuePoll3.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll3.png" srcset="/img/loading.gif" alt="img"></a> </p>
 <p>B线程抢先删除结点后A线程执行步骤4：<br><a href="http://7xti77.com1.z0.glb.clouddn.com/ConcurrentLinkedQueuePoll4.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll4.png" srcset="/img/loading.gif" alt="img"></a><br>5：在结点出队失败后可以保证下次尝试出队时p不为空(之前q = p.next ！= null才有可能跳到这一步)</p>
@@ -323,7 +323,7 @@
 <blockquote>
 <p>queue.size()==0</p>
 </blockquote>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">size</span><span class="hljs-params">()</span> </span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">size</span><span class="hljs-params">()</span> </span>
 <span class="hljs-function"></span>&#123;
      <span class="hljs-keyword">int</span> count = <span class="hljs-number">0</span>;
      <span class="hljs-keyword">for</span> (Node&lt;E&gt; p = first(); p != <span class="hljs-keyword">null</span>; p = succ(p))
@@ -332,13 +332,13 @@
              <span class="hljs-keyword">if</span> (++count == Integer.MAX_VALUE)
                  <span class="hljs-keyword">break</span>;
      <span class="hljs-keyword">return</span> count;
- &#125;</code></pre>
+ &#125;</code></pre></div>
 
 <p>在计算队列的长度是并没有向我们往常一样直接通过一个变量来存储，这样主要是要尽可能保证队列在并发访问下的数据的正确性，但由于遍历时还是会有其它线程对队列的状态进行修改，因而数据仍有可能错误(removeAll,retainAll,containsAll,equals,toArray也有一样的问题)<br>可以看到这样在队列在结点较多时会依次遍历所有结点，这样的性能会有较大影响，因而可以考虑empty函数，它只要判断第一个结点(注意不一定是head指向的结点)</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isEmpty</span><span class="hljs-params">()</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isEmpty</span><span class="hljs-params">()</span></span>
 <span class="hljs-function"></span>&#123;
     <span class="hljs-keyword">return</span> first() == <span class="hljs-keyword">null</span>;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 
 

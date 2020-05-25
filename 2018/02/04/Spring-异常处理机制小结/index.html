@@ -286,9 +286,9 @@
 </tr>
 </tbody></table>
 </blockquote>
-<pre><code>通过在一个 pojo 对象的 field 中加上这些注解并在 Controller 层对应的 pojo 对象前加上@Valid 注解就可以使用，并将校验不通过的异常信息包装在一个 BindingResult对象，整个处理十分方便，具体用法网上有很多，就不赘述了。</code></pre><hr>
-<pre><code>上述对于这种校验需要包装一个完整的 pojo 对象，有时候在入参不多的情况下有点多余，一般就是对指定的参数校验，我就想在参数校验不通过的情况下对异常信息统一处理，于是马上想到可以通过 ExceptionHandler + ControllerAdvice注解的方式对进行统一处理，对于ConstraintViolationException这个异常进行捕获就可以了，可惜理想丰满现实骨感。在 web 容器加载后请求对应的mapping始终没有在@ExceptionHandler修饰的方法中捕获异常，这个配置方法和Spring提供的教程相差无几，为什么会没有处理…</code></pre><h3 id="Spring-统一的异常处理接口HandlerExceptionResolver"><a href="#Spring-统一的异常处理接口HandlerExceptionResolver" class="headerlink" title="Spring 统一的异常处理接口HandlerExceptionResolver"></a>Spring 统一的异常处理接口HandlerExceptionResolver</h3><p> 在 Spring 的整个异常处理体系中，HandlerExceptionResolver接口是一个基础入口，其中的resolveException方法专门用于处理请求过程中发生的Exception，参数如下：</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> ModelAndView <span class="hljs-title">resolveException</span><span class="hljs-params">(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)</span></span>;</code></pre>
+<div class="hljs"><pre><code>通过在一个 pojo 对象的 field 中加上这些注解并在 Controller 层对应的 pojo 对象前加上@Valid 注解就可以使用，并将校验不通过的异常信息包装在一个 BindingResult对象，整个处理十分方便，具体用法网上有很多，就不赘述了。</code></pre></div><hr>
+<div class="hljs"><pre><code>上述对于这种校验需要包装一个完整的 pojo 对象，有时候在入参不多的情况下有点多余，一般就是对指定的参数校验，我就想在参数校验不通过的情况下对异常信息统一处理，于是马上想到可以通过 ExceptionHandler + ControllerAdvice注解的方式对进行统一处理，对于ConstraintViolationException这个异常进行捕获就可以了，可惜理想丰满现实骨感。在 web 容器加载后请求对应的mapping始终没有在@ExceptionHandler修饰的方法中捕获异常，这个配置方法和Spring提供的教程相差无几，为什么会没有处理…</code></pre></div><h3 id="Spring-统一的异常处理接口HandlerExceptionResolver"><a href="#Spring-统一的异常处理接口HandlerExceptionResolver" class="headerlink" title="Spring 统一的异常处理接口HandlerExceptionResolver"></a>Spring 统一的异常处理接口HandlerExceptionResolver</h3><p> 在 Spring 的整个异常处理体系中，HandlerExceptionResolver接口是一个基础入口，其中的resolveException方法专门用于处理请求过程中发生的Exception，参数如下：</p>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> ModelAndView <span class="hljs-title">resolveException</span><span class="hljs-params">(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)</span></span>;</code></pre></div>
 
 
 
@@ -304,7 +304,7 @@
 </ul>
 </li>
 <li><p>在请求处理完成后，有如下代码(省略一些次要代码，下同)</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doDispatch</span><span class="hljs-params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doDispatch</span><span class="hljs-params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
 		HttpServletRequest processedRequest = request;
 		HandlerExecutionChain mappedHandler = <span class="hljs-keyword">null</span>;
 		<span class="hljs-keyword">boolean</span> multipartRequestParsed = <span class="hljs-keyword">false</span>;
@@ -357,7 +357,7 @@
 			&#125;
 		&#125;
 		<span class="hljs-keyword">throw</span> ex;
-	&#125;</code></pre>
+	&#125;</code></pre></div>
 
 
 </li>
@@ -368,13 +368,13 @@
 <p>正常配置</p>
 <p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5l4p5j30vm080wg6.jpg" srcset="/img/loading.gif" alt=""></p>
 <p>继续跟踪一下发现在<strong>ExceptionHandlerExceptionResolver</strong>这个异常处理器</p>
-<pre><code class="hljs java"><span class="hljs-comment">// ExceptionHandlerExceptionResolver内部用两个Map来存储所有ExceptionHandlerMethodResolver类，</span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">// ExceptionHandlerExceptionResolver内部用两个Map来存储所有ExceptionHandlerMethodResolver类，</span>
 <span class="hljs-comment">// 他并不直接实现HandlerExceptionResolver接口，而是靠外部其它类来包装</span>
 <span class="hljs-comment">// 在ExceptionHandlerMethodResolver中会去发现所有由@ExceptionHandler修饰的方法</span>
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;Class&lt;?&gt;, ExceptionHandlerMethodResolver&gt; exceptionHandlerCache =
 			<span class="hljs-keyword">new</span> ConcurrentHashMap&lt;Class&lt;?&gt;, ExceptionHandlerMethodResolver&gt;(<span class="hljs-number">64</span>); <span class="hljs-comment">// 处理具体 Controller中的ExceptionHandler</span>
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;ControllerAdviceBean, ExceptionHandlerMethodResolver&gt; exceptionHandlerAdviceCache =
-			<span class="hljs-keyword">new</span> LinkedHashMap&lt;ControllerAdviceBean, ExceptionHandlerMethodResolver&gt;(); <span class="hljs-comment">//处理ControllerAdvice中的ExceptionHandler</span></code></pre>
+			<span class="hljs-keyword">new</span> LinkedHashMap&lt;ControllerAdviceBean, ExceptionHandlerMethodResolver&gt;(); <span class="hljs-comment">//处理ControllerAdvice中的ExceptionHandler</span></code></pre></div>
 
 <h3 id="Spring-中异常处理方式"><a href="#Spring-中异常处理方式" class="headerlink" title="Spring 中异常处理方式"></a>Spring 中异常处理方式</h3><p>很显然，Spring 对于异常的处理有以下几种方式：</p>
 <ol>
@@ -383,7 +383,7 @@
 <li>自定义异常解析器并实现HandlerExceptionResolver接口</li>
 </ol>
 <p>而在我这个ExceptionHandler注解失效项目中，显然采用第三种方法处理异常，并且我采用了@EnableWebMvc注解作为全局的 web 配置，默认这个配置会读取WebMvcConfigurationSupport这个类中的配置；但不幸的是这个配置会被继承WebMvcConfigurerAdapter或实现WebMvcConfigurer接口的配置类所覆盖，我们项目中正好继承了WebMvcConfigurerAdapter类并且只添加了一种自定义的异常解析器作为全局处理</p>
-<pre><code class="hljs java">&gt; <span class="hljs-comment">// Java Doc 中对WebMvcConfigurationSupport异常解析器的部分描述</span>
+<div class="hljs"><pre><code class="hljs java">&gt; <span class="hljs-comment">// Java Doc 中对WebMvcConfigurationSupport异常解析器的部分描述</span>
 &gt; Registers a &#123;<span class="hljs-meta">@link</span> HandlerExceptionResolverComposite&#125; with <span class="hljs-keyword">this</span> chain of
 &gt; exception resolvers:
 &gt;
@@ -393,16 +393,16 @@
 &gt; with @&#123;<span class="hljs-meta">@link</span> ResponseStatus&#125;.
 &gt; &#123;<span class="hljs-meta">@link</span> DefaultHandlerExceptionResolver&#125; <span class="hljs-keyword">for</span> resolving known Spring
 &gt; exception types
-&gt;</code></pre>
+&gt;</code></pre></div>
 
-<pre><code>看到这里，有人会问，当初继承WebMvcConfigurerAdapter这个类自定义配置是为了满足业务需求，尤其是异常这块希望有一个全局处理机制，但后来发现需要对某一特定异常进行处理的时候却发现ExceptionHandler注解失效，难道不能两种兼得吗？答案当然是可以，仔细查阅 Spring WebMvcConfigurer源码中的 Java Doc 发现，自定义的异常解析器有两种添加方法： </code></pre><pre><code class="hljs java"><span class="hljs-comment">// 以覆盖WebMvcConfigurationSupport的默认解析器方法重新定义异常解析器</span>
+<div class="hljs"><pre><code>看到这里，有人会问，当初继承WebMvcConfigurerAdapter这个类自定义配置是为了满足业务需求，尤其是异常这块希望有一个全局处理机制，但后来发现需要对某一特定异常进行处理的时候却发现ExceptionHandler注解失效，难道不能两种兼得吗？答案当然是可以，仔细查阅 Spring WebMvcConfigurer源码中的 Java Doc 发现，自定义的异常解析器有两种添加方法： </code></pre></div><div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">// 以覆盖WebMvcConfigurationSupport的默认解析器方法重新定义异常解析器</span>
 <span class="hljs-meta">@Override</span>
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">configureHandlerExceptionResolvers</span><span class="hljs-params">(List&lt;HandlerExceptionResolver&gt; exceptionResolvers)</span> </span>&#123;
 &#125;
 <span class="hljs-comment">// 以继承WebMvcConfigurationSupport的默认解析器方法扩展异常解析器</span>
 <span class="hljs-meta">@Override</span>
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">extendHandlerExceptionResolvers</span><span class="hljs-params">(List&lt;HandlerExceptionResolver&gt; exceptionResolvers)</span> </span>&#123;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>显然，第二种就能满足我们的需求了，效果如下：</p>
 <p><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5rx3hj30ue0awmzb.jpg" srcset="/img/loading.gif" alt=""></p>

@@ -193,13 +193,13 @@
 </blockquote>
 <p>以ReentrantLock的 lock 方法作为入口:</p>
 <p>任何尝试获得锁的线程都会先自检锁的持有状态，这个地方利用模板方法模式在tryAcquire中进行，这将由AQS子类来实现，不过都是需要设置exclusiveOwnerThread变量为当前线程引用，在ReentrantLock中为了实现可重入的特性，将AQS中的state定义为持有锁的次数</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;
   <span class="hljs-keyword">if</span> (!tryAcquire(arg) &amp;&amp;
       acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) <span class="hljs-comment">// 尝试获取锁但失败，则线程被包装成一个Node结点入队</span>
     selfInterrupt();
-&#125;</code></pre>
+&#125;</code></pre></div>
 
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> Node <span class="hljs-title">addWaiter</span><span class="hljs-params">(Node mode)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> Node <span class="hljs-title">addWaiter</span><span class="hljs-params">(Node mode)</span> </span>&#123;
     Node node = <span class="hljs-keyword">new</span> Node(Thread.currentThread(), mode);
     <span class="hljs-comment">// 此处为了尽快将结点入队，会首先尝试将当前置为tail，如果未成功的话再执行 enq 方法</span>
     Node pred = tail;
@@ -228,7 +228,7 @@
         &#125;
       &#125;
     &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>在非公平锁的acquire方法中，作者尝试以一种独占且忽略中断的方式来获取锁(<a href="http://www.infoq.com/cn/articles/java-interrupt-mechanism" target="_blank" rel="noopener"><strong>什么是Java线程的中断机制，见详细分析Java中断机制</strong></a>，而acquireQueued方法中会保证忽视中断(系统中其它线程可能会对词现场发出中断指令，为了线程能按照正常流程获取锁需要忽略)，在acquireQueued内部通过tryAcquire反复尝试获取锁直到成功，线程也可能由于获取锁失败而反复的被阻塞和唤醒。</p>
 <p>入队的一般步骤：</p>
@@ -236,7 +236,7 @@
 <li>先尝试以尾插法的模式将Node入队，但当有其他节点进行插入的时候就会导致compareAndSetHead失败</li>
 <li>compareAndSetHead失败则在enq方法中进行自旋方式进行尾插入队直至成功</li>
 </ol>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">acquireQueued</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Node node, <span class="hljs-keyword">int</span> arg)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">acquireQueued</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Node node, <span class="hljs-keyword">int</span> arg)</span> </span>&#123;
     <span class="hljs-keyword">boolean</span> failed = <span class="hljs-keyword">true</span>;
     <span class="hljs-keyword">try</span> &#123;
       <span class="hljs-keyword">boolean</span> interrupted = <span class="hljs-keyword">false</span>;
@@ -264,7 +264,7 @@
       <span class="hljs-keyword">if</span> (failed)
         cancelAcquire(node);
     &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>可以看出线程获取锁是一个自旋的过程，当且仅当当前节点的前驱节点是头结点并且成功获得同步状态时才能跳出循环，之前则会陷入阻塞直至前驱节点唤醒</p>
 <h3 id="共享模式-以CountDownLatch为例"><a href="#共享模式-以CountDownLatch为例" class="headerlink" title="共享模式(以CountDownLatch为例)"></a>共享模式(以CountDownLatch为例)</h3><blockquote>
@@ -275,7 +275,7 @@
 </ol>
 </blockquote>
 <p>分析AQS的共享模式，发现第一步同样市尝试获取锁，如果没有成功的话就入队:</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doAcquireSharedInterruptibly</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doAcquireSharedInterruptibly</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span></span>
 <span class="hljs-function">       <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;
   		<span class="hljs-comment">// 这个Node.SHARED仔细看与独占模式最大的不同是全局共享对象，当一个闭锁对象调用await方法时</span>
   		<span class="hljs-comment">// 当前调用线程将与这个全局唯一的Node对象关联起来(独占模式没有关联具体Node，一个线程就是一个Node)并一起入队</span>
@@ -305,9 +305,9 @@
            <span class="hljs-keyword">if</span> (failed)
                cancelAcquire(node);
        &#125;
-   &#125;</code></pre>
+   &#125;</code></pre></div>
 
-<pre><code>仔细分析一下可以发现，CountDownLatch的共享模式是通过 getState() 方法实现的，而这个方法的调用往往实在不同的线程中执行，每个线程都会检测state变量是否归零，state在某种意义上承担了共享锁的职责。</code></pre><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setHeadAndPropagate</span><span class="hljs-params">(Node node, <span class="hljs-keyword">int</span> propagate)</span> </span>&#123;
+<div class="hljs"><pre><code>仔细分析一下可以发现，CountDownLatch的共享模式是通过 getState() 方法实现的，而这个方法的调用往往实在不同的线程中执行，每个线程都会检测state变量是否归零，state在某种意义上承担了共享锁的职责。</code></pre></div><div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setHeadAndPropagate</span><span class="hljs-params">(Node node, <span class="hljs-keyword">int</span> propagate)</span> </span>&#123;
         Node h = head; <span class="hljs-comment">// Record old head for check below</span>
         setHead(node);
         <span class="hljs-comment">/*</span>
@@ -346,7 +346,7 @@
         <span class="hljs-keyword">if</span> (h == head)                   <span class="hljs-comment">// loop if head changed</span>
           <span class="hljs-keyword">break</span>;
       &#125;
-   &#125;</code></pre>
+   &#125;</code></pre></div>
 
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>AQS 实际上并不关心当前是什么锁(那是其子类需要关心的)，对于AQS来说它只是实现了一系列的用于判断“资源”是否可以访问的API，并且封装了在“访问资源”受限时将请求访问的线程的加入队列、挂起、唤醒等操作。ReentrantLock实现的独占锁主要通过 state 是否为0或者当前线程是否已经持有锁(实现可重入的特性)，再将不合条件的线程挂起，入队；而CountDownLatch则只考虑state是否为0(计数器归零)</p>
 

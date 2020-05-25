@@ -177,7 +177,7 @@
           <div class="post-content mx-auto" id="post">
             
             <article class="markdown-body">
-              <pre><code>最近又重温了一下&lt;&lt;算法&gt;&gt;(第四版)这本书关于红黑树的那一章，不得不说从代码简洁性和讲解的通俗性来说，比网上讲红黑树的大多数博客都要好，但对于删除这一难点又没讲得很详细了(不知道作者为什么这么做)</code></pre><hr>
+              <div class="hljs"><pre><code>最近又重温了一下&lt;&lt;算法&gt;&gt;(第四版)这本书关于红黑树的那一章，不得不说从代码简洁性和讲解的通俗性来说，比网上讲红黑树的大多数博客都要好，但对于删除这一难点又没讲得很详细了(不知道作者为什么这么做)</code></pre></div><hr>
 <p>在讲红黑树的时候，作者先引入了2-3树的概念，也就是包含2-结点(即我们常见的包含左右子结点的结点)和3-结点(除左右结点外还允许在中间在插入一个结点)<br>对于红黑树的定义，作者用了红链接和黑链接的概念，所谓结点的链接可以理解为任意一个结点上方链接的颜色，红链接就是具备了红结点的性质，黑链接就是备了黑结点的性质。</p>
 <p>3-结点<br><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/3-.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr51rfcj30b007kdft.jpg" srcset="/img/loading.gif" alt="img"></a> </p>
 <p>2-结点</p>
@@ -189,7 +189,7 @@
 <li>任意一个根结点到叶结点锁经过的黑链接数量相同</li>
 </ol>
 <p><strong>旋转</strong><br>定义了一种复合上述要求的Node结点</p>
-<pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> RED = <span class="hljs-keyword">true</span>;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> RED = <span class="hljs-keyword">true</span>;
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> BLACK = <span class="hljs-keyword">false</span>;
 <span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span>&lt;<span class="hljs-title">Key</span>, <span class="hljs-title">Value</span>&gt;</span>
 <span class="hljs-class"></span>&#123;
@@ -198,43 +198,43 @@
     <span class="hljs-keyword">boolean</span> color;
     Node left;
     Node right;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>一旦插入元素后，就会多出一条红链接，可能会打破1和3条件，因而必须要通过适当的旋转来维护这种平衡性。主要分为左旋和右旋</p>
 <p> 左旋：</p>
 <p> <img src="https://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rotateLeft.gif" srcset="/img/loading.gif" alt="左旋"></p>
 <p> <img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr56nzhj30ej0dn3ys.jpg" srcset="/img/loading.gif" alt="img"></p>
 <p>代码如下： </p>
-<pre><code class="hljs java"><span class="hljs-function">Node <span class="hljs-title">ratoteLeft</span><span class="hljs-params">(Node h)</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function">Node <span class="hljs-title">ratoteLeft</span><span class="hljs-params">(Node h)</span></span>
 <span class="hljs-function"></span>&#123;
     Node x = h.right;
     h.right = x.left;
     x.left = h;
     x.color = h.color;
     h.collor = RED;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>右旋：<br><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rotateRight.gif" srcset="/img/loading.gif" alt="右旋"><br><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rightsample.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5ff8yj30e70blmxc.jpg" srcset="/img/loading.gif" alt="img"></a><br>代码如下：</p>
-<pre><code class="hljs java"><span class="hljs-function">Node <span class="hljs-title">ratoteRight</span><span class="hljs-params">(Node h)</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function">Node <span class="hljs-title">ratoteRight</span><span class="hljs-params">(Node h)</span></span>
 <span class="hljs-function"></span>&#123;
     Node x = h.left;
     h.left = x.right;
     x.right = h;
     x.color = h.color;
     h.collor = RED;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 
 
 <p><strong>插入</strong><br>插入操作是一个综合性的操作，在插入结点后需要进行适当的转换以维护其平衡性。对于插入操作而言，主要分为对2-结点的插入以及对3-结点的插入</p>
 <p>(1). 2-结点<br>对于2-结点的话，主要分为在其左边还是右边插入，如果在左边插入的话，不会破坏平衡性，因为2-结点的链接为红色；在右边插入的话，则需要进行左旋<br>(2). 3-结点<br>对于3-结点的插入的话，需要分清楚是在左边，中间还是右边插入</p>
-<pre><code class="hljs plain">1. 对于在右边插入的结点，因为父结点的左右子结点都是红链接，因而只要将两个子结点的红链接变黑就行
+<div class="hljs"><pre><code class="hljs plain">1. 对于在右边插入的结点，因为父结点的左右子结点都是红链接，因而只要将两个子结点的红链接变黑就行
 2. 对于在左边插入的结点，则需要先将插入结点的祖父结点进行左旋，然后执行1中的步骤
-3. 对于在中间插入的结点，需要将插入结点进行右旋，再进行左旋，最后执行步骤1.</code></pre>
+3. 对于在中间插入的结点，需要将插入结点进行右旋，再进行左旋，最后执行步骤1.</code></pre></div>
 
 <p><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rbtreeinsert.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5g3ltj310g0d0wfh.jpg" srcset="/img/loading.gif" alt="img"></a></p>
 <p>关于链接颜色的转变</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">flipColors</span><span class="hljs-params">(Node h)</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">flipColors</span><span class="hljs-params">(Node h)</span></span>
 <span class="hljs-function"> </span>&#123;
      <span class="hljs-comment">// h must have opposite color of its two children</span>
      <span class="hljs-comment">// assert (h != null) &amp;&amp; (h.left != null) &amp;&amp; (h.right != null);</span>
@@ -243,12 +243,12 @@
      h.color = RED;
      h.left.color = BLACK;
      h.right.color = BLACK;
- &#125;</code></pre>
+ &#125;</code></pre></div>
 
 
 
 <p>有了上面的铺垫，插入的代码就显得十分简洁，让人充分感受到简洁代码的美感</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">put</span><span class="hljs-params">(Key key, Value val)</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">put</span><span class="hljs-params">(Key key, Value val)</span></span>
 <span class="hljs-function"></span>&#123;
     <span class="hljs-keyword">if</span> (key == <span class="hljs-keyword">null</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"first argument to put() is null"</span>);
     <span class="hljs-keyword">if</span> (val == <span class="hljs-keyword">null</span>)
@@ -284,7 +284,7 @@
     	flipColors(h);
     <span class="hljs-comment">//最后将结点数+1</span>
     <span class="hljs-keyword">return</span> h;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>这些笔记主要针对插入操作，如果以后看懂删除再来补充</p>
 

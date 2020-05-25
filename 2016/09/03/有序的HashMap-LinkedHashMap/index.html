@@ -180,14 +180,14 @@
               <p>​    LinkedHashMap作为一个可以按插入顺序遍历的Map集合，在许多功能上和HashMap是重叠，这也难怪，谁叫LinkedHashMap是HashMap的子类。不仅如此，LinkedHashMap还可以根据近期访问某个键值对的顺序（从近期访问最少到近期访问最多的顺序）来遍历元素，这可让需要利用LRU方法进行缓存结果的用户提供一个新的解决方案。</p>
 <hr>
 <p>LinkedHashMap中有一个核心元素：</p>
-<pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Entry</span>&lt;<span class="hljs-title">K</span>,<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">HashMap</span>.<span class="hljs-title">Node</span>&lt;<span class="hljs-title">K</span>,<span class="hljs-title">V</span>&gt; </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Entry</span>&lt;<span class="hljs-title">K</span>,<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">HashMap</span>.<span class="hljs-title">Node</span>&lt;<span class="hljs-title">K</span>,<span class="hljs-title">V</span>&gt; </span>&#123;
       Entry&lt;K,V&gt; before, after;
       Entry(<span class="hljs-keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; next) &#123;
           <span class="hljs-keyword">super</span>(hash, key, value, next);
       &#125;
-  &#125;</code></pre>
+  &#125;</code></pre></div>
 
-<pre><code>熟悉LinkedList的人都看出来这是一个用于构造双向链表的结点元素，其中before，after结点分别代表当前entry的前后结点，它是和其父类Node关联起来，一个Entry对应一个Node 先看看下面的程序：</code></pre><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+<div class="hljs"><pre><code>熟悉LinkedList的人都看出来这是一个用于构造双向链表的结点元素，其中before，after结点分别代表当前entry的前后结点，它是和其父类Node关联起来，一个Entry对应一个Node 先看看下面的程序：</code></pre></div><div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
       LinkedHashMap&lt;String, Integer&gt; map = <span class="hljs-keyword">new</span> LinkedHashMap&lt;&gt;();
       map.put(<span class="hljs-string">"2"</span>, <span class="hljs-number">1</span>);
       map.put(<span class="hljs-string">"1"</span>, <span class="hljs-number">2</span>);
@@ -197,14 +197,14 @@
       Set&lt;Map.Entry&lt;String, Integer&gt;&gt; keys = map.entrySet();
       <span class="hljs-keyword">for</span> (Map.Entry entry : keys)
           System.out.println(<span class="hljs-string">"key: "</span> + entry.getKey() + <span class="hljs-string">" value: "</span> + entry.getValue());
-  &#125;</code></pre>
+  &#125;</code></pre></div>
 
 <p>接下来的是结果：</p>
 <blockquote>
 <p>key: 2 value: 12<br>key: 1 value: 2<br>key: 0 value: 3<br>key: null value: null</p>
 </blockquote>
 <p>拜托，这样的程序还需要演示一遍-_-#<br>断点跟踪一下，发现put方法在LinkedHashMap中是没有重写，而是直接用了HashMap的put方法((+﹏+)~狂晕,那还怎么保证有序的插入，毕竟大家都知道HashMap中的元素是按hash值以及是否冲突来确定位置的)…too young too navie, Api的编写者还会玩套路，跟进putVal方法：</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> V <span class="hljs-title">putVal</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, K key, V value, <span class="hljs-keyword">boolean</span> onlyIfAbsent,</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> V <span class="hljs-title">putVal</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, K key, V value, <span class="hljs-keyword">boolean</span> onlyIfAbsent,</span></span>
 <span class="hljs-function"><span class="hljs-params">                <span class="hljs-keyword">boolean</span> evict)</span> </span>&#123;
      Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; p; <span class="hljs-keyword">int</span> n, i;
      <span class="hljs-keyword">if</span> ((tab = table) == <span class="hljs-keyword">null</span> || (n = tab.length) == <span class="hljs-number">0</span>)
@@ -245,10 +245,10 @@
          resize();
      afterNodeInsertion(evict);
      <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
- &#125;</code></pre>
+ &#125;</code></pre></div>
 
 <p>先瞄准这一行：tab[i] = newNode(hash, key, value, null);在LinkedHashMap内部重写newNode方法，而且在LinkedHashMap中并没有调用它，看来是准备在这里用啊！</p>
-<pre><code class="hljs java"><span class="hljs-function">Node&lt;K,V&gt; <span class="hljs-title">newNode</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; e)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function">Node&lt;K,V&gt; <span class="hljs-title">newNode</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, K key, V value, Node&lt;K,V&gt; e)</span> </span>&#123;
        LinkedHashMap.Entry&lt;K,V&gt; p =
            <span class="hljs-keyword">new</span> LinkedHashMap.Entry&lt;K,V&gt;(hash, key, value, e);
        linkNodeLast(p);
@@ -265,14 +265,14 @@
            p.before = last;
            last.after = p;
        &#125;
-   &#125;</code></pre>
+   &#125;</code></pre></div>
 
-<pre><code>很熟悉的代码，在一个双向链表中插入一个结点，用于保证LinkedHashMap有序访问元素，就不用多加说明了。 然后再看到后面的 afterNodeAccess(e)和afterNodeInsertion(evict)，随便跟一个进去： </code></pre><pre><code class="hljs java"><span class="hljs-comment">// Callbacks to allow LinkedHashMap post-actions</span>
+<div class="hljs"><pre><code>很熟悉的代码，在一个双向链表中插入一个结点，用于保证LinkedHashMap有序访问元素，就不用多加说明了。 然后再看到后面的 afterNodeAccess(e)和afterNodeInsertion(evict)，随便跟一个进去： </code></pre></div><div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">// Callbacks to allow LinkedHashMap post-actions</span>
 <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeAccess</span><span class="hljs-params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;
 <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeInsertion</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> evict)</span> </span>&#123; &#125;
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeRemoval</span><span class="hljs-params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;</code></pre>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeRemoval</span><span class="hljs-params">(Node&lt;K,V&gt; p)</span> </span>&#123; &#125;</code></pre></div>
 
-<pre><code>最后来了这么一手，这三个方法在HashMap中时没什么意义的，它主要由其子类LinkedHashMap来添加访问结点后的一些动作，接着进入LinkedHashMap中：</code></pre><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeAccess</span><span class="hljs-params">(Node&lt;K,V&gt; e)</span> </span>&#123; <span class="hljs-comment">// move node to last</span>
+<div class="hljs"><pre><code>最后来了这么一手，这三个方法在HashMap中时没什么意义的，它主要由其子类LinkedHashMap来添加访问结点后的一些动作，接着进入LinkedHashMap中：</code></pre></div><div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">afterNodeAccess</span><span class="hljs-params">(Node&lt;K,V&gt; e)</span> </span>&#123; <span class="hljs-comment">// move node to last</span>
        LinkedHashMap.Entry&lt;K,V&gt; last;
        <span class="hljs-keyword">if</span> (accessOrder &amp;&amp; (last = tail) != e) &#123;
            <span class="hljs-comment">//将结点e的前后元素暂存，同时将p指向e</span>
@@ -299,7 +299,7 @@
            tail = p;
            ++modCount;
        &#125;
-   &#125;</code></pre>
+   &#125;</code></pre></div>
 
 <p>重点先关一下这个accessOrder变量，之前曾经提到过LinkedHashMap可以根据近期对某一个元素的访问顺序来进行排序，类似于LRU算法，而这个结点e可以认为是在插入结点时某个待比较的元素，它可以是链表中任意一个元素(包括新插入的元素)，每次插入元素，e就相当于被访问一次(当然，通过get方法获取元素也相当于访问一次)，在LinkedHashMap中就要移动到最后一个位置，在拿之前的程序，用另一个构造函数实例化LinkedHashMap对象，结果如下：</p>
 <blockquote>

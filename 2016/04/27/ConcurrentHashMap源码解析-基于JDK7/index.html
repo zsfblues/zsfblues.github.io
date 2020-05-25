@@ -178,7 +178,7 @@
             
             <article class="markdown-body">
               <h5 id="JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法-非阻塞的无锁算法-代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少-代码激增至6000多行-。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释-水平有限，毕竟学生o-╯□╰-o"><a href="#JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法-非阻塞的无锁算法-代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少-代码激增至6000多行-。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释-水平有限，毕竟学生o-╯□╰-o" class="headerlink" title="JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法(非阻塞的无锁算法)代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少(代码激增至6000多行)。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释(水平有限，毕竟学生o(╯□╰)o)"></a>JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法(非阻塞的无锁算法)代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少(代码激增至6000多行)。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释(水平有限，毕竟学生o(╯□╰)o)</h5><hr>
-<pre><code>ConcurrentHashMap的出现主要是用来高效地解决多线程下不同线程对数据的争用问题。在早期，Java为了解决传统HashMap的非线程安全问题是采用的是对每个方法进行synchronized同步(比如HashTable)，而synchronized本质采用了独占锁(也叫悲观锁)的机制，多个线程对数据的访问必须串行化地进行，从而导致多个用户线程进入阻塞，严重影响效率。因而为了尽可能减少阻塞，ConcurrentHashMap就应运而生了 首先来介绍ConcurrentHashMap的几个常量</code></pre><pre><code class="hljs java"><span class="hljs-comment">//哈希表的最大容量</span>
+<div class="hljs"><pre><code>ConcurrentHashMap的出现主要是用来高效地解决多线程下不同线程对数据的争用问题。在早期，Java为了解决传统HashMap的非线程安全问题是采用的是对每个方法进行synchronized同步(比如HashTable)，而synchronized本质采用了独占锁(也叫悲观锁)的机制，多个线程对数据的访问必须串行化地进行，从而导致多个用户线程进入阻塞，严重影响效率。因而为了尽可能减少阻塞，ConcurrentHashMap就应运而生了 首先来介绍ConcurrentHashMap的几个常量</code></pre></div><div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">//哈希表的最大容量</span>
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MAXIMUM_CAPACITY = <span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">30</span>;
 <span class="hljs-comment">//ConcurrentHashMap的负载因子，当哈希表的的长度达到CAPACITY * LOAD_FACTOR时哈希表会扩容</span>
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">float</span> LOAD_FACTOR = <span class="hljs-number">0.75f</span>;
@@ -186,7 +186,7 @@
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> DEFAULT_CAPACITY = <span class="hljs-number">16</span>;
 <span class="hljs-comment">//分段锁的取值范围,必须为2的指数幂，便于通过键的hash值确定键在哪个区段</span>
 <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MIN_SEGMENT_TABLE_CAPACITY = <span class="hljs-number">2</span>;
-<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MAX_SEGMENTS = <span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">16</span>; <span class="hljs-comment">// slightly conservative</span></code></pre>
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MAX_SEGMENTS = <span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">16</span>; <span class="hljs-comment">// slightly conservative</span></code></pre></div>
 
 <p>在ConcurrentHashMap中，开创性地使用了<strong>分段锁</strong>的概念，什么是分段锁？看下图：</p>
 <p><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/concurrenthashmap.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5t99aj30nm0mdjte.jpg" srcset="/img/loading.gif" alt="concurrenthashmap.png"></a></p>
@@ -195,7 +195,7 @@
 <p>对于一个key，先进行一次hash操作，得到hash值h1，也即h1 = key.hashCode()（如果key所属类型重写了hashCode方法，就调用具体的hashCode方法）；<br>将得到的h1的高几位与低几位进行异或运算得到hash值h2，也即h2 = hash2(h1高几位),通过h2能够确定该元素的放在哪个Segment；<br>将得到的h1进行第三次hash，得到hash值h3，也即h3 = hash3(h1)，通过h3能够确定该元素放置在哪个HashEntry。</p>
 </blockquote>
 <p>关于为什么确定数据在哪个Segment要进行2次哈希，首先我们来看看JDK的hash函数源码(此函数参与第二次hash)：</p>
-<pre><code class="hljs java"><span class="hljs-comment">/**</span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">/**</span>
 <span class="hljs-comment">* Applies a supplemental hash function to a given hashCode, which</span>
 <span class="hljs-comment">* defends against poor quality hash functions.  This is critical</span>
 <span class="hljs-comment">* because ConcurrentHashMap uses power-of-two length hash tables,</span>
@@ -217,26 +217,26 @@
     h ^= (h &gt;&gt;&gt;  <span class="hljs-number">6</span>);
     h += (h &lt;&lt;   <span class="hljs-number">2</span>) + (h &lt;&lt; <span class="hljs-number">14</span>);
     <span class="hljs-keyword">return</span> h ^ (h &gt;&gt;&gt; <span class="hljs-number">16</span>);
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>源码中大意说此hash函数是用来解决传统的hash函数所带来的低效问题，因为一旦hash值化为二进制后，由于只与后几位进行位与运算，造成高位的hash值被掩盖从而使得较大数的hash值与较小数的hash值无异，举个例子：</p>
-<pre><code class="hljs java">System.out.println(Integer.parseInt(<span class="hljs-string">"0001111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
+<div class="hljs"><pre><code class="hljs java">System.out.println(Integer.parseInt(<span class="hljs-string">"0001111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
 System.out.println(Integer.parseInt(<span class="hljs-string">"0011111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
 System.out.println(Integer.parseInt(<span class="hljs-string">"0111111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
-System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);</code></pre>
+System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);</code></pre></div>
 
 <p>由于15只有后四位是全1，因而对于相差32,64,128的数值而言与15的哈希值一样，这样碰撞的几率大增，因而多个线程仍有很大几率访问同一个segment，分段锁的优势也就荡然无存了，但是如果我们先把上例中的二进制数字使用hash()函数先进行一次预hash，得到的结果是这样的：</p>
 <blockquote>
 <p>0100｜0111｜0110｜0111｜1101｜1010｜0100｜1110<br>1111｜0111｜0100｜0011｜0000｜0001｜1011｜1000<br>0111｜0111｜0110｜1001｜0100｜0110｜0011｜1110<br>1000｜0011｜0000｜0000｜1100｜1000｜0001｜1010</p>
 </blockquote>
 <p>默认情况下segmentShift为28，segmentMask为15，再哈希后的数最大是32位二进制数据，向右无符号移动28位，意思是让高4位参与到hash运算中， (hash &gt;&gt;&gt; segmentShift) &amp; segmentMask的运算结果分别是4，15，7和8，可以看到hash值没有发生冲突。ConcurrentHashMap通过以下哈希算法定位segment</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> Segment&lt;K,V&gt; <span class="hljs-title">segmentFor</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash)</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> Segment&lt;K,V&gt; <span class="hljs-title">segmentFor</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash)</span></span>
 <span class="hljs-function"></span>&#123;
 	<span class="hljs-keyword">return</span> segments[(hash &gt;&gt;&gt; segmentShift) &amp; segmentMask];
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>关于ConcurrentHashMap的<strong>初始化</strong>，有这样一个函数</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConcurrentHashMap</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity,</span></span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConcurrentHashMap</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity,</span></span>
 <span class="hljs-function"><span class="hljs-params">                           <span class="hljs-keyword">float</span> loadFactor, <span class="hljs-keyword">int</span> concurrencyLevel)</span></span>&#123;
       <span class="hljs-keyword">if</span> (!(loadFactor &gt; <span class="hljs-number">0</span>) || initialCapacity &lt; <span class="hljs-number">0</span> || concurrencyLevel &lt;= <span class="hljs-number">0</span>)
           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException();
@@ -266,11 +266,11 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
       Segment&lt;K,V&gt;[] ss = (Segment&lt;K,V&gt;[])<span class="hljs-keyword">new</span> Segment[ssize];
       UNSAFE.putOrderedObject(ss, SBASE, s0); <span class="hljs-comment">// ordered write of segments[0]</span>
       <span class="hljs-keyword">this</span>.segments = ss;
-  &#125;</code></pre>
+  &#125;</code></pre></div>
 
 <p>如果在未设置下concurrencyLevel的默认值为<strong>static final int DEFAULT_CONCURRENCY_LEVEL = 16;</strong>，此值也是用来表示segment的数量(不可太大，否则可能有segment存不上值，浪费内存空间，太小的话数据争用仍会比较严重)。循环结束后ssize的值为16，sshift则为4，segmentShift为28，segmentMask为15。而cap这个值为每个Segment平均应该放置多少个元素。其默认值 <strong>static final int MIN_SEGMENT_TABLE_CAPACITY = 2;</strong>表示每个segment对应的HashEntry数组的容量(要求是大于等于c，并且必须为2的指数幂)<br>最后创建一个Segment实例，将其当做Segment数组的第一个元素。</p>
 <p><strong>put操作</strong></p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">put</span><span class="hljs-params">(K key, V value)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">put</span><span class="hljs-params">(K key, V value)</span> </span>&#123;
        Segment&lt;K,V&gt; s;
        <span class="hljs-keyword">if</span> (value == <span class="hljs-keyword">null</span>)
            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException();
@@ -331,11 +331,11 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
 		unlock();
 	&#125;
 	<span class="hljs-keyword">return</span> oldValue;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>从上面很明显里看出ConcurrentHashMap中的key和value值都不能为null，在进行前两次hash运算后通过<strong>(hash &gt;&gt;&gt; segmentShift) &amp; segmentMask</strong>最终确定数据在哪个segment，然后获得相应的segment对象之后再将其插入到该segment的HashEntry数组的某个位置。比如取hash的高四位(在初始化的时候我们说过segmentShift的值等于32-sshift，例如concurrencyLevel等于16，则sshift等于4，则segmentShift为28。segmentMask为15)</p>
 <p><strong>get操作</strong></p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(Object key)</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(Object key)</span> </span>&#123;
         Segment&lt;K,V&gt; s; <span class="hljs-comment">// manually integrate access methods to reduce overhead</span>
         HashEntry&lt;K,V&gt;[] tab;
         <span class="hljs-keyword">int</span> h = hash(key);
@@ -351,10 +351,10 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
             &#125;
         &#125;
         <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
-    &#125;</code></pre>
+    &#125;</code></pre></div>
 
 <p>与put操作类似，都是通过key三次hash后确定其在哪个HashEntry，然后从某个HashEntry对象开始遍历寻找(相当于从链表头结点向下遍历),get方法是基于UNSAFE.getObjectVolatile原子操作，没有显示的使用锁（基于乐观锁，即失败就反复尝试），从而提高了吞吐量。这是由于统计当前Segement大小的count字段和用于存储值的HashEntry及其值value定义成volatile关键字修饰的变量，在java内存模型的happens-before规则下，对其写一定要优先于读，保证在多线程情况下，一个线程对值的修改立即对其它线程可见。但值得注意的是get方法是<strong>弱一致</strong>的，也就是你期望往ConcurrentHashMap底层数据结构中加入一个元素后，立马能对get可见，但ConcurrentHashMap并不能如你所愿。换句话说，put操作将一个元素加入到底层数据结构后，get可能在某段时间内还看不到这个元素。具体可参照<a href="http://ifeve.com/concurrenthashmap-weakly-consistent/" target="_blank" rel="noopener">为什么ConcurrentHashMap是弱一致的</a></p>
-<pre><code class="hljs java"><span class="hljs-comment">/**</span>
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-comment">/**</span>
 <span class="hljs-comment">* The per-segment table. Elements are accessed via</span>
 <span class="hljs-comment">* entryAt/setEntryAt providing volatile semantics.</span>
 <span class="hljs-comment">*/</span>
@@ -377,11 +377,11 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
             <span class="hljs-keyword">this</span>.value = value;
             <span class="hljs-keyword">this</span>.next = next;
         &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p><strong>size操作</strong> </p>
 <p>size操作与put和get操作最大的区别在于，size操作需要遍历所有的Segment才能算出整个Map的大小，而put和get都只关心一个Segment。假设我们当前遍历的Segment为SA，那么在遍历SA过程中其他的Segment比如SB可能会被修改，于是这一次运算出来的size值可能并不是Map当前的真正大小。所以一个比较简单的办法就是计算Map大小的时候所有的Segment都Lock住，不能更新(包含put，remove等等)数据，计算完之后再Unlock。这是普通人能够想到的方案，但是牛逼的作者还有一个更好的Idea：先给3次机会，不lock所有的Segment，遍历所有Segment，累加各个Segment的大小得到整个Map的大小，如果某相邻的两次计算获取的所有Segment的更新的次数（每个Segment都有一个modCount变量，这个变量在Segment中的Entry被修改时会加一，通过这个值可以得到每个Segment的更新操作的次数）是一样的，说明计算过程中没有更新操作，则直接返回这个值。如果这三次不加锁的计算过程中Map的更新次数有变化，则之后的计算先对所有的Segment加锁，再遍历所有Segment计算Map大小，最后再解锁所有Segment。源代码如下：</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">size</span><span class="hljs-params">()</span> </span>&#123;
+<div class="hljs"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">size</span><span class="hljs-params">()</span> </span>&#123;
         <span class="hljs-comment">// Try a few times to get accurate count. On failure due to</span>
         <span class="hljs-comment">// continuous async changes in table, resort to locking.</span>
         <span class="hljs-keyword">final</span> Segment&lt;K,V&gt;[] segments = <span class="hljs-keyword">this</span>.segments;
@@ -419,7 +419,7 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
             &#125;
         &#125;
         <span class="hljs-keyword">return</span> overflow ? Integer.MAX_VALUE : size;
-    &#125;</code></pre>
+    &#125;</code></pre></div>
 
 <p>注意<strong>static final int RETRIES_BEFORE_LOCK = 2;</strong>以及<strong>sum += seg.modCount;</strong>和</p>
 <blockquote>
