@@ -1,7 +1,7 @@
+
+
 <!DOCTYPE html>
-<html lang="zh-CN">
-
-
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
 
 
 
@@ -20,21 +20,29 @@
   <title>ConcurrentHashMap源码解析(基于JDK7) - zsfblues&#39; blog</title>
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
-<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
 
 
-  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark-reasonable.min.css" />
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+    
+  
+
+  
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_pf9vaxs7x7b.css">
 
 
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
-
-
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
 
 
 <link  rel="stylesheet" href="/css/main.css" />
@@ -42,6 +50,8 @@
 <!-- 自定义样式保持在最底部 -->
 
 
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
 <meta name="generator" content="Hexo 4.2.0"></head>
 
 
@@ -65,96 +75,122 @@
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/">
-              <i class="iconfont icon-home-fill"></i>
-              首页</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/archives/">
-              <i class="iconfont icon-archive-fill"></i>
-              归档</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/categories/">
-              <i class="iconfont icon-category-fill"></i>
-              分类</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/tags/">
-              <i class="iconfont icon-tags-fill"></i>
-              标签</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/about/">
-              <i class="iconfont icon-user-fill"></i>
-              关于</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
         
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
         
       </ul>
     </div>
   </div>
 </nav>
 
-    <div class="view intro-2" id="background" parallax=true
+    <div class="banner intro-2" id="background" parallax=true
          style="background: url('/img/index-bg.png') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="container text-center white-text fadeInUp">
+          <div class="container page-header text-center fade-in-up">
             <span class="h2" id="subtitle">
               
             </span>
 
             
-              
-                <div class="mt-3 post-meta">
-                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-                  <time datetime="2016-04-27 23:12">
-                    2016年4月27日 晚上
-                  </time>
-                </div>
-              
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2016-04-27 23:12" pubdate>
+        2016年4月27日 晚上
+      </time>
+    </span>
+  
+</div>
 
-              <div class="mt-1">
-                
-                  
-                  <span class="post-meta mr-2">
-                    <i class="iconfont icon-chart"></i>
-                    3.2k 字
-                  </span>
-                
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.2k 字
+    </span>
+  
 
-                
-                  
-                  <span class="post-meta mr-2">
-                      <i class="iconfont icon-clock-fill"></i>
-                    
-                    
-                    43
-                     分钟
-                  </span>
-                
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      43
+       分钟
+    </span>
+  
 
-                
-              </div>
+  
+  
+</div>
+
             
           </div>
 
@@ -174,9 +210,11 @@
     <div class="col-lg-8 nopadding-md">
       <div class="container nopadding-md" id="board-ctn">
         <div class="py-5" id="board">
-          <div class="post-content mx-auto" id="post">
+          <article class="post-content mx-auto" id="post">
+            <!-- SEO header -->
+            <h1 style="display: none">ConcurrentHashMap源码解析(基于JDK7)</h1>
             
-            <article class="markdown-body">
+            <div class="markdown-body" id="post-body">
               <h5 id="JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法-非阻塞的无锁算法-代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少-代码激增至6000多行-。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释-水平有限，毕竟学生o-╯□╰-o"><a href="#JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法-非阻塞的无锁算法-代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少-代码激增至6000多行-。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释-水平有限，毕竟学生o-╯□╰-o" class="headerlink" title="JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法(非阻塞的无锁算法)代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少(代码激增至6000多行)。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释(水平有限，毕竟学生o(╯□╰)o)"></a>JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法(非阻塞的无锁算法)代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少(代码激增至6000多行)。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释(水平有限，毕竟学生o(╯□╰)o)</h5><hr>
 <pre><code>ConcurrentHashMap的出现主要是用来高效地解决多线程下不同线程对数据的争用问题。在早期，Java为了解决传统HashMap的非线程安全问题是采用的是对每个方法进行synchronized同步(比如HashTable)，而synchronized本质采用了独占锁(也叫悲观锁)的机制，多个线程对数据的访问必须串行化地进行，从而导致多个用户线程进入阻塞，严重影响效率。因而为了尽可能减少阻塞，ConcurrentHashMap就应运而生了 首先来介绍ConcurrentHashMap的几个常量</code></pre><pre><code class="hljs java"><span class="hljs-comment">//哈希表的最大容量</span>
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MAXIMUM_CAPACITY = <span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">30</span>;
@@ -428,7 +466,7 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
 <p>现在我们假定一共有4个segment，当第一次循环后他们所对应的modCount分别为2，4，4,8。则和为2+4+4+8=18，第二次循环后就变为3，4,5,9，和为3+4+5+9=21,由于与last不相等，故进行第三次循环并将last更新为21，如果第三次比较还与last不相等，那就别怪我太粗鲁了(锁全部segment)，类似的操作还有containsValue方法(containsKey方法则不用这么麻烦，因为key一旦确立则不可更改)</p>
 <p><strong>结语</strong><br>ConcurrentHashMap虽然作为一个相对高效的线程安全类，但其并不能保证使用了ConcurrentHashMap的操作都是线程安全的！很简单，比如用ConcurrentHashMap作两次put操作，只能保证单个put操作的原子性，但两次put操作并没有值依赖关系，依然会受指令重排序的影响(具体涉及Java内存模型的知识，可参照并发编程网的<a href="http://ifeve.com/java-memory-model-0/" target="_blank" rel="noopener">深入理解java内存模型</a>)<br>另外特别感谢<a href="http://qifuguang.me/2015/09/10/[Java%E5%B9%B6%E5%8F%91%E5%8C%85%E5%AD%A6%E4%B9%A0%E5%85%AB]%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90ConcurrentHashMap/" target="_blank" rel="noopener">此博文</a>对我的帮助，我的这篇文章借鉴了他的部分观点</p>
 
-            </article>
+            </div>
             <hr>
             <div>
               <div class="post-metas mb-3">
@@ -447,7 +485,7 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
               
               
                 <div class="post-prevnext row">
-                  <div class="post-prev col-6">
+                  <article class="post-prev col-6">
                     
                     
                       <a href="/2016/05/13/LinkedList%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-JDK8/">
@@ -456,17 +494,17 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
-                  </div>
-                  <div class="post-next col-6">
+                  </article>
+                  <article class="post-next col-6">
                     
                     
-                  </div>
+                  </article>
                 </div>
               
             </div>
 
             
-          </div>
+          </article>
         </div>
       </div>
     </div>
@@ -519,14 +557,31 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
 <!-- SCRIPTS -->
 <script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
 <script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
 <script  src="/js/main.js" ></script>
 
+<!-- Plugins -->
 
-  <script  src="/js/lazyload.js" ></script>
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
 
 
 
   
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
   <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
   <script>
     $(document).ready(function () {
@@ -535,7 +590,7 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
 
       tocbot.init({
         tocSelector: '#tocbot',
-        contentSelector: '.post-content',
+        contentSelector: '#post-body',
         headingSelector: 'h1,h2,h3,h4,h5,h6',
         linkClass: 'tocbot-link',
         activeLinkClass: 'tocbot-active-link',
@@ -551,20 +606,6 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
       }
     });
   </script>
-
-
-
-
-
-  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
-  <script  src="/js/clipboard-use.js" ></script>
-
-
-
-
-
-
-<!-- Plugins -->
 
 
 
@@ -620,6 +661,8 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
       }
     );
   </script>
+
+
 
 
 

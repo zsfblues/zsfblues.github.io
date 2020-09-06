@@ -1,7 +1,7 @@
+
+
 <!DOCTYPE html>
-<html lang="zh-CN">
-
-
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
 
 
 
@@ -20,21 +20,16 @@
   <title>zsfblues&#39; blog</title>
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
-<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
 
-
-  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark-reasonable.min.css" />
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_pf9vaxs7x7b.css">
 
 
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
-
-
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
 
 
 <link  rel="stylesheet" href="/css/main.css" />
@@ -42,6 +37,8 @@
 <!-- 自定义样式保持在最底部 -->
 
 
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
 <meta name="generator" content="Hexo 4.2.0"></head>
 
 
@@ -65,60 +62,81 @@
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/">
-              <i class="iconfont icon-home-fill"></i>
-              首页</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/archives/">
-              <i class="iconfont icon-archive-fill"></i>
-              归档</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/categories/">
-              <i class="iconfont icon-category-fill"></i>
-              分类</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/tags/">
-              <i class="iconfont icon-tags-fill"></i>
-              标签</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/about/">
-              <i class="iconfont icon-user-fill"></i>
-              关于</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
         
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
         
       </ul>
     </div>
   </div>
 </nav>
 
-    <div class="view intro-2" id="background" parallax=true
+    <div class="banner intro-2" id="background" parallax=true
          style="background: url('/img/index-bg.png') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="container text-center white-text fadeInUp">
+          <div class="container page-header text-center fade-in-up">
             <span class="h2" id="subtitle">
               
             </span>
@@ -151,21 +169,28 @@
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2016/06/15/ConcurrentLinkedQueue%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">ConcurrentLinkedQueue源码分析</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2016/06/15/ConcurrentLinkedQueue%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">ConcurrentLinkedQueue源码分析</a>
+      </h1>
 
-      <a href="/2016/06/15/ConcurrentLinkedQueue%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2016/06/15/ConcurrentLinkedQueue%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
           
-        
-        <div>ConcurrentLinkedQueue作为Doug Lea在JDK5.0推出的又一个并发容器，使用的是基于FIFO的队列结构，在队尾入队，在队首出队，但使用的基于CAS的”wait-free”进行的，也就是线程竞争锁失败后不会挂起，这在一定程度使得线程的等待时间减少，但CAS并不是一个算法，它是一个CPU直接支持的硬件指令，这也就在一定程度上决定了它的平台相关性当前常用的多线程同步机制可以分为</div>
-      </a>
+          
+            
+          
+          ConcurrentLinkedQueue作为Doug Lea在JDK5.0推出的又一个并发容器，使用的是基于FIFO的队列结构，在队尾入队，在队首出队，但使用的基于CAS的”wait-free”进行的，也就是线程竞争锁失败后不会挂起，这在一定程度使得线程的等待时间减少，但CAS并不是一个算法，它是一个CPU直接支持的硬件指令，这也就在一定程度上决定了它的平台相关性当前常用的多线程同步机制可以分为
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2016-06-15
+            <i class="iconfont icon-date"></i>
+            <time datetime="2016-06-15 20:37" pubdate>
+              2016-06-15
+            </time>
           </div>
         
         
@@ -185,28 +210,35 @@
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2016/05/23/%E5%85%B3%E4%BA%8E%E7%BA%A2%E9%BB%91%E6%A0%91%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%87%A0%E7%82%B9%E7%90%86%E8%A7%A3/">关于红黑树学习的几点理解</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2016/05/23/%E5%85%B3%E4%BA%8E%E7%BA%A2%E9%BB%91%E6%A0%91%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%87%A0%E7%82%B9%E7%90%86%E8%A7%A3/">关于红黑树学习的几点理解</a>
+      </h1>
 
-      <a href="/2016/05/23/%E5%85%B3%E4%BA%8E%E7%BA%A2%E9%BB%91%E6%A0%91%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%87%A0%E7%82%B9%E7%90%86%E8%A7%A3/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2016/05/23/%E5%85%B3%E4%BA%8E%E7%BA%A2%E9%BB%91%E6%A0%91%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%87%A0%E7%82%B9%E7%90%86%E8%A7%A3/">
           
-        
-        <div>最近又重温了一下&lt;&lt;算法&gt;&gt;(第四版)这本书关于红黑树的那一章，不得不说从代码简洁性和讲解的通俗性来说，比网上讲红黑树的大多数博客都要好，但对于删除这一难点又没讲得很详细了(不知道作者为什么这么做)
-在讲红黑树的时候，作者先引入了2-3树的概念，也就是包含2-结点(即我们常见的包含左右子结点的结点)和3-结点(除左右结点外还允许在中间在插入一个结点)对于红黑树的定义，作者用</div>
-      </a>
+          
+            
+          
+          最近又重温了一下&lt;&lt;算法&gt;&gt;(第四版)这本书关于红黑树的那一章，不得不说从代码简洁性和讲解的通俗性来说，比网上讲红黑树的大多数博客都要好，但对于删除这一难点又没讲得很详细了(不知道作者为什么这么做)
+在讲红黑树的时候，作者先引入了2-3树的概念，也就是包含2-结点(即我们常见的包含左右子结点的结点)和3-结点(除左右结点外还允许在中间在插入一个结点)对于红黑树的定义，作者用
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2016-05-23
+            <i class="iconfont icon-date"></i>
+            <time datetime="2016-05-23 23:53" pubdate>
+              2016-05-23
+            </time>
           </div>
         
         
@@ -221,30 +253,37 @@
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2016/05/19/String-StringBuilder%E5%92%8CStringBuffer%E6%AF%94%E8%BE%83/">String,StringBuilder和StringBuffer比较</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2016/05/19/String-StringBuilder%E5%92%8CStringBuffer%E6%AF%94%E8%BE%83/">String,StringBuilder和StringBuffer比较</a>
+      </h1>
 
-      <a href="/2016/05/19/String-StringBuilder%E5%92%8CStringBuffer%E6%AF%94%E8%BE%83/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2016/05/19/String-StringBuilder%E5%92%8CStringBuffer%E6%AF%94%E8%BE%83/">
           
-        
-        <div>说起Java的字符串处理，不得不提API中的字符串三剑客：String,StringBuilder和StringBuffer。很多人一定都使用过这三者(或其中几个)，但从源码的角度，我想以一种更加细致的角度来讲述它们的区别。
+          
+            
+          
+          说起Java的字符串处理，不得不提API中的字符串三剑客：String,StringBuilder和StringBuffer。很多人一定都使用过这三者(或其中几个)，但从源码的角度，我想以一种更加细致的角度来讲述它们的区别。
 String开篇先来讲述String，它也是后面两个的基础。
 不变性
-String作为最知名的不可变，不可继承对象(主要怕破坏其不变性，基本所有的不可变对象都不可继承)：在初</div>
-      </a>
+String作为最知名的不可变，不可继承对象(主要怕破坏其不变性，基本所有的不可变对象都不可继承)：在初
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2016-05-19
+            <i class="iconfont icon-date"></i>
+            <time datetime="2016-05-19 23:59" pubdate>
+              2016-05-19
+            </time>
           </div>
         
         
@@ -257,32 +296,39 @@ String作为最知名的不可变，不可继承对象(主要怕破坏其不变�
         
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2016/05/13/LinkedList%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-JDK8/">LinkedList源码分析(JDK8)</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2016/05/13/LinkedList%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-JDK8/">LinkedList源码分析(JDK8)</a>
+      </h1>
 
-      <a href="/2016/05/13/LinkedList%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-JDK8/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2016/05/13/LinkedList%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-JDK8/">
           
-        
-        <div>//LinkedList类的关系类
+          
+            
+          
+          //LinkedList类的关系类
 public class LinkedList&lt;E&gt;
     extends AbstractSequentialList&lt;E&gt;
     implements List&lt;E&gt;, Deque&lt;E&gt;, Cloneable, java.io.Serializable
 
-LinkedList 是一个继承于AbstractS</div>
-      </a>
+LinkedList 是一个继承于AbstractS
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2016-05-13
+            <i class="iconfont icon-date"></i>
+            <time datetime="2016-05-13 23:06" pubdate>
+              2016-05-13
+            </time>
           </div>
         
         
@@ -295,28 +341,35 @@ LinkedList 是一个继承于AbstractS</div>
         
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2016/04/27/ConcurrentHashMap%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E5%9F%BA%E4%BA%8EJDK7/">ConcurrentHashMap源码解析(基于JDK7)</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2016/04/27/ConcurrentHashMap%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E5%9F%BA%E4%BA%8EJDK7/">ConcurrentHashMap源码解析(基于JDK7)</a>
+      </h1>
 
-      <a href="/2016/04/27/ConcurrentHashMap%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E5%9F%BA%E4%BA%8EJDK7/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2016/04/27/ConcurrentHashMap%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E5%9F%BA%E4%BA%8EJDK7/">
           
-        
-        <div>JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法(非阻塞的无锁算法)代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少(代码激增至6000多行)。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释(水平有限，毕竟学生o(╯□╰)o)
-ConcurrentHashMap的出现主要是用来高效地解决多线程下不同线程</div>
-      </a>
+          
+            
+          
+          JDK8对ConcurrentHashMap做了很大的的改进主要是用CAS算法(非阻塞的无锁算法)代替了分段锁，使得并发的效率进一步提高。但难度也加大了不少(代码激增至6000多行)。无奈网上没有好的讲解，实在无法理解源码。因而只能对JDK7的ConcurrentHashMap作出解释(水平有限，毕竟学生o(╯□╰)o)
+ConcurrentHashMap的出现主要是用来高效地解决多线程下不同线程
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2016-04-27
+            <i class="iconfont icon-date"></i>
+            <time datetime="2016-04-27 23:12" pubdate>
+              2016-04-27
+            </time>
           </div>
         
         
@@ -329,7 +382,7 @@ ConcurrentHashMap的出现主要是用来高效地解决多线程下不同线程
         
         
       </div>
-    </div>
+    </article>
   </div>
 
 
@@ -387,12 +440,19 @@ ConcurrentHashMap的出现主要是用来高效地解决多线程下不同线程
 <!-- SCRIPTS -->
 <script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
 <script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
 <script  src="/js/main.js" ></script>
 
+<!-- Plugins -->
 
-  <script  src="/js/lazyload.js" ></script>
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
 
 
+
+  
 
 
 
@@ -404,7 +464,6 @@ ConcurrentHashMap的出现主要是用来高效地解决多线程下不同线程
 
 
 
-<!-- Plugins -->
 
 
 
@@ -428,20 +487,7 @@ ConcurrentHashMap的出现主要是用来高效地解决多线程下不同线程
 
 
 
-  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
-  <script>
-    anchors.options = {
-      placement: "right",
-      visible: "hover",
-      
-    };
-    var el = "h1,h2,h3,h4,h5,h6".split(",");
-    var res = [];
-    for (item of el) {
-      res.push(".markdown-body > " + item)
-    }
-    anchors.add(res.join(", "))
-  </script>
+
 
 
 

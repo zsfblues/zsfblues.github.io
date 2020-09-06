@@ -1,7 +1,7 @@
+
+
 <!DOCTYPE html>
-<html lang="zh-CN">
-
-
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
 
 
 
@@ -20,21 +20,16 @@
   <title>zsfblues&#39; blog</title>
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
-<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
 
-
-  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/atom-one-dark-reasonable.min.css" />
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_pf9vaxs7x7b.css">
 
 
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
-
-
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
 
 
 <link  rel="stylesheet" href="/css/main.css" />
@@ -42,6 +37,8 @@
 <!-- 自定义样式保持在最底部 -->
 
 
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
 <meta name="generator" content="Hexo 4.2.0"></head>
 
 
@@ -65,60 +62,81 @@
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/">
-              <i class="iconfont icon-home-fill"></i>
-              首页</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/archives/">
-              <i class="iconfont icon-archive-fill"></i>
-              归档</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/categories/">
-              <i class="iconfont icon-category-fill"></i>
-              分类</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/tags/">
-              <i class="iconfont icon-tags-fill"></i>
-              标签</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
         
           
           
           
-          <li class="nav-item">
-            <a class="nav-link" href="/about/">
-              <i class="iconfont icon-user-fill"></i>
-              关于</a>
-          </li>
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
         
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
         
       </ul>
     </div>
   </div>
 </nav>
 
-    <div class="view intro-2" id="background" parallax=true
+    <div class="banner intro-2" id="background" parallax=true
          style="background: url('/img/index-bg.png') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="container text-center white-text fadeInUp">
+          <div class="container page-header text-center fade-in-up">
             <span class="h2" id="subtitle">
               
             </span>
@@ -151,24 +169,31 @@
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2020/05/08/%E6%B5%85%E8%B0%88Redis%E4%B8%AD%E7%9A%84%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1/">浅谈Redis中的内存优化设计</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2020/05/08/%E6%B5%85%E8%B0%88Redis%E4%B8%AD%E7%9A%84%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1/">浅谈Redis中的内存优化设计</a>
+      </h1>
 
-      <a href="/2020/05/08/%E6%B5%85%E8%B0%88Redis%E4%B8%AD%E7%9A%84%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2020/05/08/%E6%B5%85%E8%B0%88Redis%E4%B8%AD%E7%9A%84%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1/">
           
-        
-        <div>Redis作为一个高效的kv型键值型数据库，除了依赖内存高效处理读写操作外，在节约内存的设计上也有着近乎于苛刻，总是想尽一切办法来节约内存，本次主要结合两个比较典型的数据结构上的设计来一窥Redis中的内存优化之道：sds和ziplist。
+          
+            
+          
+          Redis作为一个高效的kv型键值型数据库，除了依赖内存高效处理读写操作外，在节约内存的设计上也有着近乎于苛刻，总是想尽一切办法来节约内存，本次主要结合两个比较典型的数据结构上的设计来一窥Redis中的内存优化之道：sds和ziplist。
 
 在介绍这两个数据结构之前，我们先聊一下基础数据结构：robj。
-从Redis的使用者的角度来看，一个Redis节点包含多个db（非cluster模式下默认是</div>
-      </a>
+从Redis的使用者的角度来看，一个Redis节点包含多个db（非cluster模式下默认是
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2020-05-08
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-05-08 22:40" pubdate>
+              2020-05-08
+            </time>
           </div>
         
         
@@ -188,31 +213,38 @@
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2019/02/17/RocketMQ%E5%AD%A6%E4%B9%A0-%E5%9B%9B-consumer/">RocketMQ学习-四-consumer</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2019/02/17/RocketMQ%E5%AD%A6%E4%B9%A0-%E5%9B%9B-consumer/">RocketMQ学习-四-consumer</a>
+      </h1>
 
-      <a href="/2019/02/17/RocketMQ%E5%AD%A6%E4%B9%A0-%E5%9B%9B-consumer/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2019/02/17/RocketMQ%E5%AD%A6%E4%B9%A0-%E5%9B%9B-consumer/">
           
-        
-        <div>
+          
+            
+          
+          
 ​    作为消息中间件的重要组成部分，消费者的作用的主要在于下游接收producer产生的消息数据，以便在业务系统中处理相应的逻辑。
 它的整个消费流程借用某位大牛的图片：
 
-​    消息的消费模型一般说来有两种：推模型(Push)和拉模型(Pull)，不过这两种常规的模型都有着一些问题，push模型一般由消息的推送者在发出新消息后主动对下游的消费者进行推送，如果推送的速率过快导致消费方消费不</div>
-      </a>
+​    消息的消费模型一般说来有两种：推模型(Push)和拉模型(Pull)，不过这两种常规的模型都有着一些问题，push模型一般由消息的推送者在发出新消息后主动对下游的消费者进行推送，如果推送的速率过快导致消费方消费不
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2019-02-17
+            <i class="iconfont icon-date"></i>
+            <time datetime="2019-02-17 20:39" pubdate>
+              2019-02-17
+            </time>
           </div>
         
         
@@ -234,32 +266,39 @@
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2018/11/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%BA%8C-broker/">RocketMQ学习(二) broker</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2018/11/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%BA%8C-broker/">RocketMQ学习(二) broker</a>
+      </h1>
 
-      <a href="/2018/11/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%BA%8C-broker/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2018/11/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%BA%8C-broker/">
           
-        
-        <div>​    broker的启动和producer一样，启动时会同时启动多个定时任务，包括消息持久化，netty客户端启动，监听文件内容变更的等等…
+          
+            
+          
+          ​    broker的启动和producer一样，启动时会同时启动多个定时任务，包括消息持久化，netty客户端启动，监听文件内容变更的等等…
 
 消息持久化消息持久化是broker最重要的任务，其稳定与否关系到消费者是否能消费到消息，整个mq是否会丢消息。
 public void start() throws Exception &#123;
 
-       lock = lockFile.ge</div>
-      </a>
+       lock = lockFile.ge
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2018-11-25
+            <i class="iconfont icon-date"></i>
+            <time datetime="2018-11-25 20:36" pubdate>
+              2018-11-25
+            </time>
           </div>
         
         
@@ -281,31 +320,38 @@ public void start() throws Exception &#123;
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2018/08/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%B8%89-producer/">RocketMQ学习(三) producer</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2018/08/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%B8%89-producer/">RocketMQ学习(三) producer</a>
+      </h1>
 
-      <a href="/2018/08/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%B8%89-producer/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2018/08/25/RocketMQ%E5%AD%A6%E4%B9%A0-%E4%B8%89-producer/">
           
-        
-        <div>RockterMq本质上作为一个高性能的消息中间件，通过消息来联动各个系统的状态，作为消息发起方的producer自然有必要了解一下其中的原理。讲解以官方demo为基础。
+          
+            
+          
+          RockterMq本质上作为一个高性能的消息中间件，通过消息来联动各个系统的状态，作为消息发起方的producer自然有必要了解一下其中的原理。讲解以官方demo为基础。
 
 数据初始化在实例化一个producer之后，首先需要进行一系列数据初始化，这些初始化操作为后面的数据发送奠定基础。
 以默认的DefaultMQProducer类为例：
-public void start(final boole</div>
-      </a>
+public void start(final boole
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2018-08-25
+            <i class="iconfont icon-date"></i>
+            <time datetime="2018-08-25 17:27" pubdate>
+              2018-08-25
+            </time>
           </div>
         
         
@@ -327,30 +373,37 @@ public void start(final boole</div>
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2018/06/24/RocketMQ%E5%AD%A6%E4%B9%A0-namesrv/">RocketMQ学习(一) namesrv</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2018/06/24/RocketMQ%E5%AD%A6%E4%B9%A0-namesrv/">RocketMQ学习(一) namesrv</a>
+      </h1>
 
-      <a href="/2018/06/24/RocketMQ%E5%AD%A6%E4%B9%A0-namesrv/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2018/06/24/RocketMQ%E5%AD%A6%E4%B9%A0-namesrv/">
           
-        
-        <div>前言因为最近项目的原因用上了消息队列，且技术选型用的是RocketMQ，因而抽空花时间研究了一下其中的几个核心组件的原理(包括namesrv，broker，consumer，producer，当然RocketMQ如何处理消息堆积以及消息落盘的处理也是精华)。本文的分析是基于RocketMQ—4.3版本源码。
+          
+            
+          
+          前言因为最近项目的原因用上了消息队列，且技术选型用的是RocketMQ，因而抽空花时间研究了一下其中的几个核心组件的原理(包括namesrv，broker，consumer，producer，当然RocketMQ如何处理消息堆积以及消息落盘的处理也是精华)。本文的分析是基于RocketMQ—4.3版本源码。
 首先依据RocketMQ的官方文档明确以下几个概念，方便后续描述：
 
-Producer：消</div>
-      </a>
+Producer：消
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2018-06-24
+            <i class="iconfont icon-date"></i>
+            <time datetime="2018-06-24 18:03" pubdate>
+              2018-06-24
+            </time>
           </div>
         
         
@@ -372,21 +425,24 @@ Producer：消</div>
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2018/02/04/Spring-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E5%B0%8F%E7%BB%93/">Spring 异常处理机制小结</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2018/02/04/Spring-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E5%B0%8F%E7%BB%93/">Spring 异常处理机制小结</a>
+      </h1>
 
-      <a href="/2018/02/04/Spring-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E5%B0%8F%E7%BB%93/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2018/02/04/Spring-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E5%B0%8F%E7%BB%93/">
           
-        
-        <div>前几天想把公司某个项目中的参数处理通过某一种统一的机制进行封装后并将返回结果统一处理，参照资料后发现可以通过
+          
+            
+          
+          前几天想把公司某个项目中的参数处理通过某一种统一的机制进行封装后并将返回结果统一处理，参照资料后发现可以通过
 JSR之前定义的一些参数校验标准来对一些进行简单的设置
 
 javax.validation.constraints包下面有如下注解:
@@ -410,13 +466,17 @@ javax.validation.constraints包下面有如下注解:
 
 
 @AssertFalse
-boolean,</div>
-      </a>
+boolean,
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2018-02-04
+            <i class="iconfont icon-date"></i>
+            <time datetime="2018-02-04 18:28" pubdate>
+              2018-02-04
+            </time>
           </div>
         
         
@@ -436,27 +496,34 @@ boolean,</div>
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2018/01/21/%E5%9F%BA%E7%A1%80%E5%90%8C%E6%AD%A5%E6%A1%86%E6%9E%B6-AbstractQueuedSynchronizer/">基础同步框架 - AbstractQueuedSynchronizer</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2018/01/21/%E5%9F%BA%E7%A1%80%E5%90%8C%E6%AD%A5%E6%A1%86%E6%9E%B6-AbstractQueuedSynchronizer/">基础同步框架 - AbstractQueuedSynchronizer</a>
+      </h1>
 
-      <a href="/2018/01/21/%E5%9F%BA%E7%A1%80%E5%90%8C%E6%AD%A5%E6%A1%86%E6%9E%B6-AbstractQueuedSynchronizer/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2018/01/21/%E5%9F%BA%E7%A1%80%E5%90%8C%E6%AD%A5%E6%A1%86%E6%9E%B6-AbstractQueuedSynchronizer/">
           
-        
-        <div>​    AbstractQueuedSynchronizer作为JUC包下面基础同步框架，为很多并发集合的提供许多基础的同步方法，它大体上分为两种同步模式：独占模式(ReentrantLock)以及共享模式(CountDownLatch)，但AbstractQueuedSynchronizer本身并不提供两种模式的具体实现，它的很多方法都交由子类在不同场景下进行按需实现，它最重大的作用实在内部构</div>
-      </a>
+          
+            
+          
+          ​    AbstractQueuedSynchronizer作为JUC包下面基础同步框架，为很多并发集合的提供许多基础的同步方法，它大体上分为两种同步模式：独占模式(ReentrantLock)以及共享模式(CountDownLatch)，但AbstractQueuedSynchronizer本身并不提供两种模式的具体实现，它的很多方法都交由子类在不同场景下进行按需实现，它最重大的作用实在内部构
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2018-01-21
+            <i class="iconfont icon-date"></i>
+            <time datetime="2018-01-21 18:28" pubdate>
+              2018-01-21
+            </time>
           </div>
         
         
@@ -478,29 +545,36 @@ boolean,</div>
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2016/09/03/%E6%9C%89%E5%BA%8F%E7%9A%84HashMap-LinkedHashMap/">有序的HashMap-LinkedHashMap</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2016/09/03/%E6%9C%89%E5%BA%8F%E7%9A%84HashMap-LinkedHashMap/">有序的HashMap-LinkedHashMap</a>
+      </h1>
 
-      <a href="/2016/09/03/%E6%9C%89%E5%BA%8F%E7%9A%84HashMap-LinkedHashMap/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2016/09/03/%E6%9C%89%E5%BA%8F%E7%9A%84HashMap-LinkedHashMap/">
           
-        
-        <div>​    LinkedHashMap作为一个可以按插入顺序遍历的Map集合，在许多功能上和HashMap是重叠，这也难怪，谁叫LinkedHashMap是HashMap的子类。不仅如此，LinkedHashMap还可以根据近期访问某个键值对的顺序（从近期访问最少到近期访问最多的顺序）来遍历元素，这可让需要利用LRU方法进行缓存结果的用户提供一个新的解决方案。
+          
+            
+          
+          ​    LinkedHashMap作为一个可以按插入顺序遍历的Map集合，在许多功能上和HashMap是重叠，这也难怪，谁叫LinkedHashMap是HashMap的子类。不仅如此，LinkedHashMap还可以根据近期访问某个键值对的顺序（从近期访问最少到近期访问最多的顺序）来遍历元素，这可让需要利用LRU方法进行缓存结果的用户提供一个新的解决方案。
 
-LinkedHashMap中有一个核</div>
-      </a>
+LinkedHashMap中有一个核
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2016-09-03
+            <i class="iconfont icon-date"></i>
+            <time datetime="2016-09-03 19:54" pubdate>
+              2016-09-03
+            </time>
           </div>
         
         
@@ -520,31 +594,38 @@ LinkedHashMap中有一个核</div>
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2016/07/20/ThreadPoolExecutor%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/">ThreadPoolExecutor的原理和设计思想</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2016/07/20/ThreadPoolExecutor%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/">ThreadPoolExecutor的原理和设计思想</a>
+      </h1>
 
-      <a href="/2016/07/20/ThreadPoolExecutor%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2016/07/20/ThreadPoolExecutor%E7%9A%84%E5%8E%9F%E7%90%86%E5%92%8C%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/">
           
-        
-        <div>在多线程编程十分普遍的今天，很多人都在用多线程来尽量榨干CPU的性能。但常规地为每个任务创建线程却有以下不足:
+          
+            
+          
+          在多线程编程十分普遍的今天，很多人都在用多线程来尽量榨干CPU的性能。但常规地为每个任务创建线程却有以下不足:
 
 
 创建线程的消耗较高：线程作为CPU分配时间片的基本单位，较多的线程可能会引起CPU频繁地在不同的线程中切换，以至于CPU没有过多的精力来处理任务
-资源消耗大：每创建一个线程的话就会消耗一定的内存资源，当线程数量较大时，CPU就没有过多的精力来处理每一个线程任务，导致线程空占资源，同时</div>
-      </a>
+资源消耗大：每创建一个线程的话就会消耗一定的内存资源，当线程数量较大时，CPU就没有过多的精力来处理每一个线程任务，导致线程空占资源，同时
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2016-07-20
+            <i class="iconfont icon-date"></i>
+            <time datetime="2016-07-20 19:58" pubdate>
+              2016-07-20
+            </time>
           </div>
         
         
@@ -564,30 +645,37 @@ LinkedHashMap中有一个核</div>
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
   <div class="row mx-auto index-card">
     
     
-    <div class="col-12 col-md-12 mx-auto index-info">
-      <a class="index-header" href="/2016/06/16/%E4%BC%98%E7%A7%80%E5%8D%9A%E5%AE%A2%E9%93%BE%E6%8E%A5%E6%B1%87%E6%80%BB-%E9%95%BF%E6%9C%9F%E6%9B%B4%E6%96%B0/">优秀博客链接汇总(长期更新)</a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2016/06/16/%E4%BC%98%E7%A7%80%E5%8D%9A%E5%AE%A2%E9%93%BE%E6%8E%A5%E6%B1%87%E6%80%BB-%E9%95%BF%E6%9C%9F%E6%9B%B4%E6%96%B0/">优秀博客链接汇总(长期更新)</a>
+      </h1>
 
-      <a href="/2016/06/16/%E4%BC%98%E7%A7%80%E5%8D%9A%E5%AE%A2%E9%93%BE%E6%8E%A5%E6%B1%87%E6%80%BB-%E9%95%BF%E6%9C%9F%E6%9B%B4%E6%96%B0/" class="index-excerpt">
-        
-        
+      <p class="index-excerpt">
+        <a href="/2016/06/16/%E4%BC%98%E7%A7%80%E5%8D%9A%E5%AE%A2%E9%93%BE%E6%8E%A5%E6%B1%87%E6%80%BB-%E9%95%BF%E6%9C%9F%E6%9B%B4%E6%96%B0/">
           
-        
-        <div>博主学习新知识的途径主要有以下几种：
+          
+            
+          
+          博主学习新知识的途径主要有以下几种：
 
 官方文档：这往往是学习一种新知识较为正式且权威的方式(更新速度也是最快的)，毕竟官方出品，必属精品嘛。但有时候描述语言较为抽象且正式，理解起来有时较为晦涩，而且有时候英语会折磨相当一部分人(当然博主还是没什么太大压力的O(∩_∩)O~)
-视频：这种方式往往较为生动，长期学习不容易让人产生烦闷的学习心态。但对知识的掌握较为快餐化，我们只能学到一些表面的东西，比</div>
-      </a>
+视频：这种方式往往较为生动，长期学习不容易让人产生烦闷的学习心态。但对知识的掌握较为快餐化，我们只能学到一些表面的东西，比
+        </a>
+      </p>
 
       <div class="index-btm post-metas">
         
           <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2016-06-16
+            <i class="iconfont icon-date"></i>
+            <time datetime="2016-06-16 20:06" pubdate>
+              2016-06-16
+            </time>
           </div>
         
         
@@ -600,7 +688,7 @@ LinkedHashMap中有一个核</div>
           </div>
         
       </div>
-    </div>
+    </article>
   </div>
 
 
@@ -658,12 +746,19 @@ LinkedHashMap中有一个核</div>
 <!-- SCRIPTS -->
 <script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
 <script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
 <script  src="/js/main.js" ></script>
 
+<!-- Plugins -->
 
-  <script  src="/js/lazyload.js" ></script>
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
 
 
+
+  
 
 
 
@@ -675,7 +770,6 @@ LinkedHashMap中有一个核</div>
 
 
 
-<!-- Plugins -->
 
 
 
@@ -699,20 +793,7 @@ LinkedHashMap中有一个核</div>
 
 
 
-  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
-  <script>
-    anchors.options = {
-      placement: "right",
-      visible: "hover",
-      
-    };
-    var el = "h1,h2,h3,h4,h5,h6".split(",");
-    var res = [];
-    for (item of el) {
-      res.push(".markdown-body > " + item)
-    }
-    anchors.add(res.join(", "))
-  </script>
+
 
 
 
