@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -348,8 +348,8 @@
 	 h.lazySetNext(h);
 &#125;</code></pre>
 
-<p>3：head的item为null则向后选取一个结点，如果item为null的结点，设置head指向p节点（此时队列没有元素，只有一个伪结点p） 4：结点出队失败，重新进行出队(关于p == q的判断条件我是在有点难以理解，在此只能作一个不负责任的猜测：就是上一次判断先执行了步骤5，使得p和q指向同一个item不为null的结点，在下一次循环开始前其它线程线程先删除了该结点导致步骤4的发生，这样的话就要重新获取head进行删除) A线程执行步骤5后(为了方便没有画出tail，<strong>再次声明，只是个人观点</strong>)： <a href="http://7xti77.com1.z0.glb.clouddn.com/ConcurrentLinkedQueuePoll3.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll3.png" srcset="/img/loading.gif" alt="img"></a> </p>
-<p>B线程抢先删除结点后A线程执行步骤4：<br><a href="http://7xti77.com1.z0.glb.clouddn.com/ConcurrentLinkedQueuePoll4.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll4.png" srcset="/img/loading.gif" alt="img"></a><br>5：在结点出队失败后可以保证下次尝试出队时p不为空(之前q = p.next ！= null才有可能跳到这一步)</p>
+<p>3：head的item为null则向后选取一个结点，如果item为null的结点，设置head指向p节点（此时队列没有元素，只有一个伪结点p） 4：结点出队失败，重新进行出队(关于p == q的判断条件我是在有点难以理解，在此只能作一个不负责任的猜测：就是上一次判断先执行了步骤5，使得p和q指向同一个item不为null的结点，在下一次循环开始前其它线程线程先删除了该结点导致步骤4的发生，这样的话就要重新获取head进行删除) A线程执行步骤5后(为了方便没有画出tail，<strong>再次声明，只是个人观点</strong>)： <a target="_blank" rel="noopener" href="http://7xti77.com1.z0.glb.clouddn.com/ConcurrentLinkedQueuePoll3.png"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll3.png" srcset="/img/loading.gif" alt="img"></a> </p>
+<p>B线程抢先删除结点后A线程执行步骤4：<br><a target="_blank" rel="noopener" href="http://7xti77.com1.z0.glb.clouddn.com/ConcurrentLinkedQueuePoll4.png"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/ConcurrentLinkedQueuePoll4.png" srcset="/img/loading.gif" alt="img"></a><br>5：在结点出队失败后可以保证下次尝试出队时p不为空(之前q = p.next ！= null才有可能跳到这一步)</p>
 <p>根据head的不变性和可变性条件，在执行出队操作前，head在队列中的位置共有两种可能：</p>
 <blockquote>
 <ol>
@@ -384,9 +384,9 @@
 <hr>
 <p><strong>参考资料</strong></p>
 <ul>
-<li><p><a href="http://www.ibm.com/developerworks/cn/java/j-lo-concurrent/index.html" target="_blank" rel="noopener">非阻塞算法在并发容器中的实现</a></p>
+<li><p><a target="_blank" rel="noopener" href="http://www.ibm.com/developerworks/cn/java/j-lo-concurrent/index.html">非阻塞算法在并发容器中的实现</a></p>
 </li>
-<li><p><a href="http://www.cs.rochester.edu/u/scott/papers/1996_PODC_queues.pdf" target="_blank" rel="noopener">ConcurrentLinkedQueue实现的算法理论基础</a></p>
+<li><p><a target="_blank" rel="noopener" href="http://www.cs.rochester.edu/u/scott/papers/1996_PODC_queues.pdf">ConcurrentLinkedQueue实现的算法理论基础</a></p>
 </li>
 </ul>
 
@@ -412,7 +412,7 @@
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">

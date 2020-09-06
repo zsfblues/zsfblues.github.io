@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -217,9 +217,9 @@
             <div class="markdown-body" id="post-body">
               <pre><code>最近又重温了一下&lt;&lt;算法&gt;&gt;(第四版)这本书关于红黑树的那一章，不得不说从代码简洁性和讲解的通俗性来说，比网上讲红黑树的大多数博客都要好，但对于删除这一难点又没讲得很详细了(不知道作者为什么这么做)</code></pre><hr>
 <p>在讲红黑树的时候，作者先引入了2-3树的概念，也就是包含2-结点(即我们常见的包含左右子结点的结点)和3-结点(除左右结点外还允许在中间在插入一个结点)<br>对于红黑树的定义，作者用了红链接和黑链接的概念，所谓结点的链接可以理解为任意一个结点上方链接的颜色，红链接就是具备了红结点的性质，黑链接就是备了黑结点的性质。</p>
-<p>3-结点<br><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/3-.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr51rfcj30b007kdft.jpg" srcset="/img/loading.gif" alt="img"></a> </p>
+<p>3-结点<br><a target="_blank" rel="noopener" href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/3-.png"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr51rfcj30b007kdft.jpg" srcset="/img/loading.gif" alt="img"></a> </p>
 <p>2-结点</p>
-<p> <a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/2-.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr51prcj30c907qaa0.jpg" srcset="/img/loading.gif" alt="img"></a></p>
+<p> <a target="_blank" rel="noopener" href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/2-.png"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr51prcj30c907qaa0.jpg" srcset="/img/loading.gif" alt="img"></a></p>
 <p>为了保证平衡性，定义了以下规则：</p>
 <ol>
 <li>任意一条红链接都是左链接</li>
@@ -252,7 +252,7 @@
     h.collor = RED;
 &#125;</code></pre>
 
-<p>右旋：<br><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rotateRight.gif" srcset="/img/loading.gif" alt="右旋"><br><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rightsample.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5ff8yj30e70blmxc.jpg" srcset="/img/loading.gif" alt="img"></a><br>代码如下：</p>
+<p>右旋：<br><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rotateRight.gif" srcset="/img/loading.gif" alt="右旋"><br><a target="_blank" rel="noopener" href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rightsample.png"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5ff8yj30e70blmxc.jpg" srcset="/img/loading.gif" alt="img"></a><br>代码如下：</p>
 <pre><code class="hljs java"><span class="hljs-function">Node <span class="hljs-title">ratoteRight</span><span class="hljs-params">(Node h)</span></span>
 <span class="hljs-function"></span>&#123;
     Node x = h.left;
@@ -270,7 +270,7 @@
 <span class="hljs-number">2.</span> 对于在左边插入的结点，则需要先将插入结点的祖父结点进行左旋，然后执行<span class="hljs-number">1</span>中的步骤
 <span class="hljs-number">3.</span> 对于在中间插入的结点，需要将插入结点进行右旋，再进行左旋，最后执行步骤<span class="hljs-number">1.</span></code></pre>
 
-<p><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rbtreeinsert.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5g3ltj310g0d0wfh.jpg" srcset="/img/loading.gif" alt="img"></a></p>
+<p><a target="_blank" rel="noopener" href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/rbtreeinsert.png"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5g3ltj310g0d0wfh.jpg" srcset="/img/loading.gif" alt="img"></a></p>
 <p>关于链接颜色的转变</p>
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">flipColors</span><span class="hljs-params">(Node h)</span></span>
 <span class="hljs-function"> </span>&#123;
@@ -288,7 +288,7 @@
 <p>有了上面的铺垫，插入的代码就显得十分简洁，让人充分感受到简洁代码的美感</p>
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">put</span><span class="hljs-params">(Key key, Value val)</span></span>
 <span class="hljs-function"></span>&#123;
-    <span class="hljs-keyword">if</span> (key == <span class="hljs-keyword">null</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"first argument to put() is null"</span>);
+    <span class="hljs-keyword">if</span> (key == <span class="hljs-keyword">null</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">&quot;first argument to put() is null&quot;</span>);
     <span class="hljs-keyword">if</span> (val == <span class="hljs-keyword">null</span>)
     &#123;
         delete(key);
@@ -343,7 +343,7 @@
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">

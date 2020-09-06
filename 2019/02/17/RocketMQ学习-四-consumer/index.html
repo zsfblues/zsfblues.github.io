@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -172,7 +172,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.1k 字
+      4.2k 字
     </span>
   
 
@@ -182,7 +182,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      57
+      58
        分钟
     </span>
   
@@ -226,26 +226,26 @@
 
     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException, MQClientException </span>&#123;
 
-        DefaultMQPushConsumer consumer = <span class="hljs-keyword">new</span> DefaultMQPushConsumer(<span class="hljs-string">"test-consumer-group"</span>);
-        consumer.setNamesrvAddr(<span class="hljs-string">"127.0.0.1:9876;"</span>);
+        DefaultMQPushConsumer consumer = <span class="hljs-keyword">new</span> DefaultMQPushConsumer(<span class="hljs-string">&quot;test-consumer-group&quot;</span>);
+        consumer.setNamesrvAddr(<span class="hljs-string">&quot;127.0.0.1:9876;&quot;</span>);
     
         consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
 
-        consumer.subscribe(<span class="hljs-string">"TopicTest"</span>, <span class="hljs-string">"*"</span>);
+        consumer.subscribe(<span class="hljs-string">&quot;TopicTest&quot;</span>, <span class="hljs-string">&quot;*&quot;</span>);
 
         consumer.registerMessageListener(<span class="hljs-keyword">new</span> MessageListenerConcurrently() &#123;
 
             <span class="hljs-meta">@Override</span>
             <span class="hljs-function"><span class="hljs-keyword">public</span> ConsumeConcurrentlyStatus <span class="hljs-title">consumeMessage</span><span class="hljs-params">(List&lt;MessageExt&gt; msgs,</span></span>
 <span class="hljs-function"><span class="hljs-params">                ConsumeConcurrentlyContext context)</span> </span>&#123;
-                System.out.printf(<span class="hljs-string">"%s Receive New Messages: %s %n"</span>, Thread.currentThread().getName(), msgs);
+                System.out.printf(<span class="hljs-string">&quot;%s Receive New Messages: %s %n&quot;</span>, Thread.currentThread().getName(), msgs);
                 <span class="hljs-keyword">return</span> ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             &#125;
         &#125;);
 
         consumer.start();
 
-        System.out.printf(<span class="hljs-string">"Consumer Started.%n"</span>);
+        System.out.printf(<span class="hljs-string">&quot;Consumer Started.%n&quot;</span>);
     &#125;
 &#125;</code></pre>
 
@@ -253,7 +253,7 @@
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> MQClientException </span>&#123;
         <span class="hljs-keyword">switch</span> (<span class="hljs-keyword">this</span>.serviceState) &#123;
             <span class="hljs-keyword">case</span> CREATE_JUST:
-                log.info(<span class="hljs-string">"the consumer [&#123;&#125;] start beginning. messageModel=&#123;&#125;, isUnitMode=&#123;&#125;"</span>, <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup(),
+                log.info(<span class="hljs-string">&quot;the consumer [&#123;&#125;] start beginning. messageModel=&#123;&#125;, isUnitMode=&#123;&#125;&quot;</span>, <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup(),
                     <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getMessageModel(), <span class="hljs-keyword">this</span>.defaultMQPushConsumer.isUnitMode());
                 <span class="hljs-keyword">this</span>.serviceState = ServiceState.START_FAILED;
 
@@ -312,19 +312,19 @@
                 <span class="hljs-keyword">if</span> (!registerOK) &#123;
                     <span class="hljs-keyword">this</span>.serviceState = ServiceState.CREATE_JUST;
                     <span class="hljs-keyword">this</span>.consumeMessageService.shutdown();
-                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The consumer group["</span> + <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup()
-                        + <span class="hljs-string">"] has been created before, specify another name please."</span> + FAQUrl.suggestTodo(FAQUrl.GROUP_NAME_DUPLICATE_URL),
+                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">&quot;The consumer group[&quot;</span> + <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup()
+                        + <span class="hljs-string">&quot;] has been created before, specify another name please.&quot;</span> + FAQUrl.suggestTodo(FAQUrl.GROUP_NAME_DUPLICATE_URL),
                         <span class="hljs-keyword">null</span>);
                 &#125;
 				<span class="hljs-comment">// 重点关注方法</span>
                 mQClientFactory.start();
-                log.info(<span class="hljs-string">"the consumer [&#123;&#125;] start OK."</span>, <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup());
+                log.info(<span class="hljs-string">&quot;the consumer [&#123;&#125;] start OK.&quot;</span>, <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getConsumerGroup());
                 <span class="hljs-keyword">this</span>.serviceState = ServiceState.RUNNING;
                 <span class="hljs-keyword">break</span>;
             <span class="hljs-keyword">case</span> RUNNING:
             <span class="hljs-keyword">case</span> START_FAILED:
             <span class="hljs-keyword">case</span> SHUTDOWN_ALREADY:
-                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The PushConsumer service state not OK, maybe started once, "</span>
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">&quot;The PushConsumer service state not OK, maybe started once, &quot;</span>
                     + <span class="hljs-keyword">this</span>.serviceState
                     + FAQUrl.suggestTodo(FAQUrl.CLIENT_SERVICE_NOT_OK),
                     <span class="hljs-keyword">null</span>);
@@ -359,7 +359,7 @@
                     <span class="hljs-keyword">this</span>.rebalanceService.start();
                     <span class="hljs-comment">// 这是面向producer端的</span>
                     <span class="hljs-keyword">this</span>.defaultMQProducer.getDefaultMQProducerImpl().start(<span class="hljs-keyword">false</span>);
-                    log.info(<span class="hljs-string">"the client factory [&#123;&#125;] start OK"</span>, <span class="hljs-keyword">this</span>.clientId);
+                    log.info(<span class="hljs-string">&quot;the client factory [&#123;&#125;] start OK&quot;</span>, <span class="hljs-keyword">this</span>.clientId);
                     <span class="hljs-keyword">this</span>.serviceState = ServiceState.RUNNING;
                     <span class="hljs-keyword">break</span>;
                 <span class="hljs-keyword">case</span> RUNNING:
@@ -367,7 +367,7 @@
                 <span class="hljs-keyword">case</span> SHUTDOWN_ALREADY:
                     <span class="hljs-keyword">break</span>;
                 <span class="hljs-keyword">case</span> START_FAILED:
-                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The Factory object["</span> + <span class="hljs-keyword">this</span>.getClientId() + <span class="hljs-string">"] has been created before, and failed."</span>, <span class="hljs-keyword">null</span>);
+                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">&quot;The Factory object[&quot;</span> + <span class="hljs-keyword">this</span>.getClientId() + <span class="hljs-string">&quot;] has been created before, and failed.&quot;</span>, <span class="hljs-keyword">null</span>);
                 <span class="hljs-keyword">default</span>:
                     <span class="hljs-keyword">break</span>;
             &#125;
@@ -383,12 +383,12 @@
                List&lt;String&gt; cidAll = <span class="hljs-keyword">this</span>.mQClientFactory.findConsumerIdList(topic, consumerGroup);
                <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == mqSet) &#123;
                    <span class="hljs-keyword">if</span> (!topic.startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) &#123;
-                       log.warn(<span class="hljs-string">"doRebalance, &#123;&#125;, but the topic[&#123;&#125;] not exist."</span>, consumerGroup, topic);
+                       log.warn(<span class="hljs-string">&quot;doRebalance, &#123;&#125;, but the topic[&#123;&#125;] not exist.&quot;</span>, consumerGroup, topic);
                    &#125;
                &#125;
 
                <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == cidAll) &#123;
-                   log.warn(<span class="hljs-string">"doRebalance, &#123;&#125; &#123;&#125;, get consumer id list failed"</span>, consumerGroup, topic);
+                   log.warn(<span class="hljs-string">&quot;doRebalance, &#123;&#125; &#123;&#125;, get consumer id list failed&quot;</span>, consumerGroup, topic);
                &#125;
 
                <span class="hljs-keyword">if</span> (mqSet != <span class="hljs-keyword">null</span> &amp;&amp; cidAll != <span class="hljs-keyword">null</span>) &#123;
@@ -409,7 +409,7 @@
                            mqAll,
                            cidAll);
                    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;
-                       log.error(<span class="hljs-string">"AllocateMessageQueueStrategy.allocate Exception. allocateMessageQueueStrategyName=&#123;&#125;"</span>, strategy.getName(),
+                       log.error(<span class="hljs-string">&quot;AllocateMessageQueueStrategy.allocate Exception. allocateMessageQueueStrategyName=&#123;&#125;&quot;</span>, strategy.getName(),
                            e);
                        <span class="hljs-keyword">return</span>;
                    &#125;
@@ -423,7 +423,7 @@
                    <span class="hljs-keyword">boolean</span> changed = <span class="hljs-keyword">this</span>.updateProcessQueueTableInRebalance(topic, allocateResultSet, isOrder);
                    <span class="hljs-keyword">if</span> (changed) &#123;
                        log.info(
-                           <span class="hljs-string">"rebalanced result changed. allocateMessageQueueStrategyName=&#123;&#125;, group=&#123;&#125;, topic=&#123;&#125;, clientId=&#123;&#125;, mqAllSize=&#123;&#125;, cidAllSize=&#123;&#125;, rebalanceResultSize=&#123;&#125;, rebalanceResultSet=&#123;&#125;"</span>,
+                           <span class="hljs-string">&quot;rebalanced result changed. allocateMessageQueueStrategyName=&#123;&#125;, group=&#123;&#125;, topic=&#123;&#125;, clientId=&#123;&#125;, mqAllSize=&#123;&#125;, cidAllSize=&#123;&#125;, rebalanceResultSize=&#123;&#125;, rebalanceResultSet=&#123;&#125;&quot;</span>,
                            strategy.getName(), consumerGroup, topic, <span class="hljs-keyword">this</span>.mQClientFactory.getClientId(), mqSet.size(), cidAll.size(),
                            allocateResultSet.size(), allocateResultSet);
                        <span class="hljs-keyword">this</span>.messageQueueChanged(topic, mqSet, allocateResultSet);
@@ -439,7 +439,7 @@
            <span class="hljs-comment">// 将新增的队列加入到processQueueTable中来</span>
            <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.processQueueTable.containsKey(mq)) &#123;
                <span class="hljs-keyword">if</span> (isOrder &amp;&amp; !<span class="hljs-keyword">this</span>.lock(mq)) &#123;
-                   log.warn(<span class="hljs-string">"doRebalance, &#123;&#125;, add a new mq failed, &#123;&#125;, because lock failed"</span>, consumerGroup, mq);
+                   log.warn(<span class="hljs-string">&quot;doRebalance, &#123;&#125;, add a new mq failed, &#123;&#125;, because lock failed&quot;</span>, consumerGroup, mq);
                    <span class="hljs-keyword">continue</span>;
                &#125;
 
@@ -449,9 +449,9 @@
                <span class="hljs-keyword">if</span> (nextOffset &gt;= <span class="hljs-number">0</span>) &#123;
                    ProcessQueue pre = <span class="hljs-keyword">this</span>.processQueueTable.putIfAbsent(mq, pq);
                    <span class="hljs-keyword">if</span> (pre != <span class="hljs-keyword">null</span>) &#123;
-                       log.info(<span class="hljs-string">"doRebalance, &#123;&#125;, mq already exists, &#123;&#125;"</span>, consumerGroup, mq);
+                       log.info(<span class="hljs-string">&quot;doRebalance, &#123;&#125;, mq already exists, &#123;&#125;&quot;</span>, consumerGroup, mq);
                    &#125; <span class="hljs-keyword">else</span> &#123;
-                       log.info(<span class="hljs-string">"doRebalance, &#123;&#125;, add a new mq, &#123;&#125;"</span>, consumerGroup, mq);
+                       log.info(<span class="hljs-string">&quot;doRebalance, &#123;&#125;, add a new mq, &#123;&#125;&quot;</span>, consumerGroup, mq);
                        PullRequest pullRequest = <span class="hljs-keyword">new</span> PullRequest();
                        pullRequest.setConsumerGroup(consumerGroup);
                        pullRequest.setNextOffset(nextOffset);
@@ -461,7 +461,7 @@
                        changed = <span class="hljs-keyword">true</span>;
                    &#125;
                &#125; <span class="hljs-keyword">else</span> &#123;
-                   log.warn(<span class="hljs-string">"doRebalance, &#123;&#125;, add new mq failed, &#123;&#125;"</span>, consumerGroup, mq);
+                   log.warn(<span class="hljs-string">&quot;doRebalance, &#123;&#125;, add new mq failed, &#123;&#125;&quot;</span>, consumerGroup, mq);
                &#125;
            &#125;
            <span class="hljs-comment">// 这个结合第一张流程图来看，也是后续pullRequestQueue中的数据来源(即拉取消息任务)</span>
@@ -480,7 +480,7 @@
             <span class="hljs-keyword">this</span>.pullAPIWrapper.pullKernelImpl(
                 pullRequest.getMessageQueue(), <span class="hljs-comment">// 向哪个队列信息消息拉取，queue &lt;-&gt; pullRequest</span>
                 subExpression, <span class="hljs-comment">// tag订阅表达式</span>
-                subscriptionData.getExpressionType(), <span class="hljs-comment">// tag订阅类型，sql92以及"||"分隔形式</span>
+                subscriptionData.getExpressionType(), <span class="hljs-comment">// tag订阅类型，sql92以及&quot;||&quot;分隔形式</span>
                 subscriptionData.getSubVersion(),
                 pullRequest.getNextOffset(),  <span class="hljs-comment">// 队列消费起始偏移量，集群模式下同一个消费组共享消费进度</span>
                 <span class="hljs-keyword">this</span>.defaultMQPushConsumer.getPullBatchSize(), <span class="hljs-comment">// 一次处理的消息数，默认是1</span>
@@ -492,7 +492,7 @@
                 pullCallback  <span class="hljs-comment">// 获取响应的回调处理逻辑</span>
             );
         &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
-            log.error(<span class="hljs-string">"pullKernelImpl exception"</span>, e);
+            log.error(<span class="hljs-string">&quot;pullKernelImpl exception&quot;</span>, e);
             <span class="hljs-keyword">this</span>.executePullRequestLater(pullRequest, PULL_TIME_DELAY_MILLS_WHEN_EXCEPTION);
         &#125;</code></pre>
 
@@ -615,7 +615,7 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
                             <span class="hljs-keyword">if</span> (pullResult.getNextBeginOffset() &lt; prevRequestOffset
                                 || firstMsgOffset &lt; prevRequestOffset) &#123;
                                 log.warn(
-                                    <span class="hljs-string">"[BUG] pull message result maybe data wrong, nextBeginOffset: &#123;&#125; firstMsgOffset: &#123;&#125; prevRequestOffset: &#123;&#125;"</span>,
+                                    <span class="hljs-string">&quot;[BUG] pull message result maybe data wrong, nextBeginOffset: &#123;&#125; firstMsgOffset: &#123;&#125; prevRequestOffset: &#123;&#125;&quot;</span>,
                                     pullResult.getNextBeginOffset(),
                                     firstMsgOffset,
                                     prevRequestOffset);
@@ -643,7 +643,7 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
         &#125;</code></pre>
 
 <p>刚开始的时候offset都为0，后续通过offset的变化寻找consumerQueue中的延时消息(offset可以看成consumerQueue中消息序号，从0开始，每次加一)。到时的延时消息通过重新put至commitLog中触发reputMessageService将消息重新取出进行投递。</p>
-<h3 id="五-消息过滤"><a href="#五-消息过滤" class="headerlink" title="五. 消息过滤"></a>五. 消息过滤</h3><p>​    消息过滤的方式主要有基于tag以及sql92的方式，sql92具体参考<a href="https://en.wikipedia.org/wiki/SQL-92" target="_blank" rel="noopener">sql92维基百科</a>，这里主要以更常见的tag方式为例，当有到达时，在org.apache.rocketmq.broker.longpolling.PullRequestHoldService#notifyMessageArriving中会对消息与pullRequest中的请求信息进行对比。符合条件的才会回传给客户端</p>
+<h3 id="五-消息过滤"><a href="#五-消息过滤" class="headerlink" title="五. 消息过滤"></a>五. 消息过滤</h3><p>​    消息过滤的方式主要有基于tag以及sql92的方式，sql92具体参考<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/SQL-92">sql92维基百科</a>，这里主要以更常见的tag方式为例，当有到达时，在org.apache.rocketmq.broker.longpolling.PullRequestHoldService#notifyMessageArriving中会对消息与pullRequest中的请求信息进行对比。符合条件的才会回传给客户端</p>
 <pre><code class="hljs java"> <span class="hljs-keyword">boolean</span> match = request.getMessageFilter().isMatchedByConsumeQueue(tagsCode,
                             <span class="hljs-keyword">new</span> ConsumeQueueExt.CqExtUnit(tagsCode, msgStoreTime, filterBitMap));
 
@@ -661,8 +661,8 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
         <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == subString || subString.equals(SubscriptionData.SUB_ALL) || subString.length() == <span class="hljs-number">0</span>) &#123;
             subscriptionData.setSubString(SubscriptionData.SUB_ALL);
         &#125; <span class="hljs-keyword">else</span> &#123;
-            <span class="hljs-comment">// 通过"||"进行tag拆分，然后将名称以及hashCode分别保存起来</span>
-            String[] tags = subString.split(<span class="hljs-string">"\\|\\|"</span>);
+            <span class="hljs-comment">// 通过&quot;||&quot;进行tag拆分，然后将名称以及hashCode分别保存起来</span>
+            String[] tags = subString.split(<span class="hljs-string">&quot;\\|\\|&quot;</span>);
             <span class="hljs-keyword">if</span> (tags.length &gt; <span class="hljs-number">0</span>) &#123;
                 <span class="hljs-keyword">for</span> (String tag : tags) &#123;
                     <span class="hljs-keyword">if</span> (tag.length() &gt; <span class="hljs-number">0</span>) &#123;
@@ -674,7 +674,7 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
                     &#125;
                 &#125;
             &#125; <span class="hljs-keyword">else</span> &#123;
-                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Exception(<span class="hljs-string">"subString split error"</span>);
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Exception(<span class="hljs-string">&quot;subString split error&quot;</span>);
             &#125;
         &#125;
 
@@ -706,7 +706,7 @@ ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">

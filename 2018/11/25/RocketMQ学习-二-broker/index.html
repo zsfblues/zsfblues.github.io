@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -172,7 +172,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.3k 字
+      2.4k 字
     </span>
   
 
@@ -222,10 +222,10 @@
 
        lock = lockFile.getChannel().tryLock(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-keyword">false</span>);
        <span class="hljs-keyword">if</span> (lock == <span class="hljs-keyword">null</span> || lock.isShared() || !lock.isValid()) &#123;
-           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(<span class="hljs-string">"Lock failed,MQ already started"</span>);
+           <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(<span class="hljs-string">&quot;Lock failed,MQ already started&quot;</span>);
        &#125;
 
-       lockFile.getChannel().write(ByteBuffer.wrap(<span class="hljs-string">"lock"</span>.getBytes()));
+       lockFile.getChannel().write(ByteBuffer.wrap(<span class="hljs-string">&quot;lock&quot;</span>.getBytes()));
        lockFile.getChannel().force(<span class="hljs-keyword">true</span>);
 
  
@@ -298,7 +298,7 @@
            <span class="hljs-keyword">this</span>.mappedByteBuffer.force();
        &#125;
    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;
-       log.error(<span class="hljs-string">"Error occurred when force data to disk."</span>, e);
+       log.error(<span class="hljs-string">&quot;Error occurred when force data to disk.&quot;</span>, e);
    &#125;</code></pre>
 
 <p>FileChannel.force()方法将通道里尚未写入磁盘的数据强制写到磁盘上。出于性能方面的考虑，操作系统会将数据缓存在内存中，所以无法保证写入到FileChannel里的数据一定会即时写到磁盘上。要保证这一点，需要调用force()方法。参数标明是否将元数据一同刷入。</p>
@@ -353,7 +353,7 @@
         &#125; <span class="hljs-keyword">else</span> &#123;
             <span class="hljs-comment">// <span class="hljs-doctag">XXX:</span> warn and notify me</span>
             log.error(
-                <span class="hljs-string">"ScheduleMessageService, a message time up, but reput it failed, topic: &#123;&#125; msgId &#123;&#125;"</span>,
+                <span class="hljs-string">&quot;ScheduleMessageService, a message time up, but reput it failed, topic: &#123;&#125; msgId &#123;&#125;&quot;</span>,
                 msgExt.getTopic(), msgExt.getMsgId());
             ScheduleMessageService.<span class="hljs-keyword">this</span>.timer.schedule(
                 <span class="hljs-keyword">new</span> DeliverDelayedMessageTimerTask(<span class="hljs-keyword">this</span>.delayLevel,
@@ -364,9 +364,9 @@
         &#125;
     &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
         log.error(
-            <span class="hljs-string">"ScheduleMessageService, messageTimeup execute error, drop it. msgExt="</span>
-            + msgExt + <span class="hljs-string">", nextOffset="</span> + nextOffset + <span class="hljs-string">",offsetPy="</span>
-            + offsetPy + <span class="hljs-string">",sizePy="</span> + sizePy, e);
+            <span class="hljs-string">&quot;ScheduleMessageService, messageTimeup execute error, drop it. msgExt=&quot;</span>
+            + msgExt + <span class="hljs-string">&quot;, nextOffset=&quot;</span> + nextOffset + <span class="hljs-string">&quot;,offsetPy=&quot;</span>
+            + offsetPy + <span class="hljs-string">&quot;,sizePy=&quot;</span> + sizePy, e);
     &#125;
 &#125;
 &#125;
@@ -424,7 +424,7 @@
                 mappedFile = <span class="hljs-keyword">this</span>.mappedFileQueue.getLastMappedFile(<span class="hljs-number">0</span>); <span class="hljs-comment">// Mark: NewFile may be cause noise</span>
             &#125;
             <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == mappedFile) &#123;
-                log.error(<span class="hljs-string">"create mapped file1 error, topic: "</span> + msg.getTopic() + <span class="hljs-string">" clientAddr: "</span> + msg.getBornHostString());
+                log.error(<span class="hljs-string">&quot;create mapped file1 error, topic: &quot;</span> + msg.getTopic() + <span class="hljs-string">&quot; clientAddr: &quot;</span> + msg.getBornHostString());
                 beginTimeInLock = <span class="hljs-number">0</span>;
                 <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, <span class="hljs-keyword">null</span>);
             &#125;
@@ -438,7 +438,7 @@
         &#125;
 
         <span class="hljs-keyword">if</span> (eclipseTimeInLock &gt; <span class="hljs-number">500</span>) &#123;
-            log.warn(<span class="hljs-string">"[NOTIFYME]putMessage in lock cost time(ms)=&#123;&#125;, bodyLength=&#123;&#125; AppendMessageResult=&#123;&#125;"</span>, eclipseTimeInLock, msg.getBody().length, result);
+            log.warn(<span class="hljs-string">&quot;[NOTIFYME]putMessage in lock cost time(ms)=&#123;&#125;, bodyLength=&#123;&#125; AppendMessageResult=&#123;&#125;&quot;</span>, eclipseTimeInLock, msg.getBody().length, result);
         &#125;
 
         <span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != unlockMappedFile &amp;&amp; <span class="hljs-keyword">this</span>.defaultMessageStore.getMessageStoreConfig().isWarmMapedFileEnable()) &#123;
@@ -630,7 +630,7 @@
         <span class="hljs-keyword">this</span>.mappedByteBuffer.force();
     &#125;
 &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;
-    log.error(<span class="hljs-string">"Error occurred when force data to disk."</span>, e);
+    log.error(<span class="hljs-string">&quot;Error occurred when force data to disk.&quot;</span>, e);
 &#125;
 
 <span class="hljs-comment">//commit</span>
@@ -643,7 +643,7 @@
     <span class="hljs-comment">// 重置上次提交的位置</span>
     <span class="hljs-keyword">this</span>.committedPosition.set(writePos);
 &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;
-    log.error(<span class="hljs-string">"Error occurred when commit data to FileChannel."</span>, e);
+    log.error(<span class="hljs-string">&quot;Error occurred when commit data to FileChannel.&quot;</span>, e);
 &#125;</code></pre>
 
 <p>commit方法会在每次执行时构造出一个写缓冲buffer，然后通过fileChannel进行写入，中间隔了一个内存字节缓存，而flush就简单粗暴一些，直接请求操作系统将数据一次性刷入磁盘(force是因为操作系统一般为了提高写入效率会将数据放在缓冲中批量写入，所以force可以强制要求其此时立即将数据写入)</p>
@@ -672,7 +672,7 @@
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">

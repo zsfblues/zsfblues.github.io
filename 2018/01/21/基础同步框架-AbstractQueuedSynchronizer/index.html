@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -268,7 +268,7 @@
     &#125;
 &#125;</code></pre>
 
-<p>在非公平锁的acquire方法中，作者尝试以一种独占且忽略中断的方式来获取锁(<a href="http://www.infoq.com/cn/articles/java-interrupt-mechanism" target="_blank" rel="noopener"><strong>什么是Java线程的中断机制，见详细分析Java中断机制</strong></a>，而acquireQueued方法中会保证忽视中断(系统中其它线程可能会对词现场发出中断指令，为了线程能按照正常流程获取锁需要忽略)，在acquireQueued内部通过tryAcquire反复尝试获取锁直到成功，线程也可能由于获取锁失败而反复的被阻塞和唤醒。</p>
+<p>在非公平锁的acquire方法中，作者尝试以一种独占且忽略中断的方式来获取锁(<a target="_blank" rel="noopener" href="http://www.infoq.com/cn/articles/java-interrupt-mechanism"><strong>什么是Java线程的中断机制，见详细分析Java中断机制</strong></a>，而acquireQueued方法中会保证忽视中断(系统中其它线程可能会对词现场发出中断指令，为了线程能按照正常流程获取锁需要忽略)，在acquireQueued内部通过tryAcquire反复尝试获取锁直到成功，线程也可能由于获取锁失败而反复的被阻塞和唤醒。</p>
 <p>入队的一般步骤：</p>
 <ol>
 <li>先尝试以尾插法的模式将Node入队，但当有其他节点进行插入的时候就会导致compareAndSetHead失败</li>
@@ -412,7 +412,7 @@
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">

@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -182,7 +182,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      25
+      26
        分钟
     </span>
   
@@ -235,8 +235,8 @@
                <span class="hljs-keyword">boolean</span> registerOK = mQClientFactory.registerProducer(<span class="hljs-keyword">this</span>.defaultMQProducer.getProducerGroup(), <span class="hljs-keyword">this</span>);
                <span class="hljs-keyword">if</span> (!registerOK) &#123;
                    <span class="hljs-keyword">this</span>.serviceState = ServiceState.CREATE_JUST;
-                   <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The producer group["</span> + <span class="hljs-keyword">this</span>.defaultMQProducer.getProducerGroup()
-                       + <span class="hljs-string">"] has been created before, specify another name please."</span> + FAQUrl.suggestTodo(FAQUrl.GROUP_NAME_DUPLICATE_URL),
+                   <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">&quot;The producer group[&quot;</span> + <span class="hljs-keyword">this</span>.defaultMQProducer.getProducerGroup()
+                       + <span class="hljs-string">&quot;] has been created before, specify another name please.&quot;</span> + FAQUrl.suggestTodo(FAQUrl.GROUP_NAME_DUPLICATE_URL),
                        <span class="hljs-keyword">null</span>);
                &#125;
 
@@ -247,14 +247,14 @@
                    mQClientFactory.start();
                &#125;
 
-               log.info(<span class="hljs-string">"the producer [&#123;&#125;] start OK. sendMessageWithVIPChannel=&#123;&#125;"</span>, <span class="hljs-keyword">this</span>.defaultMQProducer.getProducerGroup(),
+               log.info(<span class="hljs-string">&quot;the producer [&#123;&#125;] start OK. sendMessageWithVIPChannel=&#123;&#125;&quot;</span>, <span class="hljs-keyword">this</span>.defaultMQProducer.getProducerGroup(),
                    <span class="hljs-keyword">this</span>.defaultMQProducer.isSendMessageWithVIPChannel());
                <span class="hljs-keyword">this</span>.serviceState = ServiceState.RUNNING;
                <span class="hljs-keyword">break</span>;
            <span class="hljs-keyword">case</span> RUNNING:
            <span class="hljs-keyword">case</span> START_FAILED:
            <span class="hljs-keyword">case</span> SHUTDOWN_ALREADY:
-               <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The producer service state not OK, maybe started once, "</span>
+               <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">&quot;The producer service state not OK, maybe started once, &quot;</span>
                    + <span class="hljs-keyword">this</span>.serviceState
                    + FAQUrl.suggestTodo(FAQUrl.CLIENT_SERVICE_NOT_OK),
                    <span class="hljs-keyword">null</span>);
@@ -294,7 +294,7 @@
                    <span class="hljs-keyword">this</span>.rebalanceService.start();
                    <span class="hljs-comment">// Start push service</span>
                    <span class="hljs-keyword">this</span>.defaultMQProducer.getDefaultMQProducerImpl().start(<span class="hljs-keyword">false</span>);
-                   log.info(<span class="hljs-string">"the client factory [&#123;&#125;] start OK"</span>, <span class="hljs-keyword">this</span>.clientId);
+                   log.info(<span class="hljs-string">&quot;the client factory [&#123;&#125;] start OK&quot;</span>, <span class="hljs-keyword">this</span>.clientId);
                    <span class="hljs-keyword">this</span>.serviceState = ServiceState.RUNNING;
                    <span class="hljs-keyword">break</span>;
                <span class="hljs-keyword">case</span> RUNNING:
@@ -302,7 +302,7 @@
                <span class="hljs-keyword">case</span> SHUTDOWN_ALREADY:
                    <span class="hljs-keyword">break</span>;
                <span class="hljs-keyword">case</span> START_FAILED:
-                   <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">"The Factory object["</span> + <span class="hljs-keyword">this</span>.getClientId() + <span class="hljs-string">"] has been created before, and failed."</span>, <span class="hljs-keyword">null</span>);
+                   <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> MQClientException(<span class="hljs-string">&quot;The Factory object[&quot;</span> + <span class="hljs-keyword">this</span>.getClientId() + <span class="hljs-string">&quot;] has been created before, and failed.&quot;</span>, <span class="hljs-keyword">null</span>);
                <span class="hljs-keyword">default</span>:
                    <span class="hljs-keyword">break</span>;
            &#125;
@@ -336,7 +336,7 @@
                         String newAddr = addrList.get(index);
 
                         <span class="hljs-keyword">this</span>.namesrvAddrChoosed.set(newAddr);
-                        log.info(<span class="hljs-string">"new name server is chosen. OLD: &#123;&#125; , NEW: &#123;&#125;. namesrvIndex = &#123;&#125;"</span>, addr, newAddr, namesrvIndex);
+                        log.info(<span class="hljs-string">&quot;new name server is chosen. OLD: &#123;&#125; , NEW: &#123;&#125;. namesrvIndex = &#123;&#125;&quot;</span>, addr, newAddr, namesrvIndex);
                         Channel channelNew = <span class="hljs-keyword">this</span>.createChannel(newAddr);
                         <span class="hljs-keyword">if</span> (channelNew != <span class="hljs-keyword">null</span>) &#123;
                             <span class="hljs-keyword">return</span> channelNew;
@@ -344,7 +344,7 @@
                     &#125;
                 &#125;
             &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
-                log.error(<span class="hljs-string">"getAndCreateNameserverChannel: create name server channel exception"</span>, e);
+                log.error(<span class="hljs-string">&quot;getAndCreateNameserverChannel: create name server channel exception&quot;</span>, e);
             &#125; <span class="hljs-keyword">finally</span> &#123;
                 <span class="hljs-keyword">this</span>.lockNamesrvChannel.unlock();
             &#125;</code></pre>
@@ -374,11 +374,11 @@
 <li><p>单向(Oneway)发送：只负责发送消息，不等待服务器回应且没有回调函数触发，即只发送请求不等待应答。此方式发送消息的过程耗时非常短。但是对发送可靠性不作保障，比较适合像日志收集，应用埋点等需求。</p>
 </li>
 </ol>
-<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><pre><code>rmq也支持顺序消息，不过这种消息只限于将消息投递到某个topic下的一个message queue中，考虑到全局有序对性能影响较大具体可以参考[分布式开放消息系统(RocketMQ)的原理与实践](https://www.jianshu.com/p/453c6e7ff81c), 里面有一些，而在沈询之前讨论mq设计的视频中也说明过(详见[阿里分布式开放消息服务(ONS)原理与实践](http://i.youku.com/u/UMTcwMTg3NDc1Mg==?from=113-2-1-2))。此外rmq也支持发送批量消息，以官网为例：</code></pre><pre><code class="hljs java">String topic = <span class="hljs-string">"BatchTest"</span>;
+<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><pre><code>rmq也支持顺序消息，不过这种消息只限于将消息投递到某个topic下的一个message queue中，考虑到全局有序对性能影响较大具体可以参考[分布式开放消息系统(RocketMQ)的原理与实践](https://www.jianshu.com/p/453c6e7ff81c), 里面有一些，而在沈询之前讨论mq设计的视频中也说明过(详见[阿里分布式开放消息服务(ONS)原理与实践](http://i.youku.com/u/UMTcwMTg3NDc1Mg==?from=113-2-1-2))。此外rmq也支持发送批量消息，以官网为例：</code></pre><pre><code class="hljs java">String topic = <span class="hljs-string">&quot;BatchTest&quot;</span>;
 List&lt;Message&gt; messages = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
-messages.add(<span class="hljs-keyword">new</span> Message(topic, <span class="hljs-string">"TagA"</span>, <span class="hljs-string">"OrderID001"</span>, <span class="hljs-string">"Hello world 0"</span>.getBytes()));
-messages.add(<span class="hljs-keyword">new</span> Message(topic, <span class="hljs-string">"TagA"</span>, <span class="hljs-string">"OrderID002"</span>, <span class="hljs-string">"Hello world 1"</span>.getBytes()));
-messages.add(<span class="hljs-keyword">new</span> Message(topic, <span class="hljs-string">"TagA"</span>, <span class="hljs-string">"OrderID003"</span>, <span class="hljs-string">"Hello world 2"</span>.getBytes()));
+messages.add(<span class="hljs-keyword">new</span> Message(topic, <span class="hljs-string">&quot;TagA&quot;</span>, <span class="hljs-string">&quot;OrderID001&quot;</span>, <span class="hljs-string">&quot;Hello world 0&quot;</span>.getBytes()));
+messages.add(<span class="hljs-keyword">new</span> Message(topic, <span class="hljs-string">&quot;TagA&quot;</span>, <span class="hljs-string">&quot;OrderID002&quot;</span>, <span class="hljs-string">&quot;Hello world 1&quot;</span>.getBytes()));
+messages.add(<span class="hljs-keyword">new</span> Message(topic, <span class="hljs-string">&quot;TagA&quot;</span>, <span class="hljs-string">&quot;OrderID003&quot;</span>, <span class="hljs-string">&quot;Hello world 2&quot;</span>.getBytes()));
 <span class="hljs-keyword">try</span> &#123;
     producer.send(messages);
 &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
@@ -467,7 +467,7 @@ messages.add(<span class="hljs-keyword">new</span> Message(topic, <span class="h
 </tr>
 </tbody></table>
 <p>在发送时，设置：</p>
-<pre><code class="hljs java">Message message = <span class="hljs-keyword">new</span> Message(<span class="hljs-string">"TestTopic"</span>, (<span class="hljs-string">"Hello scheduled message"</span>).getBytes());
+<pre><code class="hljs java">Message message = <span class="hljs-keyword">new</span> Message(<span class="hljs-string">&quot;TestTopic&quot;</span>, (<span class="hljs-string">&quot;Hello scheduled message&quot;</span>).getBytes());
 msg.setDelayTimeLevel(level);</code></pre>
 
 <p>具体代码在org.apache.rocketmq.store.schedule.ScheduleMessageService的parseDelayLevel方法中，可见producer是不会对延时消息做任何处理，就像普通消息发送出去，在broker那再作处理。</p>
@@ -496,7 +496,7 @@ msg.setDelayTimeLevel(level);</code></pre>
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">

@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -370,9 +370,9 @@
 				dispatchException = ex;
 			&#125;
 			<span class="hljs-keyword">catch</span> (Throwable err) &#123;
-				<span class="hljs-comment">// As of 4.3, we're processing Errors thrown from handler methods as well,</span>
+				<span class="hljs-comment">// As of 4.3, we&#x27;re processing Errors thrown from handler methods as well,</span>
 				<span class="hljs-comment">// making them available for @ExceptionHandler methods and other scenarios.</span>
-				dispatchException = <span class="hljs-keyword">new</span> NestedServletException(<span class="hljs-string">"Handler dispatch failed"</span>, err);
+				dispatchException = <span class="hljs-keyword">new</span> NestedServletException(<span class="hljs-string">&quot;Handler dispatch failed&quot;</span>, err);
 			&#125;
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		&#125;
@@ -381,7 +381,7 @@
 		&#125;
 		<span class="hljs-keyword">catch</span> (Throwable err) &#123;
 			triggerAfterCompletion(processedRequest, response, mappedHandler,
-					<span class="hljs-keyword">new</span> NestedServletException(<span class="hljs-string">"Handler processing failed"</span>, err));
+					<span class="hljs-keyword">new</span> NestedServletException(<span class="hljs-string">&quot;Handler processing failed&quot;</span>, err));
 		&#125;
 	&#125;
 <span class="hljs-comment">// 在请求完成后会有对异常的检查和处理，由processDispatchResult方法的processHandlerException处理</span>
@@ -467,7 +467,7 @@
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">

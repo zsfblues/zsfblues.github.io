@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -182,7 +182,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      43
+      44
        分钟
     </span>
   
@@ -224,10 +224,11 @@
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> DEFAULT_CAPACITY = <span class="hljs-number">16</span>;
 <span class="hljs-comment">//分段锁的取值范围,必须为2的指数幂，便于通过键的hash值确定键在哪个区段</span>
 <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MIN_SEGMENT_TABLE_CAPACITY = <span class="hljs-number">2</span>;
-<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MAX_SEGMENTS = <span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">16</span>; <span class="hljs-comment">// slightly conservative</span></code></pre>
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MAX_SEGMENTS = <span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">16</span>; <span class="hljs-comment">// slightly conservative</span>
+</code></pre>
 
 <p>在ConcurrentHashMap中，开创性地使用了<strong>分段锁</strong>的概念，什么是分段锁？看下图：</p>
-<p><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/concurrenthashmap.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5t99aj30nm0mdjte.jpg" srcset="/img/loading.gif" alt="concurrenthashmap.png"></a></p>
+<p><a target="_blank" rel="noopener" href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/concurrenthashmap.png"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr5t99aj30nm0mdjte.jpg" srcset="/img/loading.gif" alt="concurrenthashmap.png"></a></p>
 <p>从图中可以看到，ConcurrentHashMap内部分为很多个Segment（继承ReentrantLock），每一个Segment拥有一把锁且管理一个HashEntry数组(本质就是一个哈希表)。对于一个key，需要经过三次hash操作，才能最终定位这个元素的位置，这三次hash分别为：</p>
 <blockquote>
 <p>对于一个key，先进行一次hash操作，得到hash值h1，也即h1 = key.hashCode()（如果key所属类型重写了hashCode方法，就调用具体的hashCode方法）；<br>将得到的h1的高几位与低几位进行异或运算得到hash值h2，也即h2 = hash2(h1高几位),通过h2能够确定该元素的放在哪个Segment；<br>将得到的h1进行第三次hash，得到hash值h3，也即h3 = hash3(h1)，通过h3能够确定该元素放置在哪个HashEntry。</p>
@@ -255,13 +256,15 @@
     h ^= (h &gt;&gt;&gt;  <span class="hljs-number">6</span>);
     h += (h &lt;&lt;   <span class="hljs-number">2</span>) + (h &lt;&lt; <span class="hljs-number">14</span>);
     <span class="hljs-keyword">return</span> h ^ (h &gt;&gt;&gt; <span class="hljs-number">16</span>);
-&#125;</code></pre>
+&#125;
+</code></pre>
 
 <p>源码中大意说此hash函数是用来解决传统的hash函数所带来的低效问题，因为一旦hash值化为二进制后，由于只与后几位进行位与运算，造成高位的hash值被掩盖从而使得较大数的hash值与较小数的hash值无异，举个例子：</p>
-<pre><code class="hljs java">System.out.println(Integer.parseInt(<span class="hljs-string">"0001111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
-System.out.println(Integer.parseInt(<span class="hljs-string">"0011111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
-System.out.println(Integer.parseInt(<span class="hljs-string">"0111111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
-System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);</code></pre>
+<pre><code class="hljs java">System.out.println(Integer.parseInt(<span class="hljs-string">&quot;0001111&quot;</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
+System.out.println(Integer.parseInt(<span class="hljs-string">&quot;0011111&quot;</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
+System.out.println(Integer.parseInt(<span class="hljs-string">&quot;0111111&quot;</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
+System.out.println(Integer.parseInt(<span class="hljs-string">&quot;1111111&quot;</span>, <span class="hljs-number">2</span>) &amp; <span class="hljs-number">15</span>);
+</code></pre>
 
 <p>由于15只有后四位是全1，因而对于相差32,64,128的数值而言与15的哈希值一样，这样碰撞的几率大增，因而多个线程仍有很大几率访问同一个segment，分段锁的优势也就荡然无存了，但是如果我们先把上例中的二进制数字使用hash()函数先进行一次预hash，得到的结果是这样的：</p>
 <blockquote>
@@ -391,7 +394,7 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
         <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
     &#125;</code></pre>
 
-<p>与put操作类似，都是通过key三次hash后确定其在哪个HashEntry，然后从某个HashEntry对象开始遍历寻找(相当于从链表头结点向下遍历),get方法是基于UNSAFE.getObjectVolatile原子操作，没有显示的使用锁（基于乐观锁，即失败就反复尝试），从而提高了吞吐量。这是由于统计当前Segement大小的count字段和用于存储值的HashEntry及其值value定义成volatile关键字修饰的变量，在java内存模型的happens-before规则下，对其写一定要优先于读，保证在多线程情况下，一个线程对值的修改立即对其它线程可见。但值得注意的是get方法是<strong>弱一致</strong>的，也就是你期望往ConcurrentHashMap底层数据结构中加入一个元素后，立马能对get可见，但ConcurrentHashMap并不能如你所愿。换句话说，put操作将一个元素加入到底层数据结构后，get可能在某段时间内还看不到这个元素。具体可参照<a href="http://ifeve.com/concurrenthashmap-weakly-consistent/" target="_blank" rel="noopener">为什么ConcurrentHashMap是弱一致的</a></p>
+<p>与put操作类似，都是通过key三次hash后确定其在哪个HashEntry，然后从某个HashEntry对象开始遍历寻找(相当于从链表头结点向下遍历),get方法是基于UNSAFE.getObjectVolatile原子操作，没有显示的使用锁（基于乐观锁，即失败就反复尝试），从而提高了吞吐量。这是由于统计当前Segement大小的count字段和用于存储值的HashEntry及其值value定义成volatile关键字修饰的变量，在java内存模型的happens-before规则下，对其写一定要优先于读，保证在多线程情况下，一个线程对值的修改立即对其它线程可见。但值得注意的是get方法是<strong>弱一致</strong>的，也就是你期望往ConcurrentHashMap底层数据结构中加入一个元素后，立马能对get可见，但ConcurrentHashMap并不能如你所愿。换句话说，put操作将一个元素加入到底层数据结构后，get可能在某段时间内还看不到这个元素。具体可参照<a target="_blank" rel="noopener" href="http://ifeve.com/concurrenthashmap-weakly-consistent/">为什么ConcurrentHashMap是弱一致的</a></p>
 <pre><code class="hljs java"><span class="hljs-comment">/**</span>
 <span class="hljs-comment">* The per-segment table. Elements are accessed via</span>
 <span class="hljs-comment">* entryAt/setEntryAt providing volatile semantics.</span>
@@ -415,7 +418,8 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
             <span class="hljs-keyword">this</span>.value = value;
             <span class="hljs-keyword">this</span>.next = next;
         &#125;
-&#125;</code></pre>
+&#125;
+</code></pre>
 
 <p><strong>size操作</strong> </p>
 <p>size操作与put和get操作最大的区别在于，size操作需要遍历所有的Segment才能算出整个Map的大小，而put和get都只关心一个Segment。假设我们当前遍历的Segment为SA，那么在遍历SA过程中其他的Segment比如SB可能会被修改，于是这一次运算出来的size值可能并不是Map当前的真正大小。所以一个比较简单的办法就是计算Map大小的时候所有的Segment都Lock住，不能更新(包含put，remove等等)数据，计算完之后再Unlock。这是普通人能够想到的方案，但是牛逼的作者还有一个更好的Idea：先给3次机会，不lock所有的Segment，遍历所有Segment，累加各个Segment的大小得到整个Map的大小，如果某相邻的两次计算获取的所有Segment的更新的次数（每个Segment都有一个modCount变量，这个变量在Segment中的Entry被修改时会加一，通过这个值可以得到每个Segment的更新操作的次数）是一样的，说明计算过程中没有更新操作，则直接返回这个值。如果这三次不加锁的计算过程中Map的更新次数有变化，则之后的计算先对所有的Segment加锁，再遍历所有Segment计算Map大小，最后再解锁所有Segment。源代码如下：</p>
@@ -427,7 +431,7 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
         <span class="hljs-keyword">boolean</span> overflow; <span class="hljs-comment">// true if size overflows 32 bits</span>
         <span class="hljs-keyword">long</span> sum;         <span class="hljs-comment">// sum of modCounts</span>
         <span class="hljs-keyword">long</span> last = <span class="hljs-number">0L</span>;   <span class="hljs-comment">// previous sum</span>
-        <span class="hljs-keyword">int</span> retries = -<span class="hljs-number">1</span>; <span class="hljs-comment">// first iteration isn't retry</span>
+        <span class="hljs-keyword">int</span> retries = -<span class="hljs-number">1</span>; <span class="hljs-comment">// first iteration isn&#x27;t retry</span>
         <span class="hljs-keyword">try</span> &#123;
             <span class="hljs-keyword">for</span> (;;) &#123;
                 <span class="hljs-keyword">if</span> (retries++ == RETRIES_BEFORE_LOCK) &#123;
@@ -464,7 +468,7 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
 <p>if (sum == last)<br>{break;}<br>last = sum;</p>
 </blockquote>
 <p>现在我们假定一共有4个segment，当第一次循环后他们所对应的modCount分别为2，4，4,8。则和为2+4+4+8=18，第二次循环后就变为3，4,5,9，和为3+4+5+9=21,由于与last不相等，故进行第三次循环并将last更新为21，如果第三次比较还与last不相等，那就别怪我太粗鲁了(锁全部segment)，类似的操作还有containsValue方法(containsKey方法则不用这么麻烦，因为key一旦确立则不可更改)</p>
-<p><strong>结语</strong><br>ConcurrentHashMap虽然作为一个相对高效的线程安全类，但其并不能保证使用了ConcurrentHashMap的操作都是线程安全的！很简单，比如用ConcurrentHashMap作两次put操作，只能保证单个put操作的原子性，但两次put操作并没有值依赖关系，依然会受指令重排序的影响(具体涉及Java内存模型的知识，可参照并发编程网的<a href="http://ifeve.com/java-memory-model-0/" target="_blank" rel="noopener">深入理解java内存模型</a>)<br>另外特别感谢<a href="http://qifuguang.me/2015/09/10/[Java%E5%B9%B6%E5%8F%91%E5%8C%85%E5%AD%A6%E4%B9%A0%E5%85%AB]%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90ConcurrentHashMap/" target="_blank" rel="noopener">此博文</a>对我的帮助，我的这篇文章借鉴了他的部分观点</p>
+<p><strong>结语</strong><br>ConcurrentHashMap虽然作为一个相对高效的线程安全类，但其并不能保证使用了ConcurrentHashMap的操作都是线程安全的！很简单，比如用ConcurrentHashMap作两次put操作，只能保证单个put操作的原子性，但两次put操作并没有值依赖关系，依然会受指令重排序的影响(具体涉及Java内存模型的知识，可参照并发编程网的<a target="_blank" rel="noopener" href="http://ifeve.com/java-memory-model-0/">深入理解java内存模型</a>)<br>另外特别感谢<a target="_blank" rel="noopener" href="http://qifuguang.me/2015/09/10/[Java%E5%B9%B6%E5%8F%91%E5%8C%85%E5%AD%A6%E4%B9%A0%E5%85%AB]%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90ConcurrentHashMap/">此博文</a>对我的帮助，我的这篇文章借鉴了他的部分观点</p>
 
             </div>
             <hr>
@@ -481,7 +485,7 @@ System.out.println(Integer.parseInt(<span class="hljs-string">"1111111"</span>, 
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">

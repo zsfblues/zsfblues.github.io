@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -227,14 +227,14 @@
 
 <pre><code>熟悉LinkedList的人都看出来这是一个用于构造双向链表的结点元素，其中before，after结点分别代表当前entry的前后结点，它是和其父类Node关联起来，一个Entry对应一个Node 先看看下面的程序：</code></pre><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
       LinkedHashMap&lt;String, Integer&gt; map = <span class="hljs-keyword">new</span> LinkedHashMap&lt;&gt;();
-      map.put(<span class="hljs-string">"2"</span>, <span class="hljs-number">1</span>);
-      map.put(<span class="hljs-string">"1"</span>, <span class="hljs-number">2</span>);
-      map.put(<span class="hljs-string">"0"</span>, <span class="hljs-number">3</span>);
-      map.put(<span class="hljs-string">"2"</span>, <span class="hljs-number">12</span>);
+      map.put(<span class="hljs-string">&quot;2&quot;</span>, <span class="hljs-number">1</span>);
+      map.put(<span class="hljs-string">&quot;1&quot;</span>, <span class="hljs-number">2</span>);
+      map.put(<span class="hljs-string">&quot;0&quot;</span>, <span class="hljs-number">3</span>);
+      map.put(<span class="hljs-string">&quot;2&quot;</span>, <span class="hljs-number">12</span>);
       map.put(<span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>);
       Set&lt;Map.Entry&lt;String, Integer&gt;&gt; keys = map.entrySet();
       <span class="hljs-keyword">for</span> (Map.Entry entry : keys)
-          System.out.println(<span class="hljs-string">"key: "</span> + entry.getKey() + <span class="hljs-string">" value: "</span> + entry.getValue());
+          System.out.println(<span class="hljs-string">&quot;key: &quot;</span> + entry.getKey() + <span class="hljs-string">&quot; value: &quot;</span> + entry.getValue());
   &#125;</code></pre>
 
 <p>接下来的是结果：</p>
@@ -367,7 +367,7 @@
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">

@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -256,7 +256,7 @@
 
 <ul>
 <li>encoding：value的编码类型，占用4bit(总计表达16种)。这里是Redis在不同type的value下仍能尽可能压缩内存的关键，比如OBJ_STRING就对应有OBJ_ENCODING_RAW，OBJ_ENCODING_INT和OBJ_ENCODING_EMBSTR三种不同类型</li>
-<li>lru：在lru中标识key的访问时间，通过此值与2^24^ 取模之后算出key的空闲时间；在lfu中用低16位标识访问时间，高8位标识访问次数</li>
+<li>lru：在lru中标识key的访问时间，通过此值与$2^{24}$ 取模之后算出key的空闲时间；在lfu中用低16位标识访问时间，高8位标识访问次数</li>
 <li>refcount：引用计数。它允许robj对象在某些情况下被共享。占用4bytes</li>
 <li>ptr：数据指针，占用8bytes</li>
 </ul>
@@ -330,10 +330,10 @@
     sh-&gt;alloc = len;
     sh-&gt;flags = SDS_TYPE_8;
     <span class="hljs-keyword">if</span> (ptr == SDS_NOINIT)
-        sh-&gt;buf[len] = <span class="hljs-string">'\0'</span>;
+        sh-&gt;buf[len] = <span class="hljs-string">&#x27;\0&#x27;</span>;
     <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ptr) &#123;
         <span class="hljs-built_in">memcpy</span>(sh-&gt;buf,ptr,len);
-        sh-&gt;buf[len] = <span class="hljs-string">'\0'</span>;
+        sh-&gt;buf[len] = <span class="hljs-string">&#x27;\0&#x27;</span>;
     &#125; <span class="hljs-keyword">else</span> &#123;
         <span class="hljs-built_in">memset</span>(sh-&gt;buf,<span class="hljs-number">0</span>,len+<span class="hljs-number">1</span>);
     &#125;
@@ -417,22 +417,22 @@
 <tr>
 <td>11000000(0xc0 | 0&lt;&lt;4)</td>
 <td>1个字节</td>
-<td>16bit存储(-2^15^ - (2^15^ -1))</td>
+<td>16bit存储($-2^{15}$$ - ($$2^{15}$ -1))</td>
 </tr>
 <tr>
 <td>11110000(0xc0 | 3&lt;&lt;4)</td>
 <td>1个字节</td>
-<td>24bit存储(-2^23^ - (2^23^ -1))</td>
+<td>24bit存储($-2^{23}$ - ($2^{23}$ -1))</td>
 </tr>
 <tr>
 <td>11010000(0xc0 | 1&lt;&lt;4)</td>
 <td>1个字节</td>
-<td>32bit存储(-2^31^ - (2^31^ -1))</td>
+<td>32bit存储($-2^{31}$ - ($2^{31}$ -1))</td>
 </tr>
 <tr>
 <td>11100000(0xc0 | 2&lt;&lt;4)</td>
 <td>1个字节</td>
-<td>64bit存储(-2^63^ - (2^63^ -1))</td>
+<td>64bit存储($-2^{63}$ - ($2^{63}$ -1))</td>
 </tr>
 <tr>
 <td>11110001 - 1111101</td>
@@ -449,9 +449,9 @@
 <li>entry1是一个字符串编码的节点类型，由于是第一个entry，所以prerawlen是0，占用1byte，内容是”xuanlin”共7个字符，占用7bytes，将ASCII码转成16进制就为encoding-data的内容，由于在63bytes以内，所以类型为ZIP_STR_06B(00xxxxxx)</li>
 <li>entry2是一个整数类型编码的节点类型，由于前一个entry总共占用9(1+1+7)个bytes，所以prerawlen是9，占用1byte，内容是”10”，介于0-12之间，所以为11111011，占用1byte，总共占用2bytes</li>
 </ol>
-<p>因此ziplist的整体长度就是4+4+2+9+2+1=22个字节，按照大端字节序存储就是0x16(<a href="https://www.ruanyifeng.com/blog/2016/11/byte-order.html" target="_blank" rel="noopener">关于字节序的类型说明</a> )，ztail就是(22-3=19)为0x13，</p>
+<p>因此ziplist的整体长度就是4+4+2+9+2+1=22个字节，按照大端字节序存储就是0x16(<a target="_blank" rel="noopener" href="https://www.ruanyifeng.com/blog/2016/11/byte-order.html">关于字节序的类型说明</a> )，ztail就是(22-3=19)为0x13，</p>
 <p>接下来以插入代码来讲解一下ziplist的工作流程(省略了一下内存拷贝的操作，无关主流程)：</p>
-<pre><code class="hljs c"><span class="hljs-comment">/* Insert item at "p". */</span>
+<pre><code class="hljs c"><span class="hljs-comment">/* Insert item at &quot;p&quot;. */</span>
 <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *__ziplistInsert(<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *zl, <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *p, <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *s, <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> slen) &#123;
     <span class="hljs-keyword">size_t</span> curlen = intrev32ifbe(ZIPLIST_BYTES(zl)), reqlen;
     <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> prevlensize, prevlen = <span class="hljs-number">0</span>;
@@ -541,7 +541,7 @@
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">
@@ -725,6 +725,45 @@
 
 
 
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.staticfile.org/mathjax/3.0.5/es5/tex-svg.js" ></script>
+
+  
 
 
 

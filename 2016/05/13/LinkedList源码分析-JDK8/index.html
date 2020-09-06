@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -218,7 +218,8 @@
               <pre><code class="hljs java"><span class="hljs-comment">//LinkedList类的关系类</span>
 <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LinkedList</span>&lt;<span class="hljs-title">E</span>&gt;</span>
 <span class="hljs-class">    <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractSequentialList</span>&lt;<span class="hljs-title">E</span>&gt;</span>
-<span class="hljs-class">    <span class="hljs-keyword">implements</span> <span class="hljs-title">List</span>&lt;<span class="hljs-title">E</span>&gt;, <span class="hljs-title">Deque</span>&lt;<span class="hljs-title">E</span>&gt;, <span class="hljs-title">Cloneable</span>, <span class="hljs-title">java</span>.<span class="hljs-title">io</span>.<span class="hljs-title">Serializable</span></span></code></pre>
+<span class="hljs-class">    <span class="hljs-keyword">implements</span> <span class="hljs-title">List</span>&lt;<span class="hljs-title">E</span>&gt;, <span class="hljs-title">Deque</span>&lt;<span class="hljs-title">E</span>&gt;, <span class="hljs-title">Cloneable</span>, <span class="hljs-title">java</span>.<span class="hljs-title">io</span>.<span class="hljs-title">Serializable</span></span>
+<span class="hljs-class"></span></code></pre>
 
 <p>LinkedList 是一个继承于AbstractSequentialList的双向环状链表。它也可以被当作堆栈、队列或双端队列进行操作<br>LinkedList 实现了Cloneable接口，即覆盖了函数clone()，能克隆。<br>LinkedList 实现java.io.Serializable接口，这意味着LinkedList支持序列化<br>LinkedList 是非同步的。</p>
 <p>下面我们来看看LinkedList集合的几个重要属性</p>
@@ -260,10 +261,11 @@
            l.next = newNode;
        size++;
        modCount++;
-   &#125;</code></pre>
+   &#125;
+</code></pre>
 
 <p>如下图：</p>
-<p><a href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/addlistnode.png" target="_blank" rel="noopener"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr52v6kj30og0egmxd.jpg" srcset="/img/loading.gif" alt="img"></a></p>
+<p><a target="_blank" rel="noopener" href="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/addlistnode.png"><img src="http://zsfblues.oss-cn-hangzhou.aliyuncs.com/blog/006HiYd9ly1g09qr52v6kj30og0egmxd.jpg" srcset="/img/loading.gif" alt="img"></a></p>
 <p><strong>addAll添加全部某个集合的所有元素作为列表的结点</strong></p>
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">addAll</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index, Collection&lt;? extends E&gt; c)</span> </span>&#123;
     checkPositionIndex(index);
@@ -280,7 +282,7 @@
         pred = succ.prev;
     &#125;
     <span class="hljs-keyword">for</span> (Object o : a) &#123;
-        <span class="hljs-meta">@SuppressWarnings</span>(<span class="hljs-string">"unchecked"</span>) E e = (E) o;
+        <span class="hljs-meta">@SuppressWarnings(&quot;unchecked&quot;)</span> E e = (E) o;
         Node&lt;E&gt; newNode = <span class="hljs-keyword">new</span> Node&lt;&gt;(pred, e, <span class="hljs-keyword">null</span>);
         <span class="hljs-keyword">if</span> (pred == <span class="hljs-keyword">null</span>)
             first = newNode;
@@ -346,7 +348,8 @@
     first = last = <span class="hljs-keyword">null</span>;
     size = <span class="hljs-number">0</span>;
     modCount++;
-&#125;</code></pre>
+&#125;
+</code></pre>
 
 <p>关于LinkedList，还有一个比较特别的迭代器DescendingIterator，它是基于双端队列的一个迭代器，允许从后往前开始遍历，并且提供了获取下一个元素以及删除元素的功能。另外值得注意的是由于LinkedList是一个非线程安全的集合，是的它的的迭代器具有fail-fast(快速失效)的特征，具体表现就是不允许多个线程对集合进行修改，也不允许当一个线程遍历元素时，另一个线程对其进行修改，否则会抛出ConcurrentModificationException(并发修改异常)，这是由一个叫modCount的变量控制的，具体在我关于ConcurrentHashMap的博文中也提到了 </p>
 
@@ -365,7 +368,7 @@
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">

@@ -52,7 +52,7 @@
 
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.1.1"></head>
 
 
 <body>
@@ -221,9 +221,9 @@
 <p>String作为最知名的不可变，不可继承对象(主要怕破坏其不变性，基本所有的不可变对象都不可继承)：在初始化后其值就不可更改，如果企图对其进行修改的话，会重新创建一个String对象，并将原来的String对象指向新对象，具体的话以下列的程序来讲解：</p>
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span></span>
 <span class="hljs-function"></span>&#123;
-   String s1 = <span class="hljs-string">"java1"</span>;
-   String s2 = <span class="hljs-string">"java1"</span>;
-   s1 = s1 + <span class="hljs-string">""</span>;
+   String s1 = <span class="hljs-string">&quot;java1&quot;</span>;
+   String s2 = <span class="hljs-string">&quot;java1&quot;</span>;
+   s1 = s1 + <span class="hljs-string">&quot;&quot;</span>;
    
    System.out.println(s1 == s2);
 &#125;</code></pre>
@@ -236,11 +236,12 @@
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span></span>
 <span class="hljs-function"> </span>&#123;
      String s1;
-     <span class="hljs-keyword">final</span> String s = <span class="hljs-string">""</span>;
-     String s2 = <span class="hljs-string">"java1"</span>;
-     s1 = <span class="hljs-string">"java1"</span> + s;
+     <span class="hljs-keyword">final</span> String s = <span class="hljs-string">&quot;&quot;</span>;
+     String s2 = <span class="hljs-string">&quot;java1&quot;</span>;
+     s1 = <span class="hljs-string">&quot;java1&quot;</span> + s;
      System.out.println(s1 == s2);
- &#125;</code></pre>
+ &#125;
+</code></pre>
 
 <p>结果将变成true<br>上面的变化主要使用final关键字修饰了一下String变量。当final变量是基本数据类型以及String类型时，如果在编译期间能知道它的确切值，则编译器会把它当做编译期常量使用。也就是说在用到该final变量的地方，相当于直接访问的这个常量，不需要在运行时确定。更近一步说，java编译器会将到其对应的常量池中查找该对象的引用(基本数据类型是对应的封装类型，String则对应堆中的字符串常量池(从1.7已经移到堆中))</p>
 <p><strong>创建</strong><br>创建字符串的方式很多，归纳起来有三类：<br>(一).使用new关键字创建字符串，比如String s1 = new String(“abc”);<br>(二).直接指定。比如String s2 = “abc”;<br>(三).使用串联生成新的字符串。比如String s3 = “ab” + “c”;<br>第一种会在堆中直接创建一个字符串对象，而第二、三种则会先尝试到常量池查找，没找到才创建。<br>对于new关键字进行字符串对象创建，Java API提供了很多种构造函数，方式更加灵活多变</p>
@@ -250,7 +251,7 @@
 
 <p>从上可以看出StringBuilder继承AbstractStringBuilder类，它也是StringBuilder实现可变性的关键。至于CharSequence，它提供了字符序列的有序访问，比如charAt方法和subSequence方法。 StringBuilder和String的最大区别就在于其是可变的，并且API与StringBuffer兼容，但不保证线程安全，因而在单线程情况下有更好的性能 StringBuilder的核心函数就是append()和insert()。接下来主要讲解它们。 append()：主要就是对于字符串进行追加操作，无论是调用构造函数还是直接调用append函数，都会直接或间接调用append函数，其底层调用的就是AbstractStringBuilder的append函数</p>
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> AbstractStringBuilder <span class="hljs-title">append</span><span class="hljs-params">(CharSequence s)</span> </span>&#123;
-       <span class="hljs-comment">//s为null，直接在StringBuilder后追加"null"字符串</span>
+       <span class="hljs-comment">//s为null，直接在StringBuilder后追加&quot;null&quot;字符串</span>
        <span class="hljs-keyword">if</span> (str == <span class="hljs-keyword">null</span>)
           <span class="hljs-keyword">return</span> appendNull();
        <span class="hljs-keyword">int</span> len = str.length();
@@ -286,7 +287,7 @@
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span></span>
 <span class="hljs-function"></span>&#123;
      StringBuilder  sb = <span class="hljs-keyword">new</span> StringBuilder();
-     sb.append(<span class="hljs-keyword">new</span> Object() + <span class="hljs-string">""</span>);
+     sb.append(<span class="hljs-keyword">new</span> Object() + <span class="hljs-string">&quot;&quot;</span>);
 &#125;</code></pre>
 
 <p>当写出上面那段代码后，IDE提示有性能问题,这主要是因为在调用append过程中由于发现了隐式的类型转换，会存在append函数的链式调用问题，通过源码调试可以发现，其主要经历了以下过程：</p>
@@ -299,7 +300,7 @@
        <span class="hljs-keyword">if</span> ((offset &lt; <span class="hljs-number">0</span>) || (offset &gt; length()))
            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> StringIndexOutOfBoundsException(offset);
        <span class="hljs-keyword">if</span> (str == <span class="hljs-keyword">null</span>)
-           str = <span class="hljs-string">"null"</span>;
+           str = <span class="hljs-string">&quot;null&quot;</span>;
        <span class="hljs-keyword">int</span> len = str.length();
        ensureCapacityInternal(count + len);
        <span class="hljs-comment">//将offset之后的字符保存至[offset + len, count + len]区间</span>
@@ -329,7 +330,7 @@
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
               
               
                 <div class="post-prevnext row">
